@@ -29,9 +29,13 @@ public class AuthenticationService {
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(username, password);
 
-        var authenticatedUser =
-                authenticationManager.authenticate(authentication);
-
+        org.springframework.security.core.Authentication authenticatedUser;
+        try {
+            authenticatedUser = authenticationManager.authenticate(authentication);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
         BankUserDetails userDetails =
                 (BankUserDetails) authenticatedUser.getPrincipal();
 
@@ -50,5 +54,7 @@ public class AuthenticationService {
                 "Bearer",
                 3600L
         );
+
+
     }
 }

@@ -13,6 +13,6 @@ class BankOneApplicationTests {
 
     @Test
     void contextLoads() {
-        System.out.println(passwordEncoder.encode("admin123"));
+        System.out.println(passwordEncoder.encode("password"));
     }
 }

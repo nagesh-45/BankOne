@@ -1,0 +1,47 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <h1>BankOne</h1>
+    <p>Enterprise Banking System</p>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Username</mat-label>
+      <input
+        matInput
+        [(ngModel)]="username"
+        placeholder="Enter username">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Password</mat-label>
+
+      <input
+        matInput
+        [(ngModel)]="password"
+        [type]="hidePassword ? 'password' : 'text'"
+        placeholder="Enter password">
+
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        (click)="hidePassword = !hidePassword">
+
+        <mat-icon>
+          {{ hidePassword ? 'visibility' : 'visibility_off' }}
+        </mat-icon>
+
+      </button>
+    </mat-form-field>
+
+    <mat-checkbox [(ngModel)]="rememberMe">
+      Remember Me
+    </mat-checkbox>
+
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="login()">
+      Login
+    </button>
+  </mat-card>
+</div>
