@@ -9,6 +9,7 @@ import com.bankone.account.util.AccountNumberGenerator;
 import com.bankone.customer.entity.Customer;
 import com.bankone.customer.repository.CustomerRepository;
 import com.bankone.account.enums.AccountStatus;
+import com.bankone.account.entity.AccountPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +19,9 @@ import java.util.Optional;
 
 @Service
 public class AccountServiceImpl implements AccountService {
-
+    private final AccountPolicyRepository accountPolicyRepository;
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
-    private final AccountPolicyRepository accountPolicyRepository;
     private final AccountNumberGenerator accountNumberGenerator;
 
     @Autowired
@@ -43,6 +43,39 @@ public class AccountServiceImpl implements AccountService {
             throw new IllegalArgumentException("Customer not found");
         }
         Customer customer = customerOpt.get();
+
+        // Validate account policy
+        AccountPolicy policy = accountPolicyRepository
+                .findByAccountTypeAndCurrencyCodeAndActiveTrue(
+                        request.getAccountType(),
+                        request.getCurrencyCode())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No active account policy found for "
+                                + request.getAccountType()
+                                + " / "
+                                + request.getCurrencyCode()));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (policy.getEffectiveFrom().isAfter(now)) {
+            throw new IllegalArgumentException("Account policy is not yet effective");
+        }
+
+        if (policy.getEffectiveTo() != null && policy.getEffectiveTo().isBefore(now)) {
+            throw new IllegalArgumentException("Account policy has expired");
+        }
+
+        if (Boolean.TRUE.equals(policy.getOpeningDepositRequired())) {
+
+            if (request.getOpeningDeposit() == null) {
+                throw new IllegalArgumentException("Opening deposit is required");
+            }
+
+            if (request.getOpeningDeposit().compareTo(policy.getRequiredOpeningDeposit()) < 0) {
+                throw new IllegalArgumentException(
+                        "Minimum opening deposit is " + policy.getRequiredOpeningDeposit());
+            }
+        }
 
         // Get next ordinal for account
         Long ordinal = accountRepository.getNextOrdinal();
@@ -69,14 +102,34 @@ public class AccountServiceImpl implements AccountService {
         } catch (NumberFormatException e) {
             account.setCheckDigit(0);
         }
-        account.setAvailableBalance(BigDecimal.ZERO);
-        account.setLedgerBalance(BigDecimal.ZERO);
+        BigDecimal openingDeposit = request.getOpeningDeposit() == null
+        ? BigDecimal.ZERO
+        : request.getOpeningDeposit();
+
+account.setAvailableBalance(openingDeposit);
+account.setLedgerBalance(openingDeposit);
+         openingDeposit = request.getOpeningDeposit() == null
+        ? BigDecimal.ZERO
+        : request.getOpeningDeposit();
+
+account.setAvailableBalance(openingDeposit);
+account.setLedgerBalance(openingDeposit);
         account.setStatus(AccountStatus.ACTIVE.name());
         account.setCreatedAt(LocalDateTime.now());
         account.setCreatedBy(request.getCreatedBy());
         account.setCustomer(customer);
-        account.setAvailableBalance(BigDecimal.ZERO);
-        account.setLedgerBalance(BigDecimal.ZERO);
+         openingDeposit = request.getOpeningDeposit() == null
+        ? BigDecimal.ZERO
+        : request.getOpeningDeposit();
+
+account.setAvailableBalance(openingDeposit);
+account.setLedgerBalance(openingDeposit);
+         openingDeposit = request.getOpeningDeposit() == null
+        ? BigDecimal.ZERO
+        : request.getOpeningDeposit();
+
+account.setAvailableBalance(openingDeposit);
+account.setLedgerBalance(openingDeposit);
 
         account.setDebitCount(0);
         account.setCreditCount(0);

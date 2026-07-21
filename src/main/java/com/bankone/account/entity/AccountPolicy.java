@@ -2,6 +2,7 @@ package com.bankone.account.entity;
 
 import com.bankone.account.enums.AccountType;
 import com.bankone.account.enums.CurrencyCode;
+import com.bankone.common.entity.AuditableEntity;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
                 )
         }
 )
-public class AccountPolicy {
+public class AccountPolicy extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,16 +48,6 @@ public class AccountPolicy {
     private LocalDateTime effectiveFrom;
 
     private LocalDateTime effectiveTo;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private String createdBy;
-
-    private LocalDateTime updatedAt;
-
-    private String updatedBy;
 
     public AccountPolicy() {
     }
@@ -133,35 +124,7 @@ public class AccountPolicy {
         this.effectiveTo = effectiveTo;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
 
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getUpdatedBy() {
-        return updatedBy;
-    }
-
-    public void setUpdatedBy(String updatedBy) {
-        this.updatedBy = updatedBy;
-    }
 }
