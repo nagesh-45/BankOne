@@ -1,4 +1,4 @@
-package com.bankone.customer;
+package com.bankone.customer.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

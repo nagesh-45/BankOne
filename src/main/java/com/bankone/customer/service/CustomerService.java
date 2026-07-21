@@ -1,4 +1,6 @@
-package com.bankone.customer;
+package com.bankone.customer.service;
+
+import com.bankone.customer.entity.Customer;
 
 import java.util.List;
 

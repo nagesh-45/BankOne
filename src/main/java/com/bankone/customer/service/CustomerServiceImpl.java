@@ -1,11 +1,11 @@
-package com.bankone.customer;
+package com.bankone.customer.service;
 
 import com.bankone.common.exception.ResourceNotFoundException;
-import lombok.Setter;
+import com.bankone.customer.entity.Customer;
+import com.bankone.customer.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {

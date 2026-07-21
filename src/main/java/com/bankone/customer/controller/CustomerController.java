@@ -1,5 +1,7 @@
-package com.bankone.customer;
+package com.bankone.customer.controller;
 
+import com.bankone.customer.service.CustomerService;
+import com.bankone.customer.entity.Customer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
