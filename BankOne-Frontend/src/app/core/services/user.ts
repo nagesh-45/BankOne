@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { AppUser } from '../models/app-user';
 import { CreateUserRequest } from '../models/create-user-request';
+import { PagedResponse } from '../models/paged-response';
 
 @Injectable({
   providedIn: 'root'
@@ -12,9 +13,13 @@ export class UserService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = 'http://localhost:8080/users';
 
-  getEmployees(search = ''): Observable<AppUser[]> {
-    const params = new HttpParams().set('search', search);
-    return this.http.get<AppUser[]>(this.baseUrl, { params });
+  getEmployees(search = '', page = 0, size = 10): Observable<PagedResponse<AppUser>> {
+    const params = new HttpParams()
+      .set('search', search)
+      .set('page', page)
+      .set('size', size);
+
+    return this.http.get<PagedResponse<AppUser>>(this.baseUrl, { params });
   }
 
   createUser(request: CreateUserRequest): Observable<AppUser> {

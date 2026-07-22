@@ -10,15 +10,18 @@ import { catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
 
 import { Account } from '../../../core/models/account';
 import { Customer } from '../../../core/models/customer';
+import { PagedResponse } from '../../../core/models/paged-response';
 import { AccountService } from '../../../core/services/account';
 import { CustomerService } from '../../../core/services/customer';
 import { Notification } from '../../../core/services/notification';
+import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
+import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
 import { AccountStatusDialog } from '../account-status-dialog/account-status-dialog';
 
 type DetailState = {
   state: 'loading' | 'loaded' | 'error';
   customer: Customer | null;
-  accounts: Account[];
+  accountsPage: PagedResponse<Account> | null;
 };
 
 @Component({
@@ -30,7 +33,9 @@ type DetailState = {
     RouterLink,
     MatButtonModule,
     MatCardModule,
-    MatIconModule
+    MatIconModule,
+    ListPagination,
+    BusinessIdPipe
   ],
   templateUrl: './customer-detail.html',
   styleUrl: './customer-detail.scss'
@@ -42,36 +47,40 @@ export class CustomerDetail {
   private readonly notification = inject(Notification);
   private readonly dialog = inject(MatDialog);
 
+  readonly pageIndex = signal(0);
+  readonly pageSize = signal(10);
   private readonly reloadTick = signal(0);
 
   private readonly detailResponse = toSignal(
     combineLatest([
       this.route.paramMap.pipe(map((params) => Number(params.get('id')))),
+      toObservable(this.pageIndex),
+      toObservable(this.pageSize),
       toObservable(this.reloadTick)
     ]).pipe(
-      switchMap(([customerId]) => {
+      switchMap(([customerId, page, size]) => {
         if (!customerId || Number.isNaN(customerId)) {
           return of<DetailState>({
             state: 'error',
             customer: null,
-            accounts: []
+            accountsPage: null
           });
         }
 
         return this.customerService.getCustomerById(customerId).pipe(
           switchMap((customer) =>
-            this.accountService.getAccountsByCustomer(customerId).pipe(
-              map((accounts) => ({
+            this.accountService.getAccountsByCustomer(customerId, page, size).pipe(
+              map((accountsPage) => ({
                 state: 'loaded' as const,
                 customer,
-                accounts
+                accountsPage
               })),
               catchError((error) => {
                 console.error('Failed to load accounts', error);
                 return of<DetailState>({
                   state: 'loaded',
                   customer,
-                  accounts: []
+                  accountsPage: null
                 });
               })
             )
@@ -79,14 +88,14 @@ export class CustomerDetail {
           startWith<DetailState>({
             state: 'loading',
             customer: null,
-            accounts: []
+            accountsPage: null
           }),
           catchError((error) => {
             console.error('Failed to load customer', error);
             return of<DetailState>({
               state: 'error',
               customer: null,
-              accounts: []
+              accountsPage: null
             });
           })
         );
@@ -96,15 +105,30 @@ export class CustomerDetail {
       initialValue: {
         state: 'loading',
         customer: null,
-        accounts: []
+        accountsPage: null
       } satisfies DetailState
     }
   );
 
   readonly customer = computed(() => this.detailResponse()?.customer ?? null);
-  readonly accounts = computed(() => this.detailResponse()?.accounts ?? []);
+  readonly accounts = computed(() => this.detailResponse()?.accountsPage?.content ?? []);
+  readonly totalAccounts = computed(
+    () => this.detailResponse()?.accountsPage?.totalElements ?? 0
+  );
+  readonly totalPages = computed(
+    () => this.detailResponse()?.accountsPage?.totalPages ?? 0
+  );
   readonly isLoading = computed(() => this.detailResponse()?.state === 'loading');
   readonly hasError = computed(() => this.detailResponse()?.state === 'error');
+
+  changePage(page: number): void {
+    this.pageIndex.set(page);
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize.set(size);
+    this.pageIndex.set(0);
+  }
 
   addLoanAccount(): void {
     const customer = this.customer();

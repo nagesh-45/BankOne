@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <h1>Employees</h1>
-      <p>Search by ID, name, username, email, or access.</p>
+      <p>Search by ID (E00001), name, username, email, or access.</p>
     </div>
 
     <div class="page-actions">
@@ -55,7 +55,7 @@
         <table class="employee-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>Employee ID</th>
               <th>Name</th>
               <th>Username</th>
               <th>Email</th>
@@ -66,7 +66,7 @@
           <tbody>
             @for (employee of employees(); track employee.userId) {
               <tr>
-                <td>#{{ employee.userId }}</td>
+                <td>{{ employee.employeeCode || (employee.userId | businessId:'E') }}</td>
                 <td>{{ employee.firstName }} {{ employee.lastName }}</td>
                 <td>{{ employee.username }}</td>
                 <td>{{ employee.email }}</td>
@@ -83,6 +83,15 @@
           </tbody>
         </table>
       </div>
+
+      <app-list-pagination
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [totalElements]="totalEmployees()"
+        [totalPages]="totalPages()"
+        (pageIndexChange)="changePage($event)"
+        (pageSizeChange)="changePageSize($event)">
+      </app-list-pagination>
     }
   </mat-card>
 </section>

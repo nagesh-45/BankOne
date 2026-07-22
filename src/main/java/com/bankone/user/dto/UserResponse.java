@@ -5,6 +5,7 @@ import java.util.List;
 public class UserResponse {
 
     private Long userId;
+    private String employeeCode;
     private String username;
     private String firstName;
     private String lastName;
@@ -17,6 +18,7 @@ public class UserResponse {
 
     public UserResponse(
             Long userId,
+            String employeeCode,
             String username,
             String firstName,
             String lastName,
@@ -25,6 +27,7 @@ public class UserResponse {
             List<String> roles
     ) {
         this.userId = userId;
+        this.employeeCode = employeeCode;
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -39,6 +42,14 @@ public class UserResponse {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getEmployeeCode() {
+        return employeeCode;
+    }
+
+    public void setEmployeeCode(String employeeCode) {
+        this.employeeCode = employeeCode;
     }
 
     public String getUsername() {

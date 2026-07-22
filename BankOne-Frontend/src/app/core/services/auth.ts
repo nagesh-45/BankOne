@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { LoginRequest } from '../models/login-request';
 import { LoginResponse } from '../models/login-response';
 import { UserProfile } from '../models/user-profile';
+import { DashboardService } from './dashboard.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +14,7 @@ import { UserProfile } from '../models/user-profile';
 export class Auth {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly dashboardService = inject(DashboardService);
 
   private readonly baseUrl = 'http://localhost:8080/auth';
   private readonly accessTokenKey = 'accessToken';
@@ -129,6 +131,7 @@ export class Auth {
 
   logout(): void {
     this.clearSession();
+    this.dashboardService.clearCache();
     this.router.navigate(['/']);
   }
 

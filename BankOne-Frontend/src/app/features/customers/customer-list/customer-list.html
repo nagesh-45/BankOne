@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <h1>Customers</h1>
-      <p>Search by ID, name, email, or phone number.</p>
+      <p>Search by ID (C00001), name, email, or phone number.</p>
     </div>
 
     <div class="page-actions">
@@ -57,7 +57,7 @@
         <table class="customer-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>Customer ID</th>
               <th>Name</th>
               <th>Phone</th>
               <th>Email</th>
@@ -68,7 +68,7 @@
           <tbody>
             @for (customer of customers(); track customer.customerId) {
               <tr class="clickable-row" (click)="openCustomer(customer)">
-                <td>#{{ customer.customerId }}</td>
+                <td>{{ customer.customerCode || (customer.customerId | businessId:'C') }}</td>
                 <td>{{ customer.firstName }} {{ customer.lastName }}</td>
                 <td>{{ customer.phoneNumber }}</td>
                 <td>{{ customer.email }}</td>
@@ -81,6 +81,15 @@
           </tbody>
         </table>
       </div>
+
+      <app-list-pagination
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [totalElements]="totalCustomers()"
+        [totalPages]="totalPages()"
+        (pageIndexChange)="changePage($event)"
+        (pageSizeChange)="changePageSize($event)">
+      </app-list-pagination>
     }
   </mat-card>
 </section>

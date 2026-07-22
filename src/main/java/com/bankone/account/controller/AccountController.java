@@ -4,6 +4,9 @@ import com.bankone.account.dto.AccountResponse;
 import com.bankone.account.dto.OpenAccountRequest;
 import com.bankone.account.dto.UpdateAccountStatusRequest;
 import com.bankone.account.service.AccountService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,9 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/accounts")
@@ -33,10 +35,13 @@ public class AccountController {
     }
 
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<AccountResponse>> getAccountsByCustomer(
-            @PathVariable Long customerId
+    public ResponseEntity<Page<AccountResponse>> getAccountsByCustomer(
+            @PathVariable Long customerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(accountService.getAccountsByCustomerId(customerId));
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
+        return ResponseEntity.ok(accountService.getAccountsByCustomerId(customerId, pageable));
     }
 
     @PutMapping("/{accountId}/status")

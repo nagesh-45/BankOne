@@ -1,5 +1,6 @@
 export interface UserProfile {
   userId: number;
+  employeeCode?: string;
   username: string;
   firstName: string;
   lastName: string;

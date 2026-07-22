@@ -19,7 +19,10 @@ import {
 
 import { Auth } from '../../../core/services/auth';
 import { Customer } from '../../../core/models/customer';
+import { PagedResponse } from '../../../core/models/paged-response';
 import { CustomerService } from '../../../core/services/customer';
+import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
+import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
 import { CustomerCreateDialog } from '../customer-create-dialog/customer-create-dialog';
 
 @Component({
@@ -29,7 +32,9 @@ import { CustomerCreateDialog } from '../customer-create-dialog/customer-create-
     FormsModule,
     MatButtonModule,
     MatCardModule,
-    MatIconModule
+    MatIconModule,
+    ListPagination,
+    BusinessIdPipe
   ],
   templateUrl: './customer-list.html',
   styleUrl: './customer-list.scss',
@@ -43,6 +48,8 @@ export class CustomerList {
   readonly canCreateCustomer = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE']);
 
   readonly searchTerm = signal('');
+  readonly pageIndex = signal(0);
+  readonly pageSize = signal(10);
   private readonly reloadTick = signal(0);
 
   private readonly customerResponse = toSignal(
@@ -51,23 +58,25 @@ export class CustomerList {
         debounceTime(250),
         distinctUntilChanged()
       ),
+      toObservable(this.pageIndex),
+      toObservable(this.pageSize),
       toObservable(this.reloadTick)
     ]).pipe(
-      switchMap(([search]) =>
-        this.customerService.getCustomers(search.trim()).pipe(
+      switchMap(([search, page, size]) =>
+        this.customerService.getCustomers(search.trim(), page, size).pipe(
           map((response) => ({
             state: 'loaded' as const,
             response
           })),
           startWith({
             state: 'loading' as const,
-            response: null
+            response: null as PagedResponse<Customer> | null
           }),
           catchError((error) => {
             console.error('Failed to load customers', error);
             return of({
               state: 'error' as const,
-              response: null
+              response: null as PagedResponse<Customer> | null
             });
           })
         )
@@ -76,20 +85,33 @@ export class CustomerList {
     {
       initialValue: {
         state: 'loading' as const,
-        response: null
+        response: null as PagedResponse<Customer> | null
       }
     }
   );
 
   readonly customers = computed(() => this.customerResponse().response?.content ?? []);
   readonly totalCustomers = computed(
-    () => this.customerResponse().response?.totalElements ?? this.customers().length
+    () => this.customerResponse().response?.totalElements ?? 0
+  );
+  readonly totalPages = computed(
+    () => this.customerResponse().response?.totalPages ?? 0
   );
   readonly isLoading = computed(() => this.customerResponse().state === 'loading');
   readonly hasError = computed(() => this.customerResponse().state === 'error');
 
   updateSearch(value: string): void {
+    this.pageIndex.set(0);
     this.searchTerm.set(value);
+  }
+
+  changePage(page: number): void {
+    this.pageIndex.set(page);
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize.set(size);
+    this.pageIndex.set(0);
   }
 
   openCustomer(customer: Customer): void {

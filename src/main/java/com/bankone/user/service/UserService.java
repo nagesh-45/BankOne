@@ -2,6 +2,7 @@ package com.bankone.user.service;
 
 import com.bankone.common.exception.BadRequestException;
 import com.bankone.common.exception.ConflictException;
+import com.bankone.common.util.BusinessIdFormatter;
 import com.bankone.role.entity.Role;
 import com.bankone.role.repository.RoleRepository;
 import com.bankone.user.dto.CreateUserRequest;
@@ -10,6 +11,9 @@ import com.bankone.user.entity.User;
 import com.bankone.user.entity.UserRole;
 import com.bankone.user.repository.UserRepository;
 import com.bankone.user.repository.UserRoleRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,10 +90,10 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponse> getEmployees(String search) {
+    public Page<UserResponse> getEmployees(String search, Pageable pageable) {
         String term = search == null ? "" : search.trim().toLowerCase();
 
-        return userRepository.findAll().stream()
+        List<UserResponse> filtered = userRepository.findAll().stream()
                 .map(user -> {
                     List<String> roles = userRoleRepository.findByUserWithRole(user).stream()
                             .filter(userRole -> Boolean.TRUE.equals(userRole.getActive()))
@@ -101,6 +105,14 @@ public class UserService {
                         .anyMatch(role -> "ADMIN".equals(role) || "EMPLOYEE".equals(role) || "MANAGER".equals(role)))
                 .filter(response -> matchesSearch(response, term))
                 .toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<UserResponse> content = start >= filtered.size()
+                ? List.of()
+                : filtered.subList(start, end);
+
+        return new PageImpl<>(content, pageable, filtered.size());
     }
 
     private boolean matchesSearch(UserResponse response, String term) {
@@ -108,7 +120,15 @@ public class UserService {
             return true;
         }
 
+        Long codedId = BusinessIdFormatter.parseEmployeeId(term);
+        if (codedId != null) {
+            return codedId.equals(response.getUserId());
+        }
+
         String userId = response.getUserId() == null ? "" : response.getUserId().toString();
+        String employeeCode = response.getEmployeeCode() == null
+                ? ""
+                : response.getEmployeeCode().toLowerCase();
         String fullName = ((response.getFirstName() == null ? "" : response.getFirstName()) + " "
                 + (response.getLastName() == null ? "" : response.getLastName())).toLowerCase();
         String username = response.getUsername() == null ? "" : response.getUsername().toLowerCase();
@@ -116,6 +136,7 @@ public class UserService {
         String access = String.join(" ", response.getRoles()).toLowerCase();
 
         return userId.contains(term)
+                || employeeCode.contains(term)
                 || fullName.contains(term)
                 || username.contains(term)
                 || email.contains(term)
@@ -125,6 +146,7 @@ public class UserService {
     private UserResponse toResponse(User user, List<String> roles) {
         return new UserResponse(
                 user.getUserId(),
+                BusinessIdFormatter.employeeCode(user.getUserId()),
                 user.getUsername(),
                 user.getFirstName(),
                 user.getLastName(),

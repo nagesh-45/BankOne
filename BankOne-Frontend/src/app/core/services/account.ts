@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Account } from '../models/account';
+import { PagedResponse } from '../models/paged-response';
 
 export interface OpenAccountRequest {
   customerId: number;
@@ -20,8 +21,19 @@ export class AccountService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = 'http://localhost:8080/accounts';
 
-  getAccountsByCustomer(customerId: number): Observable<Account[]> {
-    return this.http.get<Account[]>(`${this.baseUrl}/customer/${customerId}`);
+  getAccountsByCustomer(
+    customerId: number,
+    page = 0,
+    size = 10
+  ): Observable<PagedResponse<Account>> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    return this.http.get<PagedResponse<Account>>(
+      `${this.baseUrl}/customer/${customerId}`,
+      { params }
+    );
   }
 
   openAccount(request: OpenAccountRequest): Observable<Account> {

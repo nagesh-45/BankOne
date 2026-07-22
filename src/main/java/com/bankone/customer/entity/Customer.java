@@ -1,11 +1,14 @@
 package com.bankone.customer.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+
+import com.bankone.common.util.BusinessIdFormatter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +22,11 @@ public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long customerId;
+
+    @JsonProperty("customerCode")
+    public String getCustomerCode() {
+        return BusinessIdFormatter.customerCode(customerId);
+    }
 
     @NotBlank
     @Size(max = 50)

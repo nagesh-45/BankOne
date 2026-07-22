@@ -3,6 +3,8 @@ package com.bankone.account.repository;
 import com.bankone.account.entity.Account;
 import com.bankone.account.enums.AccountStatus;
 import com.bankone.customer.entity.Customer;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -18,6 +20,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     List<Account> findByCustomer(Customer customer);
 
     List<Account> findByCustomerCustomerId(Long customerId);
+
+    Page<Account> findByCustomerCustomerId(Long customerId, Pageable pageable);
 
     List<Account> findByStatus(AccountStatus status);
 

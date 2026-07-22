@@ -1,6 +1,6 @@
-
 package com.bankone.customer.specification;
 
+import com.bankone.common.util.BusinessIdFormatter;
 import com.bankone.customer.entity.Customer;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -17,7 +17,14 @@ public final class CustomerSpecification {
                 return criteriaBuilder.conjunction();
             }
 
-            String value = "%" + search.toLowerCase() + "%";
+            String trimmed = search.trim();
+            Long codedId = BusinessIdFormatter.parseCustomerId(trimmed);
+
+            if (codedId != null) {
+                return criteriaBuilder.equal(root.get("customerId"), codedId);
+            }
+
+            String value = "%" + trimmed.toLowerCase() + "%";
 
             return criteriaBuilder.or(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), value),

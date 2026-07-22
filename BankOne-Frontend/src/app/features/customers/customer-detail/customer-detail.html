@@ -8,7 +8,7 @@
 
       @if (customer(); as customer) {
         <h1>{{ customer.firstName }} {{ customer.lastName }}</h1>
-        <p>Customer #{{ customer.customerId }}</p>
+        <p>Customer {{ customer.customerCode || (customer.customerId | businessId:'C') }}</p>
       } @else if (isLoading()) {
         <h1>Customer details</h1>
         <p>Loading customer...</p>
@@ -65,7 +65,7 @@
         <div>
           <h2>Accounts</h2>
           <p class="record-count">
-            {{ accounts().length }} account{{ accounts().length === 1 ? '' : 's' }}
+            {{ totalAccounts() }} account{{ totalAccounts() === 1 ? '' : 's' }}
           </p>
         </div>
         <button
@@ -123,6 +123,15 @@
             </tbody>
           </table>
         </div>
+
+        <app-list-pagination
+          [pageIndex]="pageIndex()"
+          [pageSize]="pageSize()"
+          [totalElements]="totalAccounts()"
+          [totalPages]="totalPages()"
+          (pageIndexChange)="changePage($event)"
+          (pageSizeChange)="changePageSize($event)">
+        </app-list-pagination>
       }
     </mat-card>
   }

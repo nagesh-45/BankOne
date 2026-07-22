@@ -30,8 +30,8 @@
       <h2>Account details</h2>
       <div class="info-grid">
         <div>
-          <span class="label">User ID</span>
-          <span class="value">#{{ user.userId }}</span>
+          <span class="label">Employee ID</span>
+          <span class="value">{{ user.employeeCode || (user.userId | businessId:'E') }}</span>
         </div>
         <div>
           <span class="label">Username</span>

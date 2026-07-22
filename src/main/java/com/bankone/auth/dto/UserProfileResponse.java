@@ -6,6 +6,7 @@ import java.util.List;
 public class UserProfileResponse {
 
     private Long userId;
+    private String employeeCode;
     private String username;
     private String firstName;
     private String lastName;
@@ -19,6 +20,7 @@ public class UserProfileResponse {
 
     public UserProfileResponse(
             Long userId,
+            String employeeCode,
             String username,
             String firstName,
             String lastName,
@@ -28,6 +30,7 @@ public class UserProfileResponse {
             LocalDateTime lastLogin
     ) {
         this.userId = userId;
+        this.employeeCode = employeeCode;
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -43,6 +46,14 @@ public class UserProfileResponse {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getEmployeeCode() {
+        return employeeCode;
+    }
+
+    public void setEmployeeCode(String employeeCode) {
+        this.employeeCode = employeeCode;
     }
 
     public String getUsername() {

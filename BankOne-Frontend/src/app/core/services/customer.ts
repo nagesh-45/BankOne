@@ -13,7 +13,7 @@ export class CustomerService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = 'http://localhost:8080/customers';
 
-  getCustomers(search = '', page = 0, size = 25): Observable<PagedResponse<Customer>> {
+  getCustomers(search = '', page = 0, size = 10): Observable<PagedResponse<Customer>> {
     const params = new HttpParams()
       .set('search', search)
       .set('page', page)

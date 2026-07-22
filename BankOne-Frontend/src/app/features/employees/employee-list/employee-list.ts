@@ -16,7 +16,11 @@ import {
   switchMap
 } from 'rxjs';
 
+import { AppUser } from '../../../core/models/app-user';
+import { PagedResponse } from '../../../core/models/paged-response';
 import { UserService } from '../../../core/services/user';
+import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
+import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
 import { UserCreateDialog } from '../user-create-dialog/user-create-dialog';
 
 @Component({
@@ -26,7 +30,9 @@ import { UserCreateDialog } from '../user-create-dialog/user-create-dialog';
     FormsModule,
     MatButtonModule,
     MatCardModule,
-    MatIconModule
+    MatIconModule,
+    ListPagination,
+    BusinessIdPipe
   ],
   templateUrl: './employee-list.html',
   styleUrl: './employee-list.scss'
@@ -36,6 +42,8 @@ export class EmployeeList {
   private readonly dialog = inject(MatDialog);
 
   readonly searchTerm = signal('');
+  readonly pageIndex = signal(0);
+  readonly pageSize = signal(10);
   private readonly reloadTick = signal(0);
 
   private readonly employeeResponse = toSignal(
@@ -44,23 +52,25 @@ export class EmployeeList {
         debounceTime(250),
         distinctUntilChanged()
       ),
+      toObservable(this.pageIndex),
+      toObservable(this.pageSize),
       toObservable(this.reloadTick)
     ]).pipe(
-      switchMap(([search]) =>
-        this.userService.getEmployees(search.trim()).pipe(
-          map((employees) => ({
+      switchMap(([search, page, size]) =>
+        this.userService.getEmployees(search.trim(), page, size).pipe(
+          map((response) => ({
             state: 'loaded' as const,
-            employees
+            response
           })),
           startWith({
             state: 'loading' as const,
-            employees: []
+            response: null as PagedResponse<AppUser> | null
           }),
           catchError((error) => {
             console.error('Failed to load employees', error);
             return of({
               state: 'error' as const,
-              employees: []
+              response: null as PagedResponse<AppUser> | null
             });
           })
         )
@@ -69,18 +79,33 @@ export class EmployeeList {
     {
       initialValue: {
         state: 'loading' as const,
-        employees: []
+        response: null as PagedResponse<AppUser> | null
       }
     }
   );
 
-  readonly employees = computed(() => this.employeeResponse().employees);
-  readonly totalEmployees = computed(() => this.employees().length);
+  readonly employees = computed(() => this.employeeResponse().response?.content ?? []);
+  readonly totalEmployees = computed(
+    () => this.employeeResponse().response?.totalElements ?? 0
+  );
+  readonly totalPages = computed(
+    () => this.employeeResponse().response?.totalPages ?? 0
+  );
   readonly isLoading = computed(() => this.employeeResponse().state === 'loading');
   readonly hasError = computed(() => this.employeeResponse().state === 'error');
 
   updateSearch(value: string): void {
+    this.pageIndex.set(0);
     this.searchTerm.set(value);
+  }
+
+  changePage(page: number): void {
+    this.pageIndex.set(page);
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize.set(size);
+    this.pageIndex.set(0);
   }
 
   openCreateUser(): void {

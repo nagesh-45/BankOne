@@ -1,7 +1,27 @@
-<h1>Dashboard</h1>
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Overview of BankOne activity. Use refresh to update counts.</p>
+  </div>
+
+  <button
+    mat-stroked-button
+    type="button"
+    class="refresh-btn"
+    [disabled]="isLoading()"
+    (click)="refresh()">
+    <mat-icon [class.spin]="isLoading()">refresh</mat-icon>
+    {{ isLoading() ? 'Refreshing...' : 'Refresh' }}
+  </button>
+</div>
+
+@if (hasError() && !summary()) {
+  <div class="state-message error-message">
+    Unable to load dashboard right now. Try refresh.
+  </div>
+}
 
 <div class="stats">
-
   <app-stat-card
     title="Customers"
     [value]="(summary()?.customerCount ?? 0).toString()"
@@ -27,5 +47,4 @@
     [value]="(summary()?.todayTransactionCount ?? 0).toString()"
     icon="payments">
   </app-stat-card>
-
 </div>

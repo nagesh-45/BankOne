@@ -32,9 +32,9 @@ public class CustomerController {
     public Page<Customer> getCustomers(
             @RequestParam(defaultValue = "") String search,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "25") int size) {
+            @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
         return customerService.searchCustomers(search, pageable);
     }
 

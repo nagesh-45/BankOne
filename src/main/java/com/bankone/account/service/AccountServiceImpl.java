@@ -12,6 +12,8 @@ import com.bankone.customer.repository.CustomerRepository;
 import com.bankone.account.enums.AccountStatus;
 import com.bankone.account.entity.AccountPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -155,6 +157,16 @@ account.setLedgerBalance(openingDeposit);
         return accountRepository.findByCustomerCustomerId(customerId).stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Override
+    public Page<AccountResponse> getAccountsByCustomerId(Long customerId, Pageable pageable) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new IllegalArgumentException("Customer not found");
+        }
+
+        return accountRepository.findByCustomerCustomerId(customerId, pageable)
+                .map(this::toResponse);
     }
 
     @Override

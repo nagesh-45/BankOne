@@ -8,6 +8,7 @@ import { catchError, map, of, startWith } from 'rxjs';
 
 import { Auth } from '../../core/services/auth';
 import { UserProfile } from '../../core/models/user-profile';
+import { BusinessIdPipe } from '../../core/pipes/business-id.pipe';
 
 @Component({
   selector: 'app-profile',
@@ -16,7 +17,8 @@ import { UserProfile } from '../../core/models/user-profile';
     RouterLink,
     MatButtonModule,
     MatCardModule,
-    MatIconModule
+    MatIconModule,
+    BusinessIdPipe
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss'

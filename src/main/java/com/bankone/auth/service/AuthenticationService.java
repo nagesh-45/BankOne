@@ -13,6 +13,7 @@ import com.bankone.auth.dto.ChangePasswordRequest;
 import com.bankone.auth.dto.LoginResponse;
 import com.bankone.auth.dto.UserProfileResponse;
 import com.bankone.common.exception.BadRequestException;
+import com.bankone.common.util.BusinessIdFormatter;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -105,6 +106,7 @@ public class AuthenticationService {
 
         return new UserProfileResponse(
                 user.getUserId(),
+                BusinessIdFormatter.employeeCode(user.getUserId()),
                 user.getUsername(),
                 user.getFirstName(),
                 user.getLastName(),

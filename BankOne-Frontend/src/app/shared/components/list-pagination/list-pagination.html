@@ -1,0 +1,42 @@
+@if (showControls) {
+  <div class="list-pagination">
+    <div class="page-info">
+      Showing {{ from }}–{{ to }} of {{ totalElements }}
+    </div>
+
+    <div class="page-controls">
+      <label class="size-label">
+        Rows
+        <select
+          [ngModel]="pageSize"
+          (ngModelChange)="onPageSizeChange($event)">
+          @for (option of pageSizeOptions; track option) {
+            <option [ngValue]="option">{{ option }}</option>
+          }
+        </select>
+      </label>
+
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="pageIndex === 0"
+        (click)="previous()">
+        <mat-icon>chevron_left</mat-icon>
+        Prev
+      </button>
+
+      <span class="page-number">
+        Page {{ pageIndex + 1 }} / {{ totalPages || 1 }}
+      </span>
+
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="pageIndex + 1 >= totalPages"
+        (click)="next()">
+        Next
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+}
