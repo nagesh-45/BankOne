@@ -38,6 +38,9 @@ public class UserRole extends AuditableEntity {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    @Column(name = "role_name", nullable = false, length = 50)
+    private String roleName;
+
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 }

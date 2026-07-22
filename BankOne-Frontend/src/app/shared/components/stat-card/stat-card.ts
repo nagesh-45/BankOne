@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -7,7 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
   standalone: true,
   imports: [
     MatCardModule,
-    MatIconModule
+    MatIconModule,
+    RouterLink
   ],
   templateUrl: './stat-card.html',
   styleUrl: './stat-card.scss'
@@ -17,22 +19,16 @@ export class StatCard {
   @Input()
   title = '';
 
-  private _value = '';
-
   @Input()
-  set value(value: string) {
-    console.log('StatCard received value:', value);
-    this._value = value;
-  }
-
-  get value(): string {
-    return this._value;
-  }
+  value = '';
 
   @Input()
   icon = '';
 
   @Input()
   color = '#1565C0';
+
+  @Input()
+  link: string | null = null;
 
 }

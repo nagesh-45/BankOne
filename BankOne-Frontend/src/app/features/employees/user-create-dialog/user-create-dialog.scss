@@ -1,0 +1,38 @@
+.helper-text {
+  margin: 0 0 16px;
+  color: #6b7280;
+}
+
+.type-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 520px;
+  padding-top: 8px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .create-form {
+    min-width: 0;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

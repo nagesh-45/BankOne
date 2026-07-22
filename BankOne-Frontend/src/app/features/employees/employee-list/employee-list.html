@@ -1,0 +1,88 @@
+<section class="employee-page">
+  <div class="page-header">
+    <div>
+      <h1>Employees</h1>
+      <p>Search by ID, name, username, email, or access.</p>
+    </div>
+
+    <div class="page-actions">
+      <button
+        mat-flat-button
+        type="button"
+        class="create-button"
+        (click)="openCreateUser()">
+        <mat-icon>person_add</mat-icon>
+        Create User
+      </button>
+
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input
+          type="search"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="updateSearch($event)"
+          placeholder="Search employees...">
+        @if (searchTerm()) {
+          <button
+            mat-icon-button
+            type="button"
+            class="clear-btn"
+            aria-label="Clear search"
+            (click)="updateSearch('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <mat-card class="table-card">
+    @if (!isLoading() && !hasError()) {
+      <div class="record-count">
+        {{ totalEmployees() }} employee{{ totalEmployees() === 1 ? '' : 's' }}
+      </div>
+    }
+    @if (isLoading()) {
+      <div class="state-message">Loading employees...</div>
+    } @else if (hasError()) {
+      <div class="state-message error-message">
+        Unable to load employees right now.
+      </div>
+    } @else if (employees().length === 0) {
+      <div class="state-message">No employees found for this search.</div>
+    } @else {
+      <div class="table-wrapper">
+        <table class="employee-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Access</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (employee of employees(); track employee.userId) {
+              <tr>
+                <td>#{{ employee.userId }}</td>
+                <td>{{ employee.firstName }} {{ employee.lastName }}</td>
+                <td>{{ employee.username }}</td>
+                <td>{{ employee.email }}</td>
+                <td>
+                  <span class="access-chip">{{ accessLabel(employee.roles) }}</span>
+                </td>
+                <td>
+                  <span class="status-chip">
+                    {{ employee.enabled ? 'Enabled' : 'Disabled' }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+</section>

@@ -18,6 +18,7 @@ public class RoleInitializer {
     public void initializeRoles() {
         createRole("ADMIN", "System Administrator");
         createRole("MANAGER", "Branch Manager");
+        createRole("EMPLOYEE", "Bank Employee with normal access");
         createRole("TELLER", "Bank Teller");
         createRole("AUDITOR", "System Auditor");
         createRole("CUSTOMER", "Bank Customer");

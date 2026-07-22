@@ -1,16 +1,16 @@
 .sidebar {
   height: 100%;
-  background: #1E293B;
-  color: #FFFFFF;
+  background: #0b1f3a;
+  color: #ffffff;
   padding: 16px 0;
 }
 
-h2 {
-  color: #FFFFFF;
-  text-align: center;
-  margin: 0 0 24px;
-  font-size: 28px;
-  font-weight: 700;
+.brand-wrap {
+  display: flex;
+  justify-content: flex-start;
+  padding: 8px 20px 20px;
+  border-bottom: 1px solid rgba(248, 250, 252, 0.1);
+  margin-bottom: 12px;
 }
 
 mat-nav-list {
@@ -18,23 +18,23 @@ mat-nav-list {
 }
 
 a[mat-list-item] {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
   border-radius: 10px;
   margin-bottom: 8px;
 }
 
 a[mat-list-item] mat-icon {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 a[mat-list-item] span {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 a[mat-list-item]:hover {
-  background: #334155;
+  background: #1e3a5f;
 }
 
 .active {
-  background: #2563EB !important;
+  background: #1d4ed8 !important;
 }

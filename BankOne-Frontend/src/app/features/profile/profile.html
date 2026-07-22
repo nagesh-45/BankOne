@@ -1,0 +1,85 @@
+<section class="profile-page">
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p>View your account details and manage security.</p>
+  </div>
+
+  @if (isLoading()) {
+    <mat-card class="section-card">
+      <div class="state-message">Loading profile...</div>
+    </mat-card>
+  } @else if (hasError() || !profile()) {
+    <mat-card class="section-card">
+      <div class="state-message error-message">Unable to load profile right now.</div>
+    </mat-card>
+  } @else {
+    @let user = profile()!;
+
+    <mat-card class="section-card identity-card">
+      <div class="avatar" aria-hidden="true">
+        {{ fullName(user).charAt(0).toUpperCase() }}
+      </div>
+      <div>
+        <h2>{{ fullName(user) }}</h2>
+        <p class="username">@{{ user.username }}</p>
+        <span class="role-chip">{{ roleLabel(user.roles) }}</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="section-card">
+      <h2>Account details</h2>
+      <div class="info-grid">
+        <div>
+          <span class="label">User ID</span>
+          <span class="value">#{{ user.userId }}</span>
+        </div>
+        <div>
+          <span class="label">Username</span>
+          <span class="value">{{ user.username }}</span>
+        </div>
+        <div>
+          <span class="label">First name</span>
+          <span class="value">{{ user.firstName || '—' }}</span>
+        </div>
+        <div>
+          <span class="label">Last name</span>
+          <span class="value">{{ user.lastName || '—' }}</span>
+        </div>
+        <div class="full-width">
+          <span class="label">Email</span>
+          <span class="value">{{ user.email || '—' }}</span>
+        </div>
+        <div>
+          <span class="label">Status</span>
+          <span class="value">{{ user.enabled ? 'Enabled' : 'Disabled' }}</span>
+        </div>
+        <div>
+          <span class="label">Last login</span>
+          <span class="value">{{ formatDate(user.lastLogin) }}</span>
+        </div>
+        <div class="full-width">
+          <span class="label">Roles</span>
+          <span class="value">{{ user.roles.join(', ') || '—' }}</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="section-card security-card">
+      <div class="security-row">
+        <div class="security-copy">
+          <h2>Security</h2>
+          <p class="section-hint">Change your password to keep your BankOne account secure.</p>
+        </div>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="reset-password-btn"
+          routerLink="/app/profile/password">
+          <mat-icon>lock_reset</mat-icon>
+          Reset password
+        </button>
+      </div>
+    </mat-card>
+  }
+</section>

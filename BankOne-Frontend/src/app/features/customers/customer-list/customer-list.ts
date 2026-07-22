@@ -1,9 +1,112 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import {
+  catchError,
+  combineLatest,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  of,
+  startWith,
+  switchMap
+} from 'rxjs';
+
+import { Auth } from '../../../core/services/auth';
+import { Customer } from '../../../core/models/customer';
+import { CustomerService } from '../../../core/services/customer';
+import { CustomerCreateDialog } from '../customer-create-dialog/customer-create-dialog';
 
 @Component({
   selector: 'app-customer-list',
-  imports: [],
+  standalone: true,
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule
+  ],
   templateUrl: './customer-list.html',
   styleUrl: './customer-list.scss',
 })
-export class CustomerList {}
+export class CustomerList {
+  private readonly auth = inject(Auth);
+  private readonly customerService = inject(CustomerService);
+  private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
+
+  readonly canCreateCustomer = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE']);
+
+  readonly searchTerm = signal('');
+  private readonly reloadTick = signal(0);
+
+  private readonly customerResponse = toSignal(
+    combineLatest([
+      toObservable(this.searchTerm).pipe(
+        debounceTime(250),
+        distinctUntilChanged()
+      ),
+      toObservable(this.reloadTick)
+    ]).pipe(
+      switchMap(([search]) =>
+        this.customerService.getCustomers(search.trim()).pipe(
+          map((response) => ({
+            state: 'loaded' as const,
+            response
+          })),
+          startWith({
+            state: 'loading' as const,
+            response: null
+          }),
+          catchError((error) => {
+            console.error('Failed to load customers', error);
+            return of({
+              state: 'error' as const,
+              response: null
+            });
+          })
+        )
+      )
+    ),
+    {
+      initialValue: {
+        state: 'loading' as const,
+        response: null
+      }
+    }
+  );
+
+  readonly customers = computed(() => this.customerResponse().response?.content ?? []);
+  readonly totalCustomers = computed(
+    () => this.customerResponse().response?.totalElements ?? this.customers().length
+  );
+  readonly isLoading = computed(() => this.customerResponse().state === 'loading');
+  readonly hasError = computed(() => this.customerResponse().state === 'error');
+
+  updateSearch(value: string): void {
+    this.searchTerm.set(value);
+  }
+
+  openCustomer(customer: Customer): void {
+    this.router.navigate(['/app/customers', customer.customerId]);
+  }
+
+  openCreateCustomer(): void {
+    const dialogRef = this.dialog.open(CustomerCreateDialog, {
+      width: '640px',
+      maxWidth: '95vw',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe((created) => {
+      if (created) {
+        this.reloadTick.update((tick) => tick + 1);
+      }
+    });
+  }
+}

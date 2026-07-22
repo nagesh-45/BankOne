@@ -1,7 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
+import { catchError, of } from 'rxjs';
 import { StatCard } from '../../shared/components/stat-card/stat-card';
 
+import { Auth } from '../../core/services/auth';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { DashboardSummary } from '../../core/models/dashboard-summary';
 
@@ -15,23 +18,21 @@ import { DashboardSummary } from '../../core/models/dashboard-summary';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
-export class Dashboard implements OnInit {
+export class Dashboard {
 
   private readonly dashboardService = inject(DashboardService);
+  private readonly auth = inject(Auth);
 
-  summary?: DashboardSummary;
+  readonly canAccessCustomers = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE', 'MANAGER']);
+  readonly canAccessEmployees = this.auth.hasAnyRole(['ADMIN']);
 
-  ngOnInit(): void {
-    this.dashboardService.getDashboardSummary().subscribe({
-      next: (response) => {
-        console.log('Dashboard response:', response);
-        console.log('Customer count:', response.customerCount);
-        this.summary = response;
-        console.log('Summary after assignment:', this.summary);
-      },
-      error: (error) => {
+  readonly summary = toSignal(
+    this.dashboardService.getDashboardSummary().pipe(
+      catchError((error) => {
         console.error('Failed to load dashboard summary', error);
-      }
-    });
-  }
+        return of(null);
+      })
+    ),
+    { initialValue: null as DashboardSummary | null }
+  );
 }

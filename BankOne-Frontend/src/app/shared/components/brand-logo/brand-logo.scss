@@ -1,0 +1,113 @@
+.brand-logo {
+  --brand-ink: #0b1f3a;
+  --brand-muted: #64748b;
+  --brand-accent: #c9a227;
+  --mark-size: 36px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  user-select: none;
+}
+
+.brand-logo[data-theme='dark'],
+.brand-logo[data-theme='on-primary'] {
+  --brand-ink: #f8fafc;
+  --brand-muted: #cbd5e1;
+}
+
+.brand-logo[data-size='sm'] {
+  --mark-size: 28px;
+  gap: 10px;
+}
+
+.brand-logo[data-size='md'] {
+  --mark-size: 36px;
+}
+
+.brand-logo[data-size='lg'] {
+  --mark-size: 52px;
+  gap: 14px;
+}
+
+.brand-logo[data-size='xl'] {
+  --mark-size: 72px;
+  gap: 16px;
+  flex-direction: column;
+  text-align: center;
+}
+
+.mark {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: var(--mark-size);
+  height: var(--mark-size);
+}
+
+.mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 22%;
+  box-shadow: 0 8px 20px rgba(11, 31, 58, 0.18);
+}
+
+.brand-logo[data-theme='dark'] .mark svg,
+.brand-logo[data-theme='on-primary'] .mark svg {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  line-height: 1.1;
+}
+
+.brand-logo[data-size='xl'] .copy {
+  align-items: center;
+}
+
+.wordmark {
+  font-family: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  font-weight: 600;
+  font-size: calc(var(--mark-size) * 0.58);
+  letter-spacing: -0.02em;
+  color: var(--brand-ink);
+}
+
+.accent {
+  color: var(--brand-accent);
+  font-weight: 700;
+}
+
+.brand-logo[data-theme='on-primary'] .accent,
+.brand-logo[data-theme='dark'] .accent {
+  color: #f0d78c;
+}
+
+.tagline {
+  margin-top: 4px;
+  font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--brand-muted);
+}
+
+.brand-logo[data-size='xl'] .tagline {
+  margin-top: 8px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+.brand-logo[data-size='sm'] .wordmark {
+  font-size: 18px;
+}
+
+.brand-logo[data-size='md'] .wordmark {
+  font-size: 22px;
+}

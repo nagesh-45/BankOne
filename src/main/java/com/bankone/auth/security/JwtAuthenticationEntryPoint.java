@@ -25,7 +25,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         response.getWriter().write("""
 {
-  "message": "Invalid username or password"
+  "message": "Authentication required"
 }
 """);
     }

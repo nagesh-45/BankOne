@@ -1,0 +1,129 @@
+<section class="customer-detail-page">
+  <div class="page-header">
+    <div>
+      <a routerLink="/app/customers" class="back-link">
+        <mat-icon>arrow_back</mat-icon>
+        Back to customers
+      </a>
+
+      @if (customer(); as customer) {
+        <h1>{{ customer.firstName }} {{ customer.lastName }}</h1>
+        <p>Customer #{{ customer.customerId }}</p>
+      } @else if (isLoading()) {
+        <h1>Customer details</h1>
+        <p>Loading customer...</p>
+      } @else {
+        <h1>Customer not found</h1>
+        <p>Unable to load this customer.</p>
+      }
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <mat-card class="section-card">
+      <div class="state-message">Loading customer details...</div>
+    </mat-card>
+  } @else if (hasError() || !customer()) {
+    <mat-card class="section-card">
+      <div class="state-message error-message">
+        Unable to load customer details right now.
+      </div>
+    </mat-card>
+  } @else {
+    <mat-card class="section-card">
+      <h2>Customer information</h2>
+      <div class="info-grid">
+        <div>
+          <span class="label">Email</span>
+          <strong>{{ customer()!.email }}</strong>
+        </div>
+        <div>
+          <span class="label">Phone</span>
+          <strong>{{ customer()!.phoneNumber }}</strong>
+        </div>
+        <div>
+          <span class="label">Status</span>
+          <strong>
+            <span class="status-chip">{{ customer()!.status }}</span>
+          </strong>
+        </div>
+        <div>
+          <span class="label">Date of birth</span>
+          <strong>
+            {{ customer()!.dateOfBirth ? (customer()!.dateOfBirth | date: 'mediumDate') : '—' }}
+          </strong>
+        </div>
+        <div class="full-width">
+          <span class="label">Address</span>
+          <strong>{{ customer()!.address }}</strong>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="section-card">
+      <div class="accounts-header">
+        <div>
+          <h2>Accounts</h2>
+          <p class="record-count">
+            {{ accounts().length }} account{{ accounts().length === 1 ? '' : 's' }}
+          </p>
+        </div>
+        <button
+          mat-flat-button
+          type="button"
+          (click)="addLoanAccount()">
+          <mat-icon>account_balance</mat-icon>
+          Add Loan Account
+        </button>
+      </div>
+
+      @if (accounts().length === 0) {
+        <div class="state-message">No accounts linked to this customer.</div>
+      } @else {
+        <div class="table-wrapper">
+          <table class="account-table">
+            <thead>
+              <tr>
+                <th>Account number</th>
+                <th>Type</th>
+                <th>Branch</th>
+                <th>Currency</th>
+                <th>Available balance</th>
+                <th>Status</th>
+                <th>Opened</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (account of accounts(); track account.accountId) {
+                <tr>
+                  <td>{{ account.accountNumber }}</td>
+                  <td>{{ account.accountType }}</td>
+                  <td>{{ account.branchCode }}</td>
+                  <td>{{ account.currencyCode }}</td>
+                  <td>
+                    {{ account.availableBalance | currency: account.currencyCode:'symbol':'1.2-2' }}
+                  </td>
+                  <td>
+                    <span class="status-chip">{{ account.status }}</span>
+                  </td>
+                  <td>{{ account.createdAt | date: 'mediumDate' }}</td>
+                  <td>
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      class="edit-button"
+                      (click)="editAccountStatus(account)">
+                      <mat-icon>edit</mat-icon>
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </mat-card>
+  }
+</section>

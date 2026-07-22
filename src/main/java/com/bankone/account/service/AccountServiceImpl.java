@@ -3,6 +3,7 @@ package com.bankone.account.service;
 import com.bankone.account.entity.Account;
 import com.bankone.account.dto.OpenAccountRequest;
 import com.bankone.account.dto.AccountResponse;
+import com.bankone.account.dto.UpdateAccountStatusRequest;
 import com.bankone.account.repository.AccountRepository;
 import com.bankone.account.repository.AccountPolicyRepository;
 import com.bankone.account.util.AccountNumberGenerator;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -141,11 +143,52 @@ account.setLedgerBalance(openingDeposit);
 
         account.setCustomer(customer);
         Account savedAccount = accountRepository.save(account);
+        return toResponse(savedAccount);
+    }
 
-        // Build AccountResponse
+    @Override
+    public List<AccountResponse> getAccountsByCustomerId(Long customerId) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new IllegalArgumentException("Customer not found");
+        }
+
+        return accountRepository.findByCustomerCustomerId(customerId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    public AccountResponse updateAccountStatus(Long accountId, UpdateAccountStatusRequest request) {
+        if (request == null || request.getStatus() == null) {
+            throw new IllegalArgumentException("Account status is required");
+        }
+
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+
+        AccountStatus newStatus = request.getStatus();
+        account.setStatus(newStatus.name());
+
+        if (newStatus == AccountStatus.CLOSED) {
+            account.setClosedAt(LocalDateTime.now());
+            account.setClosedBy("SYSTEM");
+        } else {
+            account.setClosedAt(null);
+            account.setClosedBy(null);
+        }
+
+        if (newStatus == AccountStatus.ACTIVE && account.getActivatedAt() == null) {
+            account.setActivatedAt(LocalDateTime.now());
+        }
+
+        return toResponse(accountRepository.save(account));
+    }
+
+    private AccountResponse toResponse(Account savedAccount) {
         AccountResponse response = new AccountResponse();
         response.setAccountId(savedAccount.getAccountId());
         response.setAccountNumber(savedAccount.getAccountNumber());
+        response.setBranchCode(savedAccount.getBranchCode());
         response.setAccountType(savedAccount.getAccountType());
         response.setOrdinal(savedAccount.getOrdinal());
         response.setCurrencyCode(savedAccount.getCurrencyCode());
@@ -156,7 +199,9 @@ account.setLedgerBalance(openingDeposit);
         response.setCreatedAt(savedAccount.getCreatedAt());
         response.setActivatedAt(savedAccount.getActivatedAt());
         response.setCreatedBy(savedAccount.getCreatedBy());
-        response.setCustomerId(savedAccount.getCustomer().getCustomerId());
+        if (savedAccount.getCustomer() != null) {
+            response.setCustomerId(savedAccount.getCustomer().getCustomerId());
+        }
         return response;
     }
 }

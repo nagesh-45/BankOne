@@ -1,47 +1,61 @@
 <div class="login-container">
   <mat-card class="login-card">
-    <h1>BankOne</h1>
-    <p>Enterprise Banking System</p>
+    <div class="brand-block">
+      <app-brand-logo
+        size="xl"
+        theme="light"
+        tagline="Enterprise Banking">
+      </app-brand-logo>
+    </div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Username</mat-label>
-      <input
-        matInput
-        [(ngModel)]="username"
-        placeholder="Enter username">
-    </mat-form-field>
+    <form (ngSubmit)="login()">
+      <mat-form-field appearance="outline">
+        <mat-label>Username</mat-label>
+        <input
+          matInput
+          name="username"
+          [(ngModel)]="username"
+          autocomplete="username"
+          placeholder="Enter username"
+          required>
+      </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Password</mat-label>
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
 
-      <input
-        matInput
-        [(ngModel)]="password"
-        [type]="hidePassword ? 'password' : 'text'"
-        placeholder="Enter password">
+        <input
+          matInput
+          name="password"
+          [(ngModel)]="password"
+          [type]="hidePassword ? 'password' : 'text'"
+          autocomplete="current-password"
+          placeholder="Enter password"
+          required>
+
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="hidePassword = !hidePassword">
+
+          <mat-icon>
+            {{ hidePassword ? 'visibility' : 'visibility_off' }}
+          </mat-icon>
+
+        </button>
+      </mat-form-field>
+
+      <mat-checkbox name="rememberMe" [(ngModel)]="rememberMe">
+        Remember Me
+      </mat-checkbox>
 
       <button
-        mat-icon-button
-        matSuffix
-        type="button"
-        (click)="hidePassword = !hidePassword">
-
-        <mat-icon>
-          {{ hidePassword ? 'visibility' : 'visibility_off' }}
-        </mat-icon>
-
+        mat-raised-button
+        color="primary"
+        type="submit"
+        [disabled]="loading()">
+        {{ loading() ? 'Logging in...' : 'Sign in' }}
       </button>
-    </mat-form-field>
-
-    <mat-checkbox [(ngModel)]="rememberMe">
-      Remember Me
-    </mat-checkbox>
-
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="login()">
-      Login
-    </button>
+    </form>
   </mat-card>
 </div>

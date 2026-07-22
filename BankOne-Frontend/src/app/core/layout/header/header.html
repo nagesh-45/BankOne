@@ -1,13 +1,30 @@
-<mat-toolbar color="primary">
-  <span>🏦 BankOne</span>
+<mat-toolbar class="app-header">
+  <app-brand-logo
+    size="sm"
+    theme="dark"
+    [showWordmark]="true">
+  </app-brand-logo>
 
   <span class="spacer"></span>
 
-  <button mat-icon-button>
+  <button mat-icon-button type="button" aria-label="Notifications" class="header-action">
     <mat-icon>notifications</mat-icon>
   </button>
 
-  <button mat-button>
-    Admin
+  <button mat-button type="button" class="user-button" [matMenuTriggerFor]="userMenu">
+    <mat-icon class="user-icon">account_circle</mat-icon>
+    {{ displayName }}
+    <mat-icon>arrow_drop_down</mat-icon>
   </button>
+
+  <mat-menu #userMenu="matMenu">
+    <a mat-menu-item routerLink="/app/profile">
+      <mat-icon>person</mat-icon>
+      <span>My Profile</span>
+    </a>
+    <button mat-menu-item type="button" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Logout</span>
+    </button>
+  </mat-menu>
 </mat-toolbar>

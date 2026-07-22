@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>Edit account status</h2>
+
+<mat-dialog-content>
+  <p class="account-meta">
+    {{ account.accountNumber }} · {{ account.accountType }}
+  </p>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Status</mat-label>
+    <mat-select [(ngModel)]="status" name="status" required>
+      @for (item of statuses; track item) {
+        <mat-option [value]="item">{{ item }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()" [disabled]="saving">
+    Cancel
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="save()"
+    [disabled]="saving">
+    {{ saving ? 'Saving...' : 'Save' }}
+  </button>
+</mat-dialog-actions>

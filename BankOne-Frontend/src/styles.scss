@@ -1,5 +1,7 @@
 @use '@angular/material' as mat;
 @use './styles/abstracts/colors' as colors;
+@use './styles/abstracts/typography' as type;
+
 html {
   height: 100%;
 
@@ -8,9 +10,18 @@ html {
       primary: mat.$azure-palette,
       tertiary: mat.$blue-palette,
     ),
-    typography: Roboto,
+    typography: (
+      plain-family: type.$font-sans,
+      brand-family: type.$font-serif,
+    ),
     density: 0,
   ));
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
@@ -18,5 +29,43 @@ body {
   height: 100%;
   background: colors.$background;
   color: colors.$text-primary;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: type.$font-sans;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: type.$font-sans;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: colors.$text-primary;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button,
+.mat-mdc-icon-button,
+.mat-mdc-form-field,
+.mat-mdc-snack-bar-container,
+.mat-mdc-menu-panel,
+.mat-mdc-card,
+.mat-toolbar,
+.mat-mdc-list-item {
+  font-family: type.$font-sans !important;
 }

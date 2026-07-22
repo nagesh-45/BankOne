@@ -1,12 +1,26 @@
+.stat-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.stat-card-link:not(.clickable) {
+  pointer-events: none;
+  cursor: default;
+}
+
 .stat-card {
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.25s ease;
-  cursor: pointer;
   border: none;
 }
 
-.stat-card:hover {
+.stat-card-link.clickable .stat-card {
+  cursor: pointer;
+}
+
+.stat-card-link.clickable:hover .stat-card {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }

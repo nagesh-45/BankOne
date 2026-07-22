@@ -5,6 +5,7 @@ public enum AccountStatus {
     ACTIVE("A"),
     FROZEN("F"),
     DORMANT("D"),
+    SUSPENDED("S"),
     CLOSED("C");
 
     private final String code;

@@ -1,21 +1,29 @@
-<mat-card class="stat-card">
+<a
+  class="stat-card-link"
+  [class.clickable]="!!link"
+  [routerLink]="link || null"
+  [attr.tabindex]="link ? 0 : -1"
+  [attr.aria-disabled]="link ? null : true">
 
-  <div class="card-header">
+  <mat-card class="stat-card" [class.static]="!link">
 
-    <div class="icon-container" [style.background]="color">
-      <mat-icon>{{ icon }}</mat-icon>
-    </div>
+    <div class="card-header">
 
-    <div class="details">
-      <div class="title">
-        {{ title }}
+      <div class="icon-container" [style.background]="color">
+        <mat-icon>{{ icon }}</mat-icon>
       </div>
 
-      <div class="value">
-        {{ value }}
+      <div class="details">
+        <div class="title">
+          {{ title }}
+        </div>
+
+        <div class="value">
+          {{ value }}
+        </div>
       </div>
+
     </div>
 
-  </div>
-
-</mat-card>
+  </mat-card>
+</a>

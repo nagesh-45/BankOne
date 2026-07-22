@@ -1,1 +1,86 @@
-<p>customer-list works!</p>
+<section class="customer-page">
+  <div class="page-header">
+    <div>
+      <h1>Customers</h1>
+      <p>Search by ID, name, email, or phone number.</p>
+    </div>
+
+    <div class="page-actions">
+      @if (canCreateCustomer) {
+        <button
+          mat-flat-button
+          type="button"
+          class="create-button"
+          (click)="openCreateCustomer()">
+          <mat-icon>person_add</mat-icon>
+          Create Customer
+        </button>
+      }
+
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input
+          type="search"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="updateSearch($event)"
+          placeholder="Search customers...">
+        @if (searchTerm()) {
+          <button
+            mat-icon-button
+            type="button"
+            class="clear-btn"
+            aria-label="Clear search"
+            (click)="updateSearch('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <mat-card class="table-card">
+    @if (!isLoading() && !hasError()) {
+      <div class="record-count">
+        {{ totalCustomers() }} customer{{ totalCustomers() === 1 ? '' : 's' }}
+      </div>
+    }
+    @if (isLoading()) {
+      <div class="state-message">Loading customers...</div>
+    } @else if (hasError()) {
+      <div class="state-message error-message">
+        Unable to load customers right now.
+      </div>
+    } @else if (customers().length === 0) {
+      <div class="state-message">No customers found for this search.</div>
+    } @else {
+      <div class="table-wrapper">
+        <table class="customer-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (customer of customers(); track customer.customerId) {
+              <tr class="clickable-row" (click)="openCustomer(customer)">
+                <td>#{{ customer.customerId }}</td>
+                <td>{{ customer.firstName }} {{ customer.lastName }}</td>
+                <td>{{ customer.phoneNumber }}</td>
+                <td>{{ customer.email }}</td>
+                <td>
+                  <span class="status-chip">{{ customer.status }}</span>
+                </td>
+                <td>{{ customer.address }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+</section>
