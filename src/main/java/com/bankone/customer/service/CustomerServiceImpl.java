@@ -4,6 +4,11 @@ import com.bankone.common.exception.ResourceNotFoundException;
 import com.bankone.customer.entity.Customer;
 import com.bankone.customer.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import com.bankone.customer.specification.CustomerSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -30,6 +35,14 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
+    }
+
+    @Override
+    public Page<Customer> searchCustomers(String search, Pageable pageable) {
+        return customerRepository.findAll(
+                CustomerSpecification.containsText(search),
+                pageable
+        );
     }
 
     @Override

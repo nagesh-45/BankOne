@@ -1,0 +1,40 @@
+.sidebar {
+  height: 100%;
+  background: #1E293B;
+  color: #FFFFFF;
+  padding: 16px 0;
+}
+
+h2 {
+  color: #FFFFFF;
+  text-align: center;
+  margin: 0 0 24px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+mat-nav-list {
+  padding: 0 12px;
+}
+
+a[mat-list-item] {
+  color: #FFFFFF !important;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+a[mat-list-item] mat-icon {
+  color: #FFFFFF !important;
+}
+
+a[mat-list-item] span {
+  color: #FFFFFF !important;
+}
+
+a[mat-list-item]:hover {
+  background: #334155;
+}
+
+.active {
+  background: #2563EB !important;
+}

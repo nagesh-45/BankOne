@@ -30,8 +30,20 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
 
+        System.out.println("Username = [" + username + "]");
+
+        System.out.println("Length = " + username.length());
+
+        System.out.println("All users:");
+
+        userRepository.findAll().forEach(u ->
+
+                System.out.println("-> [" + u.getUsername() + "]"));
+
         User user = userRepository.findByUsername(username)
+
                 .orElseThrow(() -> new UsernameNotFoundException(
+
                         "User not found with username: " + username));
 
         List<UserRole> userRoles = userRoleRepository.findByUser(user);

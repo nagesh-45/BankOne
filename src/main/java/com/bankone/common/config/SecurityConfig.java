@@ -17,22 +17,32 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
+import com.bankone.auth.security.JwtAuthenticationEntryPoint;
 
 @Configuration
 public class SecurityConfig {
+
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+
     public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          JwtAuthenticationFilter jwtAuthenticationFilter) {
+                          JwtAuthenticationFilter jwtAuthenticationFilter,
+                          JwtAuthenticationEntryPoint authenticationEntryPoint) {
         this.customUserDetailsService = userDetailsService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.authenticationEntryPoint = authenticationEntryPoint;
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll()
                         .anyRequest().authenticated())

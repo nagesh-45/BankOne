@@ -1,3 +1,4 @@
+import { Notification } from '../../core/services/notification';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,12 +7,15 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 import { Auth } from '../../core/services/auth';
 import { LoginRequest } from '../../core/models/login-request';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [
     FormsModule,
     MatButtonModule,
@@ -19,11 +23,13 @@ import { LoginRequest } from '../../core/models/login-request';
     MatCheckboxModule,
     MatFormFieldModule,
     MatIconModule,
-    MatInputModule
+    MatInputModule,
+    MatSnackBarModule
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
+
 export class Login {
 
   username = '';
@@ -31,7 +37,11 @@ export class Login {
   hidePassword = true;
   rememberMe = false;
 
-  constructor(private auth: Auth) {
+  constructor(
+    private auth: Auth,
+    private router: Router,
+    private notification: Notification
+  ) {
   }
 
   login(): void {
@@ -42,17 +52,25 @@ export class Login {
     };
 
     this.auth.login(request).subscribe({
-      next: (response) => {
-        console.log('Login Success');
-        console.log(response);
+      next: (response: any) => {
+        localStorage.setItem('accessToken', response.accessToken);
+        localStorage.setItem('tokenType', response.tokenType);
+
+        this.notification.success('Login successful');
+
+        this.router.navigate(['/app/dashboard']);
       },
-      error: (error) => {
-        console.error('Login Failed');
-        console.error(error);
+      error: (error: any) => {
+
+        this.notification.error(
+          error.error?.message ?? 'Login failed'
+        );
+
       }
     });
 
   }
+
   test(): void {
     console.log('Button clicked');
   }

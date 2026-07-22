@@ -1,0 +1,32 @@
+<h1>Dashboard</h1>
+<!--<h3>Debug</h3>-->
+<!--<p>Customer: {{ summary?.customerCount }}</p>-->
+<!--<p>Account: {{ summary?.accountCount }}</p>-->
+<!--<p>Today's Transactions: {{ summary?.todayTransactionCount }}</p>-->
+<div class="stats">
+
+  <app-stat-card
+    title="Customers"
+    [value]="(summary?.customerCount ?? 0).toString()"
+    icon="groups">
+  </app-stat-card>
+
+  <app-stat-card
+    title="Accounts"
+    [value]="(summary?.accountCount ?? 0).toString()"
+    icon="account_balance">
+  </app-stat-card>
+
+  <app-stat-card
+    title="Employees"
+    [value]="(summary?.employeeCount ?? 0).toString()"
+    icon="badge">
+  </app-stat-card>
+
+  <app-stat-card
+    title="Today's Transactions"
+    [value]="(summary?.todayTransactionCount ?? 0).toString()"
+    icon="payments">
+  </app-stat-card>
+
+</div>
