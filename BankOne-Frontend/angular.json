@@ -59,6 +59,10 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "host": "0.0.0.0",
+            "allowedHosts": ["bankone.local", "localhost", "192.168.0.4"]
+          },
           "configurations": {
             "production": {
               "buildTarget": "BankOne-Frontend:build:production"

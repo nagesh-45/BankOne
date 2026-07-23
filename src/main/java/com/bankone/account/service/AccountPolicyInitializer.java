@@ -25,7 +25,15 @@ public class AccountPolicyInitializer implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         ensurePolicy(AccountType.CURRENT, CurrencyCode.INR,
-                true, new BigDecimal("5000.00"), new BigDecimal("1000.00"));
+            true, new BigDecimal("5000.00"), new BigDecimal("1000.00"));
+        ensurePolicy(AccountType.SAVINGS, CurrencyCode.INR,
+            true, new BigDecimal("1000.00"), new BigDecimal("500.00"));
+        ensurePolicy(AccountType.SALARY, CurrencyCode.INR,
+            true, new BigDecimal("0.00"), new BigDecimal("0.00"));
+        ensurePolicy(AccountType.FIXED_DEPOSIT, CurrencyCode.INR,
+            true, new BigDecimal("10000.00"), new BigDecimal("0.00"));
+        ensurePolicy(AccountType.RECURRING_DEPOSIT, CurrencyCode.INR,
+            true, new BigDecimal("500.00"), new BigDecimal("0.00"));
     }
 
     private void ensurePolicy(

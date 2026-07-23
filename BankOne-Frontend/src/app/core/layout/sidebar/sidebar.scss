@@ -2,18 +2,79 @@
   height: 100%;
   background: #0b1f3a;
   color: #ffffff;
-  padding: 16px 0;
+  padding: 0 0 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .brand-wrap {
+  box-sizing: border-box;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  min-height: 56px;
+  padding: 0 12px;
+  margin-bottom: 28px;
+  flex-shrink: 0;
+  position: relative;
+  border-bottom: none;
+}
+
+/* Separator inset to match brand padding (aligned with logo/text) */
+.brand-wrap::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar.expanded .brand-wrap {
+  height: auto;
+  min-height: 56px;
   justify-content: flex-start;
-  padding: 8px 20px 20px;
-  border-bottom: 1px solid rgba(248, 250, 252, 0.1);
-  margin-bottom: 12px;
+  align-items: center;
+  padding: 10px 20px 20px;
+}
+
+.sidebar.expanded .brand-wrap::after {
+  left: 20px;
+  right: 20px;
+}
+
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 10px;
+  outline: none;
+  line-height: 0;
+}
+
+.sidebar.expanded .brand-link {
+  width: auto;
+  height: auto;
+}
+
+.brand-link:focus-visible {
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.55);
 }
 
 mat-nav-list {
+  flex: 1;
+  padding: 0 8px;
+  overflow: hidden;
+}
+
+.sidebar.expanded mat-nav-list {
   padding: 0 12px;
 }
 
@@ -29,6 +90,16 @@ a[mat-list-item] mat-icon {
 
 a[mat-list-item] span {
   color: #ffffff !important;
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar.expanded a[mat-list-item] span {
+  opacity: 1;
+  width: auto;
 }
 
 a[mat-list-item]:hover {
@@ -37,4 +108,44 @@ a[mat-list-item]:hover {
 
 .active {
   background: #1d4ed8 !important;
+}
+
+.toggle-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
+  border-top: 1px solid rgba(248, 250, 252, 0.1);
+  margin-top: 8px;
+}
+
+.sidebar.expanded .toggle-wrap {
+  justify-content: flex-end;
+  padding-inline: 12px;
+}
+
+.toggle-btn {
+  color: #ffffff !important;
+}
+
+.toggle-btn:hover {
+  background: #1e3a5f !important;
+}
+
+/* Expanded: clear gap between icon and label */
+:host ::ng-deep .sidebar.expanded .mdc-list-item__start {
+  margin-inline-end: 16px !important;
+}
+
+/* Icon-only rail: center the Material list icon, keep links clickable */
+:host ::ng-deep .sidebar:not(.expanded) .mdc-list-item__start {
+  margin-inline: auto !important;
+}
+
+:host ::ng-deep .sidebar:not(.expanded) .mdc-list-item__content {
+  display: none !important;
+}
+
+:host ::ng-deep .sidebar:not(.expanded) .mat-mdc-list-item {
+  padding-inline: 0 !important;
+  justify-content: center;
 }

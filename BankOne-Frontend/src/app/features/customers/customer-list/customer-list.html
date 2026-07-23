@@ -7,14 +7,10 @@
 
     <div class="page-actions">
       @if (canCreateCustomer) {
-        <button
-          mat-flat-button
-          type="button"
-          class="create-button"
-          (click)="openCreateCustomer()">
-          <mat-icon>person_add</mat-icon>
-          Create Customer
-        </button>
+        <a routerLink="/app/management" class="management-link">
+          Create in Management
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
       }
 
       <div class="search-bar">
@@ -57,12 +53,42 @@
         <table class="customer-table">
           <thead>
             <tr>
-              <th>Customer ID</th>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th>Address</th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('customerId')">
+                  Customer ID
+                  <mat-icon>{{ sortIcon('customerId') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('firstName')">
+                  Name
+                  <mat-icon>{{ sortIcon('firstName') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('phoneNumber')">
+                  Phone
+                  <mat-icon>{{ sortIcon('phoneNumber') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('email')">
+                  Email
+                  <mat-icon>{{ sortIcon('email') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('status')">
+                  Status
+                  <mat-icon>{{ sortIcon('status') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('address')">
+                  Address
+                  <mat-icon>{{ sortIcon('address') }}</mat-icon>
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>

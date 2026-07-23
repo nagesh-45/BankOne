@@ -1,11 +1,18 @@
-<mat-toolbar class="app-header">
-  <app-brand-logo
-    size="sm"
-    theme="dark"
-    [showWordmark]="true">
-  </app-brand-logo>
+<mat-toolbar class="app-header" [class.sidebar-expanded]="sidebarExpanded">
+  @if (!sidebarExpanded) {
+    <app-brand-logo
+      size="sm"
+      theme="dark"
+      [showMark]="false"
+      [showWordmark]="true">
+    </app-brand-logo>
+  }
 
   <span class="spacer"></span>
+
+  <time class="system-time" aria-live="polite">
+    {{ systemTime() }}
+  </time>
 
   <button mat-icon-button type="button" aria-label="Notifications" class="header-action">
     <mat-icon>notifications</mat-icon>

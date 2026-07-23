@@ -3,6 +3,8 @@ package com.bankone.account.service;
 import com.bankone.account.dto.AccountPolicyResponse;
 import com.bankone.account.dto.CreateAccountPolicyRequest;
 import com.bankone.account.entity.AccountPolicy;
+import com.bankone.account.enums.AccountType;
+import com.bankone.account.enums.CurrencyCode;
 import com.bankone.account.repository.AccountPolicyRepository;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +51,30 @@ public class AccountPolicyServiceImpl implements AccountPolicyService {
         response.setCreatedAt(savedPolicy.getCreatedAt());
         //response.setCreatedBy(savedPolicy.getCreatedBy());
 
+        return response;
+    }
+
+    @Override
+    public AccountPolicyResponse getActivePolicy(String accountType, String currencyCode) {
+        AccountType type = AccountType.valueOf(accountType.trim().toUpperCase());
+        CurrencyCode currency = CurrencyCode.valueOf(currencyCode.trim().toUpperCase());
+
+        AccountPolicy policy = accountPolicyRepository
+                .findByAccountTypeAndCurrencyCodeAndActiveTrue(type, currency)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No active policy for " + type + " / " + currency));
+
+        AccountPolicyResponse response = new AccountPolicyResponse();
+        response.setPolicyId(policy.getPolicyId());
+        response.setAccountType(policy.getAccountType());
+        response.setCurrencyCode(policy.getCurrencyCode());
+        response.setOpeningDepositRequired(policy.getOpeningDepositRequired());
+        response.setRequiredOpeningDeposit(policy.getRequiredOpeningDeposit());
+        response.setMinimumBalance(policy.getMinimumBalance());
+        response.setActive(policy.getActive());
+        response.setEffectiveFrom(policy.getEffectiveFrom());
+        response.setEffectiveTo(policy.getEffectiveTo());
+        response.setCreatedAt(policy.getCreatedAt());
         return response;
     }
 }

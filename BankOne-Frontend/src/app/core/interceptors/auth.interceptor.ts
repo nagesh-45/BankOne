@@ -19,7 +19,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !isLoginRequest) {
+      // Only clear session when a sent token was rejected (not bare CORS/anonymous noise)
+      if (
+        error.status === 401 &&
+        !isLoginRequest &&
+        !!token
+      ) {
         auth.logout();
       }
 

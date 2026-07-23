@@ -62,8 +62,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   min-width: 0;
-  line-height: 1.1;
+  line-height: 1;
 }
 
 .brand-logo[data-size='xl'] .copy {
@@ -75,6 +76,7 @@
   font-weight: 600;
   font-size: calc(var(--mark-size) * 0.58);
   letter-spacing: -0.02em;
+  line-height: 1;
   color: var(--brand-ink);
 }
 

@@ -2,18 +2,14 @@
   <div class="page-header">
     <div>
       <h1>Employees</h1>
-      <p>Search by ID (E00001), name, username, email, or access.</p>
+      <p>Search by ID, name, username, email, or access.</p>
     </div>
 
     <div class="page-actions">
-      <button
-        mat-flat-button
-        type="button"
-        class="create-button"
-        (click)="openCreateUser()">
-        <mat-icon>person_add</mat-icon>
-        Create User
-      </button>
+      <a routerLink="/app/management" class="management-link">
+        Create in Management
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
 
       <div class="search-bar">
         <mat-icon>search</mat-icon>
@@ -55,17 +51,45 @@
         <table class="employee-table">
           <thead>
             <tr>
-              <th>Employee ID</th>
-              <th>Name</th>
-              <th>Username</th>
-              <th>Email</th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('userId')">
+                  Employee ID
+                  <mat-icon>{{ sortIcon('userId') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('firstName')">
+                  Name
+                  <mat-icon>{{ sortIcon('firstName') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('username')">
+                  Username
+                  <mat-icon>{{ sortIcon('username') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('email')">
+                  Email
+                  <mat-icon>{{ sortIcon('email') }}</mat-icon>
+                </button>
+              </th>
               <th>Access</th>
-              <th>Status</th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('enabled')">
+                  Status
+                  <mat-icon>{{ sortIcon('enabled') }}</mat-icon>
+                </button>
+              </th>
+              @if (canEditEmployee) {
+                <th></th>
+              }
             </tr>
           </thead>
           <tbody>
             @for (employee of employees(); track employee.userId) {
-              <tr>
+              <tr [class.highlight-row]="isHighlighted(employee)">
                 <td>{{ employee.employeeCode || (employee.userId | businessId:'E') }}</td>
                 <td>{{ employee.firstName }} {{ employee.lastName }}</td>
                 <td>{{ employee.username }}</td>
@@ -78,6 +102,18 @@
                     {{ employee.enabled ? 'Enabled' : 'Disabled' }}
                   </span>
                 </td>
+                @if (canEditEmployee) {
+                  <td>
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      class="edit-button"
+                      aria-label="Edit employee"
+                      (click)="editEmployee(employee, $event)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                  </td>
+                }
               </tr>
             }
           </tbody>

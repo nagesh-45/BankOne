@@ -4,6 +4,7 @@
 
 html {
   height: 100%;
+  color-scheme: light;
 
   @include mat.theme((
     color: (
@@ -16,6 +17,20 @@ html {
     ),
     density: 0,
   ));
+
+  // Must come after mat.theme() or Material resets these to white
+  --mat-sys-background: #{colors.$background};
+  --mat-sys-surface: #{colors.$surface};
+  --mat-sys-surface-dim: #{colors.$background};
+  --mat-sys-surface-bright: #{colors.$surface};
+  --mat-sys-surface-container: #{colors.$surface};
+  --mat-sys-surface-container-low: #{colors.$background};
+  --mat-sys-surface-container-lowest: #{colors.$surface};
+  --mat-sys-surface-container-high: #{colors.$surface};
+  --mat-sys-surface-container-highest: #{colors.$surface};
+  --mat-sys-on-surface: #{colors.$text-primary};
+  --mat-sys-on-surface-variant: #{colors.$text-secondary};
+  --mat-sys-outline-variant: #{colors.$border};
 }
 
 *,
@@ -35,6 +50,53 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.mat-sidenav-container,
+.mat-drawer-container {
+  background: colors.$background !important;
+}
+
+.mat-sidenav-content,
+.mat-drawer-content {
+  background: colors.$background !important;
+}
+
+.mat-drawer,
+.mat-sidenav {
+  background-color: #0b1f3a !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.mat-drawer-inner-container {
+  background-color: #0b1f3a;
+}
+
+.mat-mdc-card {
+  --mdc-elevated-card-container-color: #{colors.$surface};
+  --mdc-outlined-card-container-color: #{colors.$surface};
+  background: colors.$surface !important;
+}
+
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  --mdc-dialog-container-color: #{colors.$surface};
+  background: colors.$surface !important;
+}
+
+.mat-mdc-menu-panel {
+  --mat-menu-container-color: #{colors.$surface};
+  background: colors.$surface !important;
+}
+
+.mat-mdc-form-field {
+  --mdc-filled-text-field-container-color: #{colors.$surface};
+  --mdc-outlined-text-field-outline-color: #{colors.$border};
+}
+
+.mat-mdc-table {
+  background: colors.$surface !important;
 }
 
 h1,

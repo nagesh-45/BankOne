@@ -1,5 +1,6 @@
 package com.bankone.account.service;
 
+import com.bankone.account.dto.DepositRequest;
 import com.bankone.account.entity.Account;
 import com.bankone.account.dto.OpenAccountRequest;
 import com.bankone.account.dto.AccountResponse;
@@ -15,11 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
+import com.bankone.account.specification.AccountSpecification;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import com.bankone.account.enums.AccountType;
+import com.bankone.account.enums.CurrencyCode;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -169,6 +173,7 @@ account.setLedgerBalance(openingDeposit);
                 .map(this::toResponse);
     }
 
+
     @Override
     public AccountResponse updateAccountStatus(Long accountId, UpdateAccountStatusRequest request) {
         if (request == null || request.getStatus() == null) {
@@ -196,6 +201,43 @@ account.setLedgerBalance(openingDeposit);
         return toResponse(accountRepository.save(account));
     }
 
+    @Override
+    @Transactional
+    public AccountResponse deposit(Long accountId, DepositRequest request) {
+        if (request == null || request.getAmount() == null) {
+            throw new IllegalArgumentException("Deposit amount is required");
+        }
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Deposit amount must be greater than zero");
+        }
+
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+
+        if (!AccountStatus.ACTIVE.name().equals(account.getStatus())) {
+            throw new IllegalArgumentException("Deposits are allowed only on ACTIVE accounts");
+        }
+
+        BigDecimal amount = request.getAmount();
+        account.setAvailableBalance(account.getAvailableBalance().add(amount));
+        account.setLedgerBalance(account.getLedgerBalance().add(amount));
+
+        int creditCount = account.getCreditCount() == null ? 0 : account.getCreditCount();
+        account.setCreditCount(creditCount + 1);
+        account.setLastCreditAt(LocalDateTime.now());
+        account.setLastTransactionAt(LocalDateTime.now());
+
+        return toResponse(accountRepository.save(account));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<AccountResponse> searchAccounts(String search, Pageable pageable) {
+        return accountRepository
+                .findAll(AccountSpecification.matching(search), pageable)
+                .map(this::toResponse);
+    }
+
     private AccountResponse toResponse(Account savedAccount) {
         AccountResponse response = new AccountResponse();
         response.setAccountId(savedAccount.getAccountId());
@@ -216,4 +258,5 @@ account.setLedgerBalance(openingDeposit);
         }
         return response;
     }
+
 }

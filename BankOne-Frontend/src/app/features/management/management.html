@@ -1,0 +1,90 @@
+<section class="management-page">
+  <div class="page-header">
+    <div>
+      <h1>Management</h1>
+      <p>Create customers and staff accounts. More admin tools will land here later.</p>
+    </div>
+  </div>
+
+  <div class="hub-grid">
+    @if (canCreateCustomer) {
+      <mat-card class="hub-card primary-card">
+        <div class="card-icon customers">
+          <mat-icon>person_add</mat-icon>
+        </div>
+        <div class="card-body">
+          <h2>Customers</h2>
+          <p>Onboard a new bank customer and open their first account.</p>
+          <div class="card-actions">
+            <button
+              mat-flat-button
+              type="button"
+              class="create-button"
+              (click)="openCreateCustomer()">
+              <mat-icon>person_add</mat-icon>
+              Create customer
+            </button>
+            <a mat-stroked-button routerLink="/app/customers" class="secondary-link">
+              View customers
+            </a>
+          </div>
+        </div>
+      </mat-card>
+    }
+
+    @if (canCreateEmployee) {
+      <mat-card class="hub-card primary-card">
+        <div class="card-icon users">
+          <mat-icon>manage_accounts</mat-icon>
+        </div>
+        <div class="card-body">
+          <h2>Users &amp; access</h2>
+          <p>Create bank staff accounts with Admin or Normal access.</p>
+          <div class="card-actions">
+            <button
+              mat-flat-button
+              type="button"
+              class="create-button"
+              (click)="openCreateEmployee()">
+              <mat-icon>badge</mat-icon>
+              Create employee
+            </button>
+            @if (canViewEmployees) {
+              <a mat-stroked-button routerLink="/app/employees" class="secondary-link">
+                View employees
+              </a>
+            }
+          </div>
+        </div>
+      </mat-card>
+    }
+
+    @if (canCreateEmployee) {
+      <mat-card class="hub-card soon-card" aria-disabled="true">
+        <div class="card-icon muted">
+          <mat-icon>admin_panel_settings</mat-icon>
+        </div>
+        <div class="card-body">
+          <div class="soon-row">
+            <h2>Roles</h2>
+            <span class="soon-chip">Soon</span>
+          </div>
+          <p>Review and assign staff roles beyond create-time access.</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="hub-card soon-card" aria-disabled="true">
+        <div class="card-icon muted">
+          <mat-icon>lock_open</mat-icon>
+        </div>
+        <div class="card-body">
+          <div class="soon-row">
+            <h2>Unlock user</h2>
+            <span class="soon-chip">Soon</span>
+          </div>
+          <p>Clear lockouts after failed login attempts.</p>
+        </div>
+      </mat-card>
+    }
+  </div>
+</section>

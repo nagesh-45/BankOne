@@ -5,14 +5,15 @@ $sidebar-bg: #1E293B;
 $sidebar-hover: #334155;
 $sidebar-active: #2563EB;
 
-$background: #F4F7FA;
-$surface: #FFFFFF;
+// Soft gray UI — clearly not pure white (easier in a dark room)
+$background: #C9D1DC;
+$surface: #D9DFE8;
 
 $text-primary: #1F2937;
-$text-secondary: #6B7280;
+$text-secondary: #4B5563;
 
 $success: #16A34A;
 $warning: #F59E0B;
 $error: #DC2626;
 
-$border: #E5E7EB;
+$border: #B4BDC9;

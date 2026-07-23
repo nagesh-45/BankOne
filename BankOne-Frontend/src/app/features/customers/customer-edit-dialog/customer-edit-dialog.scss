@@ -1,0 +1,33 @@
+.helper-text {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 520px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .edit-form {
+    min-width: 0;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

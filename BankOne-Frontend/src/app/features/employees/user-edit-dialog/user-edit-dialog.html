@@ -1,0 +1,57 @@
+<h2 mat-dialog-title>Edit Employee</h2>
+
+<mat-dialog-content>
+  <p class="helper-text">
+    {{ employee.employeeCode || (employee.userId | businessId:'E') }}
+    · @{{ employee.username }}
+  </p>
+
+  <form class="edit-form">
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>First name</mat-label>
+        <input matInput name="firstName" [(ngModel)]="firstName" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Last name</mat-label>
+        <input matInput name="lastName" [(ngModel)]="lastName" required>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" name="email" [(ngModel)]="email" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Access level</mat-label>
+      <mat-select name="accessLevel" [(ngModel)]="accessLevel" required>
+        <mat-option value="ADMIN">
+          Admin access — can create customers
+        </mat-option>
+        <mat-option value="NORMAL">
+          Normal access — can view customers only
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div class="toggle-row">
+      <mat-slide-toggle [(ngModel)]="enabled" name="enabled">
+        Account enabled
+      </mat-slide-toggle>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="save()"
+    [disabled]="saving()">
+    {{ saving() ? 'Saving...' : 'Save changes' }}
+  </button>
+</mat-dialog-actions>

@@ -44,7 +44,7 @@
   color: #111827;
 }
 
-.accounts-header {
+.info-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -54,6 +54,26 @@
   h2 {
     margin: 0;
   }
+}
+
+.accounts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .record-count {
@@ -114,20 +134,50 @@
   letter-spacing: 0.04em;
 }
 
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #9ca3af;
+  }
+
+  &:hover mat-icon {
+    color: #4b5563;
+  }
+}
+
 .account-table td {
   color: #1f2937;
   font-size: 14px;
 }
 
 .edit-button {
-  height: 32px;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
   border-radius: 8px;
+  color: #2563eb;
 
   mat-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
+    margin: 0;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #2563eb;
   }
 }
 

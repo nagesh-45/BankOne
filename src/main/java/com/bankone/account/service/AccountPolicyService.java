@@ -5,4 +5,5 @@ import com.bankone.account.dto.CreateAccountPolicyRequest;
 
 public interface AccountPolicyService {
     AccountPolicyResponse createPolicy(CreateAccountPolicyRequest request);
+    AccountPolicyResponse getActivePolicy(String accountType, String currencyCode);
 }

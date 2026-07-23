@@ -32,9 +32,7 @@ import { BrandLogo } from '../../shared/components/brand-logo/brand-logo';
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
-
 export class Login {
-
   username = '';
   password = '';
   hidePassword = true;
@@ -46,6 +44,8 @@ export class Login {
     private router: Router,
     private notification: Notification
   ) {
+    this.rememberMe = this.auth.wasRememberMeSelected();
+    this.username = this.auth.getRememberedUsername();
   }
 
   login(): void {
@@ -69,7 +69,7 @@ export class Login {
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (response) => {
-        this.auth.saveSession(response);
+        this.auth.saveSession(response, this.rememberMe);
         this.notification.success('Login successful');
         this.router.navigate(['/app/dashboard']);
       },

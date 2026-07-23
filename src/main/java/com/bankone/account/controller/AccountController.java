@@ -1,11 +1,12 @@
 package com.bankone.account.controller;
 
 import com.bankone.account.dto.AccountResponse;
+import com.bankone.account.dto.DepositRequest;
 import com.bankone.account.dto.OpenAccountRequest;
 import com.bankone.account.dto.UpdateAccountStatusRequest;
 import com.bankone.account.service.AccountService;
+import com.bankone.common.util.PageRequests;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
 @RestController
 @RequestMapping("/accounts")
 public class AccountController {
+
+    private static final Set<String> SORT_FIELDS = Set.of(
+            "accountNumber", "accountType", "branchCode", "currencyCode",
+            "availableBalance", "status", "createdAt", "accountId"
+    );
 
     private final AccountService accountService;
 
@@ -38,9 +46,12 @@ public class AccountController {
     public ResponseEntity<Page<AccountResponse>> getAccountsByCustomer(
             @PathVariable Long customerId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
     ) {
-        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
+        Pageable pageable = PageRequests.of(
+                page, size, sortBy, sortDir, SORT_FIELDS, "createdAt");
         return ResponseEntity.ok(accountService.getAccountsByCustomerId(customerId, pageable));
     }
 
@@ -50,5 +61,25 @@ public class AccountController {
             @RequestBody UpdateAccountStatusRequest request
     ) {
         return ResponseEntity.ok(accountService.updateAccountStatus(accountId, request));
+    }
+    @GetMapping
+    public ResponseEntity<Page<AccountResponse>> searchAccounts(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        Pageable pageable = PageRequests.of(
+                page, size, sortBy, sortDir, SORT_FIELDS, "createdAt");
+        return ResponseEntity.ok(accountService.searchAccounts(search, pageable));
+    }
+
+    @PostMapping("/{accountId}/deposit")
+    public ResponseEntity<AccountResponse> deposit(
+            @PathVariable Long accountId,
+            @RequestBody DepositRequest request
+    ) {
+        return ResponseEntity.ok(accountService.deposit(accountId, request));
     }
 }

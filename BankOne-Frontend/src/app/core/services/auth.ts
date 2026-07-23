@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 
+import { API_BASE_URL } from '../config/api-config';
 import { LoginRequest } from '../models/login-request';
 import { LoginResponse } from '../models/login-response';
 import { UserProfile } from '../models/user-profile';
@@ -16,7 +17,7 @@ export class Auth {
   private readonly router = inject(Router);
   private readonly dashboardService = inject(DashboardService);
 
-  private readonly baseUrl = 'http://localhost:8080/auth';
+  private readonly baseUrl = `${API_BASE_URL}/auth`;
   private readonly accessTokenKey = 'accessToken';
   private readonly tokenTypeKey = 'tokenType';
   private readonly rolesKey = 'roles';
@@ -24,6 +25,18 @@ export class Auth {
   private readonly firstNameKey = 'firstName';
   private readonly lastNameKey = 'lastName';
   private readonly emailKey = 'email';
+  private readonly rememberMeKey = 'rememberMe';
+  private readonly rememberedUsernameKey = 'rememberedUsername';
+
+  private readonly sessionKeys = [
+    this.accessTokenKey,
+    this.tokenTypeKey,
+    this.rolesKey,
+    this.usernameKey,
+    this.firstNameKey,
+    this.lastNameKey,
+    this.emailKey
+  ] as const;
 
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(
@@ -44,36 +57,55 @@ export class Auth {
     return this.http.put<void>(`${this.baseUrl}/password`, request);
   }
 
-  saveSession(response: LoginResponse): void {
-    localStorage.setItem(this.accessTokenKey, response.accessToken);
-    localStorage.setItem(this.tokenTypeKey, response.tokenType);
-    localStorage.setItem(this.rolesKey, JSON.stringify(response.roles ?? []));
-    localStorage.setItem(this.usernameKey, response.username ?? '');
-    localStorage.setItem(this.firstNameKey, response.firstName ?? '');
-    localStorage.setItem(this.lastNameKey, response.lastName ?? '');
-    localStorage.setItem(this.emailKey, response.email ?? '');
+  saveSession(response: LoginResponse, rememberMe = false): void {
+    this.clearSession();
+
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem(this.accessTokenKey, response.accessToken);
+    storage.setItem(this.tokenTypeKey, response.tokenType);
+    storage.setItem(this.rolesKey, JSON.stringify(response.roles ?? []));
+    storage.setItem(this.usernameKey, response.username ?? '');
+    storage.setItem(this.firstNameKey, response.firstName ?? '');
+    storage.setItem(this.lastNameKey, response.lastName ?? '');
+    storage.setItem(this.emailKey, response.email ?? '');
+
+    if (rememberMe) {
+      localStorage.setItem(this.rememberMeKey, 'true');
+      localStorage.setItem(
+        this.rememberedUsernameKey,
+        response.username ?? ''
+      );
+    } else {
+      localStorage.removeItem(this.rememberMeKey);
+      localStorage.removeItem(this.rememberedUsernameKey);
+    }
   }
 
   clearSession(): void {
-    localStorage.removeItem(this.accessTokenKey);
-    localStorage.removeItem(this.tokenTypeKey);
-    localStorage.removeItem(this.rolesKey);
-    localStorage.removeItem(this.usernameKey);
-    localStorage.removeItem(this.firstNameKey);
-    localStorage.removeItem(this.lastNameKey);
-    localStorage.removeItem(this.emailKey);
+    for (const key of this.sessionKeys) {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    }
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem(this.accessTokenKey);
+    return this.read(this.accessTokenKey);
   }
 
   isAuthenticated(): boolean {
     return !!this.getAccessToken();
   }
 
+  wasRememberMeSelected(): boolean {
+    return localStorage.getItem(this.rememberMeKey) === 'true';
+  }
+
+  getRememberedUsername(): string {
+    return localStorage.getItem(this.rememberedUsernameKey) ?? '';
+  }
+
   getUsername(): string {
-    const stored = localStorage.getItem(this.usernameKey);
+    const stored = this.read(this.usernameKey);
     if (stored) {
       return stored;
     }
@@ -82,8 +114,8 @@ export class Auth {
   }
 
   getDisplayName(): string {
-    const firstName = localStorage.getItem(this.firstNameKey)?.trim() ?? '';
-    const lastName = localStorage.getItem(this.lastNameKey)?.trim() ?? '';
+    const firstName = this.read(this.firstNameKey)?.trim() ?? '';
+    const lastName = this.read(this.lastNameKey)?.trim() ?? '';
     const fullName = `${firstName} ${lastName}`.trim();
 
     if (fullName) {
@@ -111,7 +143,7 @@ export class Auth {
   }
 
   getRoles(): string[] {
-    const roles = localStorage.getItem(this.rolesKey);
+    const roles = this.read(this.rolesKey);
 
     if (!roles) {
       return [];
@@ -135,4 +167,8 @@ export class Auth {
     this.router.navigate(['/']);
   }
 
+  private read(key: string): string | null {
+    // Prefer session (non-remember) token, but ignore empty strings
+    return sessionStorage.getItem(key) || localStorage.getItem(key) || null;
+  }
 }

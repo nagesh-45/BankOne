@@ -1,0 +1,134 @@
+.management-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-header h1 {
+  margin: 0 0 4px;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.page-header p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.hub-card {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #c5ccd6;
+  box-shadow: none;
+}
+
+.card-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon.customers {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.card-icon.users {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.card-icon.muted {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.card-icon mat-icon {
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.card-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.card-body h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.card-body p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.create-button {
+  height: 40px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.secondary-link {
+  height: 40px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.soon-card {
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.soon-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.soon-row h2 {
+  margin: 0;
+}
+
+.soon-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

@@ -1,40 +1,114 @@
-<div class="sidebar">
+<div class="sidebar" [class.expanded]="expanded">
   <div class="brand-wrap">
-    <app-brand-logo
-      size="md"
-      theme="dark"
-      tagline="Core Banking">
-    </app-brand-logo>
+    <a
+      class="brand-link"
+      routerLink="/app/dashboard"
+      matTooltip="Dashboard"
+      matTooltipPosition="right"
+      [matTooltipDisabled]="expanded"
+      aria-label="BankOne dashboard">
+      <app-brand-logo
+        [size]="expanded ? 'md' : 'sm'"
+        theme="dark"
+        [showWordmark]="expanded"
+        [tagline]="expanded ? 'Core Banking' : ''">
+      </app-brand-logo>
+    </a>
   </div>
 
   <mat-nav-list>
-    <a mat-list-item routerLink="/app/dashboard" routerLinkActive="active">
+    <a
+      mat-list-item
+      routerLink="/app/dashboard"
+      routerLinkActive="active"
+      matTooltip="Dashboard"
+      matTooltipPosition="right"
+      [matTooltipDisabled]="expanded">
       <mat-icon matListItemIcon>dashboard</mat-icon>
       <span matListItemTitle>Dashboard</span>
     </a>
 
     @if (canAccessCustomers) {
-      <a mat-list-item routerLink="/app/customers" routerLinkActive="active">
+      <a
+        mat-list-item
+        routerLink="/app/customers"
+        routerLinkActive="active"
+        matTooltip="Customers"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="expanded">
         <mat-icon matListItemIcon>groups</mat-icon>
         <span matListItemTitle>Customers</span>
       </a>
     }
 
     @if (canAccessEmployees) {
-      <a mat-list-item routerLink="/app/employees" routerLinkActive="active">
+      <a
+        mat-list-item
+        routerLink="/app/employees"
+        routerLinkActive="active"
+        matTooltip="Employees"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="expanded">
         <mat-icon matListItemIcon>badge</mat-icon>
         <span matListItemTitle>Employees</span>
       </a>
     }
 
-    <a mat-list-item>
-      <mat-icon matListItemIcon>account_balance</mat-icon>
-      <span matListItemTitle>Accounts</span>
-    </a>
+    @if (canAccessCustomers) {
+      <a
+        mat-list-item
+        routerLink="/app/accounts"
+        routerLinkActive="active"
+        matTooltip="Accounts"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="expanded">
+        <mat-icon matListItemIcon>account_balance</mat-icon>
+        <span matListItemTitle>Accounts</span>
+      </a>
+    }
 
-    <a mat-list-item>
+    <a
+      mat-list-item
+      matTooltip="Transactions"
+      matTooltipPosition="right"
+      [matTooltipDisabled]="expanded">
       <mat-icon matListItemIcon>receipt_long</mat-icon>
       <span matListItemTitle>Transactions</span>
     </a>
+
+    <a
+      mat-list-item
+      matTooltip="Reports"
+      matTooltipPosition="right"
+      [matTooltipDisabled]="expanded">
+      <mat-icon matListItemIcon>assessment</mat-icon>
+      <span matListItemTitle>Reports</span>
+    </a>
+
+    @if (canAccessManagement) {
+      <a
+        mat-list-item
+        routerLink="/app/management"
+        routerLinkActive="active"
+        matTooltip="Management"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="expanded">
+        <mat-icon matListItemIcon>settings_suggest</mat-icon>
+        <span matListItemTitle>Management</span>
+      </a>
+    }
   </mat-nav-list>
+
+  <div class="toggle-wrap">
+    <button
+      mat-icon-button
+      type="button"
+      class="toggle-btn"
+      [attr.aria-label]="expanded ? 'Collapse sidebar' : 'Expand sidebar'"
+      [matTooltip]="expanded ? 'Collapse' : 'Expand'"
+      matTooltipPosition="right"
+      (click)="toggleExpanded()">
+      <mat-icon>{{ expanded ? 'chevron_left' : 'chevron_right' }}</mat-icon>
+    </button>
+  </div>
 </div>

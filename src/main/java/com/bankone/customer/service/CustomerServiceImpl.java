@@ -3,8 +3,10 @@ package com.bankone.customer.service;
 import com.bankone.account.dto.OpenAccountRequest;
 import com.bankone.account.enums.AccountType;
 import com.bankone.account.service.AccountService;
+import com.bankone.common.exception.ConflictException;
 import com.bankone.common.exception.ResourceNotFoundException;
 import com.bankone.customer.dto.CreateCustomerRequest;
+import com.bankone.customer.dto.UpdateCustomerRequest;
 import com.bankone.customer.entity.Customer;
 import com.bankone.customer.repository.CustomerRepository;
 import com.bankone.customer.specification.CustomerSpecification;
@@ -79,18 +81,30 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Customer updateCustomer(Long customerId, Customer customer) {
+    @Transactional
+    public Customer updateCustomer(Long customerId, UpdateCustomerRequest request) {
         Customer existingCustomer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Customer not found with id: " + customerId));
 
-        existingCustomer.setFirstName(customer.getFirstName());
-        existingCustomer.setLastName(customer.getLastName());
-        existingCustomer.setEmail(customer.getEmail());
-        existingCustomer.setPhoneNumber(customer.getPhoneNumber());
-        existingCustomer.setDateOfBirth(customer.getDateOfBirth());
-        existingCustomer.setAddress(customer.getAddress());
-        existingCustomer.setStatus(customer.getStatus());
+        String email = request.getEmail().trim();
+        String phoneNumber = request.getPhoneNumber().trim();
+
+        if (customerRepository.existsByEmailIgnoreCaseAndCustomerIdNot(email, customerId)) {
+            throw new ConflictException("Email already exists");
+        }
+
+        if (customerRepository.existsByPhoneNumberAndCustomerIdNot(phoneNumber, customerId)) {
+            throw new ConflictException("Phone number already exists");
+        }
+
+        existingCustomer.setFirstName(request.getFirstName().trim());
+        existingCustomer.setLastName(request.getLastName().trim());
+        existingCustomer.setEmail(email);
+        existingCustomer.setPhoneNumber(phoneNumber);
+        existingCustomer.setDateOfBirth(request.getDateOfBirth());
+        existingCustomer.setAddress(request.getAddress().trim());
+        existingCustomer.setStatus(request.getStatus().trim().toUpperCase());
 
         return customerRepository.save(existingCustomer);
     }

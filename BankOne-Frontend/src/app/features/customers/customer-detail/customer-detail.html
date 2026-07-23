@@ -31,7 +31,19 @@
     </mat-card>
   } @else {
     <mat-card class="section-card">
-      <h2>Customer information</h2>
+      <div class="info-header">
+        <h2>Customer information</h2>
+        @if (canEditCustomer) {
+          <button
+            mat-stroked-button
+            type="button"
+            class="edit-button"
+            aria-label="Edit customer"
+            (click)="editCustomer()">
+            <mat-icon>edit</mat-icon>
+          </button>
+        }
+      </div>
       <div class="info-grid">
         <div>
           <span class="label">Email</span>
@@ -68,13 +80,24 @@
             {{ totalAccounts() }} account{{ totalAccounts() === 1 ? '' : 's' }}
           </p>
         </div>
-        <button
-          mat-flat-button
-          type="button"
-          (click)="addLoanAccount()">
-          <mat-icon>account_balance</mat-icon>
-          Add Loan Account
-        </button>
+        <div class="account-actions">
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="addLoanAccount()">
+            <mat-icon>account_balance</mat-icon>
+            Add Loan Account
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="addCurrentAccount()">
+            <mat-icon>payments</mat-icon>
+            Add Current Account
+          </button>
+        </div>
       </div>
 
       @if (accounts().length === 0) {
@@ -84,13 +107,48 @@
           <table class="account-table">
             <thead>
               <tr>
-                <th>Account number</th>
-                <th>Type</th>
-                <th>Branch</th>
-                <th>Currency</th>
-                <th>Available balance</th>
-                <th>Status</th>
-                <th>Opened</th>
+                <th>
+                  <button type="button" class="sort-btn" (click)="toggleSort('accountNumber')">
+                    Account number
+                    <mat-icon>{{ sortIcon('accountNumber') }}</mat-icon>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" class="sort-btn" (click)="toggleSort('accountType')">
+                    Type
+                    <mat-icon>{{ sortIcon('accountType') }}</mat-icon>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" class="sort-btn" (click)="toggleSort('branchCode')">
+                    Branch
+                    <mat-icon>{{ sortIcon('branchCode') }}</mat-icon>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" class="sort-btn" (click)="toggleSort('currencyCode')">
+                    Currency
+                    <mat-icon>{{ sortIcon('currencyCode') }}</mat-icon>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" class="sort-btn" (click)="toggleSort('availableBalance')">
+                    Available balance
+                    <mat-icon>{{ sortIcon('availableBalance') }}</mat-icon>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" class="sort-btn" (click)="toggleSort('status')">
+                    Status
+                    <mat-icon>{{ sortIcon('status') }}</mat-icon>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" class="sort-btn" (click)="toggleSort('createdAt')">
+                    Opened
+                    <mat-icon>{{ sortIcon('createdAt') }}</mat-icon>
+                  </button>
+                </th>
                 <th></th>
               </tr>
             </thead>
@@ -113,9 +171,9 @@
                       mat-stroked-button
                       type="button"
                       class="edit-button"
+                      aria-label="Edit account status"
                       (click)="editAccountStatus(account)">
                       <mat-icon>edit</mat-icon>
-                      Edit
                     </button>
                   </td>
                 </tr>

@@ -1,14 +1,23 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { finalize } from 'rxjs';
 
 import { CreateCustomerRequest } from '../../../core/models/create-customer-request';
+import { Customer } from '../../../core/models/customer';
 import { CustomerService } from '../../../core/services/customer';
 import { Notification } from '../../../core/services/notification';
+import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
+import { apiErrorMessage } from '../../../core/utils/api-error-message';
+
+export type CustomerCreateResult =
+  | { action: 'view'; customerId: number }
+  | { action: 'done' };
 
 @Component({
   selector: 'app-customer-create-dialog',
@@ -18,16 +27,22 @@ import { Notification } from '../../../core/services/notification';
     MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    BusinessIdPipe
   ],
   templateUrl: './customer-create-dialog.html',
   styleUrl: './customer-create-dialog.scss'
 })
 export class CustomerCreateDialog {
-  private readonly dialogRef = inject(MatDialogRef<CustomerCreateDialog, boolean>);
+  private readonly dialogRef = inject(MatDialogRef<CustomerCreateDialog, CustomerCreateResult | false>);
   private readonly customerService = inject(CustomerService);
   private readonly notification = inject(Notification);
+
+  readonly step = signal<'form' | 'success'>('form');
+  readonly createdCustomer = signal<Customer | null>(null);
+  readonly saving = signal(false);
 
   firstName = '';
   lastName = '';
@@ -40,17 +55,35 @@ export class CustomerCreateDialog {
   accountType = 'SAVINGS';
   currencyCode = 'INR';
   openingDeposit = 1000;
-  saving = false;
 
   readonly statuses = ['ACTIVE', 'INACTIVE', 'SUSPENDED'];
   readonly accountTypes = ['SAVINGS', 'CURRENT', 'SALARY', 'FIXED_DEPOSIT', 'RECURRING_DEPOSIT'];
   readonly currencyCodes = ['INR'];
 
   close(): void {
+    if (this.step() === 'success') {
+      this.dialogRef.close({ action: 'done' });
+      return;
+    }
     this.dialogRef.close(false);
   }
 
+  viewCustomer(): void {
+    const customer = this.createdCustomer();
+    if (!customer) {
+      return;
+    }
+    this.dialogRef.close({
+      action: 'view',
+      customerId: customer.customerId
+    });
+  }
+
   save(): void {
+    if (this.saving()) {
+      return;
+    }
+
     const request: CreateCustomerRequest = {
       firstName: this.firstName.trim(),
       lastName: this.lastName.trim(),
@@ -97,18 +130,20 @@ export class CustomerCreateDialog {
       return;
     }
 
-    this.saving = true;
+    this.saving.set(true);
 
-    this.customerService.createCustomer(request).subscribe({
-      next: () => {
+    this.customerService.createCustomer(request).pipe(
+      finalize(() => this.saving.set(false))
+    ).subscribe({
+      next: (customer) => {
         this.notification.success('Customer and account created successfully');
-        this.dialogRef.close(true);
+        this.createdCustomer.set(customer);
+        this.step.set('success');
       },
       error: (error) => {
         this.notification.error(
-          error.error?.message ?? 'Failed to create customer'
+          apiErrorMessage(error, 'Failed to create customer')
         );
-        this.saving = false;
       }
     });
   }

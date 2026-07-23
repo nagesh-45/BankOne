@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+import { API_BASE_URL } from '../config/api-config';
 import { DashboardSummary } from '../models/dashboard-summary';
 
 @Injectable({
@@ -9,7 +10,7 @@ import { DashboardSummary } from '../models/dashboard-summary';
 })
 export class DashboardService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/dashboard';
+  private readonly apiUrl = `${API_BASE_URL}/dashboard`;
 
   private readonly summarySubject = new BehaviorSubject<DashboardSummary | null>(null);
   private readonly loadingSubject = new BehaviorSubject<boolean>(false);

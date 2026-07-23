@@ -41,7 +41,7 @@
   padding: 0 4px 0 10px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  background: #fff;
+  background: #d9dfe8;
 
   mat-icon {
     flex-shrink: 0;
@@ -79,9 +79,27 @@
   }
 }
 
-.create-button {
+.management-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   height: 36px;
-  border-radius: 8px;
+  padding: 0 4px;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .table-card {
@@ -118,6 +136,52 @@
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #9ca3af;
+  }
+
+  &:hover mat-icon {
+    color: #4b5563;
+  }
+}
+
+.highlight-row {
+  background: #dbeafe;
+}
+
+.edit-button {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  color: #2563eb;
+
+  mat-icon {
+    margin: 0;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #2563eb;
+  }
 }
 
 .employee-table td {

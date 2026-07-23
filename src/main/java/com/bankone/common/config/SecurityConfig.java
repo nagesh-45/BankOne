@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/customers/**")
@@ -61,7 +62,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/customers", "/customers/**")
                         .hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers(HttpMethod.PUT, "/customers/**")
-                        .hasRole("ADMIN")
+                        .hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers(HttpMethod.DELETE, "/customers/**")
                         .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/accounts/**")
@@ -121,7 +122,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://bankone.local:*",
+                "http://192.168.0.4:*"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

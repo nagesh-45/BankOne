@@ -1,116 +1,141 @@
-<h2 mat-dialog-title>Create Customer</h2>
+@if (step() === 'form') {
+  <h2 mat-dialog-title>Create Customer</h2>
 
-<mat-dialog-content>
-  <form class="create-form" (ngSubmit)="save()">
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>First name</mat-label>
-        <input matInput name="firstName" [(ngModel)]="firstName" required>
-      </mat-form-field>
+  <mat-dialog-content>
+    <form class="create-form" (ngSubmit)="save()">
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>First name</mat-label>
+          <input matInput name="firstName" [(ngModel)]="firstName" required>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Last name</mat-label>
-        <input matInput name="lastName" [(ngModel)]="lastName" required>
-      </mat-form-field>
-    </div>
+        <mat-form-field appearance="outline">
+          <mat-label>Last name</mat-label>
+          <input matInput name="lastName" [(ngModel)]="lastName" required>
+        </mat-form-field>
+      </div>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" name="email" [(ngModel)]="email" required>
-      </mat-form-field>
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" name="email" [(ngModel)]="email" required>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Phone number</mat-label>
-        <input
+        <mat-form-field appearance="outline">
+          <mat-label>Phone number</mat-label>
+          <input
+            matInput
+            name="phoneNumber"
+            [(ngModel)]="phoneNumber"
+            maxlength="10"
+            required>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Date of birth</mat-label>
+          <input matInput type="date" name="dateOfBirth" [(ngModel)]="dateOfBirth">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select name="status" [(ngModel)]="status" required>
+            @for (item of statuses; track item) {
+              <mat-option [value]="item">{{ item }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Address</mat-label>
+        <textarea
           matInput
-          name="phoneNumber"
-          [(ngModel)]="phoneNumber"
-          maxlength="10"
-          required>
+          name="address"
+          [(ngModel)]="address"
+          rows="2"
+          required></textarea>
       </mat-form-field>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Branch code</mat-label>
+          <input
+            matInput
+            name="branchCode"
+            [(ngModel)]="branchCode"
+            maxlength="4"
+            required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Opening deposit</mat-label>
+          <input
+            matInput
+            type="number"
+            name="openingDeposit"
+            [(ngModel)]="openingDeposit"
+            required>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Account type</mat-label>
+          <mat-select name="accountType" [(ngModel)]="accountType" required>
+            @for (item of accountTypes; track item) {
+              <mat-option [value]="item">{{ item }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Currency</mat-label>
+          <mat-select name="currencyCode" [(ngModel)]="currencyCode" required>
+            @for (item of currencyCodes; track item) {
+              <mat-option [value]="item">{{ item }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="close()">
+      Cancel
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      (click)="save()"
+      [disabled]="saving()">
+      {{ saving() ? 'Saving...' : 'Create' }}
+    </button>
+  </mat-dialog-actions>
+} @else {
+  <h2 mat-dialog-title>Customer created</h2>
+
+  <mat-dialog-content>
+    <div class="success-panel">
+      <mat-icon class="success-icon">check_circle</mat-icon>
+      @if (createdCustomer(); as customer) {
+        <p>
+          {{ customer.firstName }} {{ customer.lastName }}
+          ({{ customer.customerCode || (customer.customerId | businessId:'C') }})
+          was created successfully.
+        </p>
+      }
     </div>
+  </mat-dialog-content>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Date of birth</mat-label>
-        <input matInput type="date" name="dateOfBirth" [(ngModel)]="dateOfBirth">
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Status</mat-label>
-        <mat-select name="status" [(ngModel)]="status" required>
-          @for (item of statuses; track item) {
-            <mat-option [value]="item">{{ item }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Address</mat-label>
-      <textarea
-        matInput
-        name="address"
-        [(ngModel)]="address"
-        rows="2"
-        required></textarea>
-    </mat-form-field>
-
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Branch code</mat-label>
-        <input
-          matInput
-          name="branchCode"
-          [(ngModel)]="branchCode"
-          maxlength="4"
-          required>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Opening deposit</mat-label>
-        <input
-          matInput
-          type="number"
-          name="openingDeposit"
-          [(ngModel)]="openingDeposit"
-          required>
-      </mat-form-field>
-    </div>
-
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Account type</mat-label>
-        <mat-select name="accountType" [(ngModel)]="accountType" required>
-          @for (item of accountTypes; track item) {
-            <mat-option [value]="item">{{ item }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Currency</mat-label>
-        <mat-select name="currencyCode" [(ngModel)]="currencyCode" required>
-          @for (item of currencyCodes; track item) {
-            <mat-option [value]="item">{{ item }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
-  </form>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="close()" [disabled]="saving">
-    Cancel
-  </button>
-  <button
-    mat-flat-button
-    color="primary"
-    type="button"
-    (click)="save()"
-    [disabled]="saving">
-    {{ saving ? 'Saving...' : 'Create' }}
-  </button>
-</mat-dialog-actions>
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="close()">Done</button>
+    <button mat-flat-button color="primary" type="button" (click)="viewCustomer()">
+      <mat-icon>visibility</mat-icon>
+      View
+    </button>
+  </mat-dialog-actions>
+}

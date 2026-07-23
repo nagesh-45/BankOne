@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -18,16 +19,18 @@ import {
 
 import { AppUser } from '../../../core/models/app-user';
 import { PagedResponse } from '../../../core/models/paged-response';
+import { Auth } from '../../../core/services/auth';
 import { UserService } from '../../../core/services/user';
 import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
 import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
-import { UserCreateDialog } from '../user-create-dialog/user-create-dialog';
+import { UserEditDialog } from '../user-edit-dialog/user-edit-dialog';
 
 @Component({
   selector: 'app-employee-list',
   standalone: true,
   imports: [
     FormsModule,
+    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -38,12 +41,24 @@ import { UserCreateDialog } from '../user-create-dialog/user-create-dialog';
   styleUrl: './employee-list.scss'
 })
 export class EmployeeList {
+  private readonly auth = inject(Auth);
   private readonly userService = inject(UserService);
+  private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
 
-  readonly searchTerm = signal('');
+  readonly canEditEmployee = this.auth.hasAnyRole(['ADMIN']);
+
+  private readonly initialQuery =
+    this.route.snapshot.queryParamMap.get('q')?.trim() ?? '';
+
+  readonly searchTerm = signal(this.initialQuery);
   readonly pageIndex = signal(0);
   readonly pageSize = signal(10);
+  readonly sortBy = signal('userId');
+  readonly sortDir = signal<'asc' | 'desc'>('desc');
+  readonly highlightCode = signal(
+    this.initialQuery ? this.initialQuery.toUpperCase() : ''
+  );
   private readonly reloadTick = signal(0);
 
   private readonly employeeResponse = toSignal(
@@ -54,10 +69,12 @@ export class EmployeeList {
       ),
       toObservable(this.pageIndex),
       toObservable(this.pageSize),
+      toObservable(this.sortBy),
+      toObservable(this.sortDir),
       toObservable(this.reloadTick)
     ]).pipe(
-      switchMap(([search, page, size]) =>
-        this.userService.getEmployees(search.trim(), page, size).pipe(
+      switchMap(([search, page, size, sortBy, sortDir]) =>
+        this.userService.getEmployees(search.trim(), page, size, sortBy, sortDir).pipe(
           map((response) => ({
             state: 'loaded' as const,
             response
@@ -96,7 +113,25 @@ export class EmployeeList {
 
   updateSearch(value: string): void {
     this.pageIndex.set(0);
+    this.highlightCode.set('');
     this.searchTerm.set(value);
+  }
+
+  toggleSort(column: string): void {
+    if (this.sortBy() === column) {
+      this.sortDir.update((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortBy.set(column);
+      this.sortDir.set('asc');
+    }
+    this.pageIndex.set(0);
+  }
+
+  sortIcon(column: string): string {
+    if (this.sortBy() !== column) {
+      return 'unfold_more';
+    }
+    return this.sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward';
   }
 
   changePage(page: number): void {
@@ -108,18 +143,14 @@ export class EmployeeList {
     this.pageIndex.set(0);
   }
 
-  openCreateUser(): void {
-    const dialogRef = this.dialog.open(UserCreateDialog, {
-      width: '640px',
-      maxWidth: '95vw',
-      disableClose: true
-    });
-
-    dialogRef.afterClosed().subscribe((created) => {
-      if (created) {
-        this.reloadTick.update((tick) => tick + 1);
-      }
-    });
+  isHighlighted(employee: AppUser): boolean {
+    const code = this.highlightCode();
+    if (!code) {
+      return false;
+    }
+    const employeeCode = (employee.employeeCode ?? `E${String(employee.userId).padStart(5, '0')}`)
+      .toUpperCase();
+    return employeeCode === code || String(employee.userId) === code;
   }
 
   accessLabel(roles: string[]): string {
@@ -132,5 +163,22 @@ export class EmployeeList {
     }
 
     return roles.join(', ') || 'No role';
+  }
+
+  editEmployee(employee: AppUser, event: Event): void {
+    event.stopPropagation();
+
+    const dialogRef = this.dialog.open(UserEditDialog, {
+      width: '640px',
+      maxWidth: '95vw',
+      disableClose: true,
+      data: { employee }
+    });
+
+    dialogRef.afterClosed().subscribe((updated) => {
+      if (updated) {
+        this.reloadTick.update((value) => value + 1);
+      }
+    });
   }
 }

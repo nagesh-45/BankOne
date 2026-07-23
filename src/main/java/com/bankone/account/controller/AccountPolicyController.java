@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/account-policies")
@@ -26,5 +28,13 @@ public class AccountPolicyController {
 
         AccountPolicyResponse response = accountPolicyService.createPolicy(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    @GetMapping
+    public ResponseEntity<AccountPolicyResponse> getActivePolicy(
+            @RequestParam String accountType,
+            @RequestParam(defaultValue = "INR") String currencyCode
+    ) {
+        return ResponseEntity.ok(
+                accountPolicyService.getActivePolicy(accountType, currencyCode));
     }
 }

@@ -1,9 +1,49 @@
 .container {
   height: 100vh;
+  background: #0b1f3a !important;
 }
 
-mat-sidenav {
-  width: 250px;
+mat-sidenav.app-sidenav {
+  width: 72px !important;
+  min-width: 72px !important;
+  max-width: 72px !important;
+  background: #0b1f3a !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  overflow-x: hidden;
+  transition:
+    width 0.22s ease,
+    min-width 0.22s ease,
+    max-width 0.22s ease;
+}
+
+mat-sidenav.app-sidenav.expanded {
+  width: 250px !important;
+  min-width: 250px !important;
+  max-width: 250px !important;
+}
+
+:host ::ng-deep .mat-drawer,
+:host ::ng-deep .mat-sidenav {
+  background: #0b1f3a !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+:host ::ng-deep .mat-drawer-inner-container {
+  background: #0b1f3a;
+  overflow-x: hidden;
+}
+
+:host ::ng-deep .mat-sidenav-content {
+  margin-left: 72px !important;
+  transition: margin-left 0.22s ease;
+}
+
+:host ::ng-deep .container:has(mat-sidenav.app-sidenav.expanded) .mat-sidenav-content {
+  margin-left: 250px !important;
 }
 
 .content {

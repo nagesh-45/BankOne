@@ -13,4 +13,7 @@ export interface Account {
   activatedAt: string | null;
   createdBy: string | null;
   customerId: number;
+  customerCode?: string;
+  customerName?: string;
+
 }

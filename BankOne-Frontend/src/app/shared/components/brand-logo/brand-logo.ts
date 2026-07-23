@@ -14,6 +14,7 @@ let brandLogoSeq = 0;
 export class BrandLogo {
   @Input() theme: BrandLogoTheme = 'light';
   @Input() size: BrandLogoSize = 'md';
+  @Input() showMark = true;
   @Input() showWordmark = true;
   @Input() tagline = '';
 

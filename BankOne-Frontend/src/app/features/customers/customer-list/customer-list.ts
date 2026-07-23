@@ -1,10 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import {
   catchError,
@@ -23,13 +22,13 @@ import { PagedResponse } from '../../../core/models/paged-response';
 import { CustomerService } from '../../../core/services/customer';
 import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
 import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
-import { CustomerCreateDialog } from '../customer-create-dialog/customer-create-dialog';
 
 @Component({
   selector: 'app-customer-list',
   standalone: true,
   imports: [
     FormsModule,
+    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -42,7 +41,6 @@ import { CustomerCreateDialog } from '../customer-create-dialog/customer-create-
 export class CustomerList {
   private readonly auth = inject(Auth);
   private readonly customerService = inject(CustomerService);
-  private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
   readonly canCreateCustomer = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE']);
@@ -50,7 +48,8 @@ export class CustomerList {
   readonly searchTerm = signal('');
   readonly pageIndex = signal(0);
   readonly pageSize = signal(10);
-  private readonly reloadTick = signal(0);
+  readonly sortBy = signal('customerId');
+  readonly sortDir = signal<'asc' | 'desc'>('desc');
 
   private readonly customerResponse = toSignal(
     combineLatest([
@@ -60,10 +59,11 @@ export class CustomerList {
       ),
       toObservable(this.pageIndex),
       toObservable(this.pageSize),
-      toObservable(this.reloadTick)
+      toObservable(this.sortBy),
+      toObservable(this.sortDir)
     ]).pipe(
-      switchMap(([search, page, size]) =>
-        this.customerService.getCustomers(search.trim(), page, size).pipe(
+      switchMap(([search, page, size, sortBy, sortDir]) =>
+        this.customerService.getCustomers(search.trim(), page, size, sortBy, sortDir).pipe(
           map((response) => ({
             state: 'loaded' as const,
             response
@@ -105,6 +105,23 @@ export class CustomerList {
     this.searchTerm.set(value);
   }
 
+  toggleSort(column: string): void {
+    if (this.sortBy() === column) {
+      this.sortDir.update((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortBy.set(column);
+      this.sortDir.set('asc');
+    }
+    this.pageIndex.set(0);
+  }
+
+  sortIcon(column: string): string {
+    if (this.sortBy() !== column) {
+      return 'unfold_more';
+    }
+    return this.sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward';
+  }
+
   changePage(page: number): void {
     this.pageIndex.set(page);
   }
@@ -116,19 +133,5 @@ export class CustomerList {
 
   openCustomer(customer: Customer): void {
     this.router.navigate(['/app/customers', customer.customerId]);
-  }
-
-  openCreateCustomer(): void {
-    const dialogRef = this.dialog.open(CustomerCreateDialog, {
-      width: '640px',
-      maxWidth: '95vw',
-      disableClose: true
-    });
-
-    dialogRef.afterClosed().subscribe((created) => {
-      if (created) {
-        this.reloadTick.update((tick) => tick + 1);
-      }
-    });
   }
 }

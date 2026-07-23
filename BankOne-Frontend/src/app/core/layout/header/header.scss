@@ -1,14 +1,60 @@
 .app-header {
-  height: 56px;
-  padding-inline: 16px 12px;
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 0 12px 0 14px !important;
   gap: 4px;
   background: #0b1f3a !important;
   color: #ffffff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* When sidebar brand is taller, hide this line so separators don't fight */
+.app-header.sidebar-expanded {
+  border-bottom-color: transparent;
+}
+
+/* Match sidebar shield center: serif wordmark sits a hair low optically */
+.app-header app-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+}
+
+.app-header ::ng-deep .brand-logo {
+  height: 28px;
+  align-items: center;
+}
+
+.app-header ::ng-deep .wordmark {
+  line-height: 1;
+  display: block;
+  transform: translateY(-1px);
 }
 
 .spacer {
   flex: 1;
+}
+
+.system-time {
+  margin-right: 8px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+@media (max-width: 720px) {
+  .system-time {
+    display: none;
+  }
 }
 
 .header-action,

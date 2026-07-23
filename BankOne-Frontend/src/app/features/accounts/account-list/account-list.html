@@ -1,0 +1,130 @@
+<section class="account-page">
+  <div class="page-header">
+    <div>
+      <h1>Accounts</h1>
+      <p>Search by account number, customer ID (C00001), name, email, or phone.</p>
+    </div>
+
+    <div class="page-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="openDeposit()">
+        <mat-icon>add_card</mat-icon>
+        Deposit
+      </button>
+
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input
+          type="search"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="updateSearch($event)"
+          placeholder="Search accounts...">
+        @if (searchTerm()) {
+          <button
+            mat-icon-button
+            type="button"
+            class="clear-btn"
+            aria-label="Clear search"
+            (click)="updateSearch('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <mat-card class="table-card">
+    @if (!isLoading() && !hasError()) {
+      <div class="record-count">
+        {{ totalAccounts() }} account{{ totalAccounts() === 1 ? '' : 's' }}
+      </div>
+    }
+    @if (isLoading()) {
+      <div class="state-message">Loading accounts...</div>
+    } @else if (hasError()) {
+      <div class="state-message error-message">
+        Unable to load accounts right now.
+      </div>
+    } @else if (accounts().length === 0) {
+      <div class="state-message">No accounts found for this search.</div>
+    } @else {
+      <div class="table-wrapper">
+        <table class="account-table">
+          <thead>
+          <tr>
+            <th>
+              <button type="button" class="sort-btn" (click)="toggleSort('accountNumber')">
+                Account
+                <mat-icon>{{ sortIcon('accountNumber') }}</mat-icon>
+              </button>
+            </th>
+            <th>Customer</th>
+            <th>
+              <button type="button" class="sort-btn" (click)="toggleSort('accountType')">
+                Type
+                <mat-icon>{{ sortIcon('accountType') }}</mat-icon>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="toggleSort('status')">
+                Status
+                <mat-icon>{{ sortIcon('status') }}</mat-icon>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="toggleSort('availableBalance')">
+                Available
+                <mat-icon>{{ sortIcon('availableBalance') }}</mat-icon>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="toggleSort('currencyCode')">
+                Currency
+                <mat-icon>{{ sortIcon('currencyCode') }}</mat-icon>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="toggleSort('createdAt')">
+                Created
+                <mat-icon>{{ sortIcon('createdAt') }}</mat-icon>
+              </button>
+            </th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (account of accounts(); track account.accountId) {
+              <tr class="clickable-row" (click)="openCustomer(account)">
+                <td>{{ account.accountNumber }}</td>
+                <td>
+                  {{ account.customerCode || (account.customerId | businessId:'C') }}
+                  @if (account.customerName) {
+                    <span class="customer-name"> · {{ account.customerName }}</span>
+                  }
+                </td>
+                <td>{{ account.accountType }}</td>
+                <td>
+                  <span class="status-chip">{{ account.status }}</span>
+                </td>
+                <td>{{ account.availableBalance | currency:account.currencyCode }}</td>
+                <td>{{ account.currencyCode }}</td>
+                <td>{{ account.createdAt | date:'mediumDate' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-list-pagination
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [totalElements]="totalAccounts()"
+        [totalPages]="totalPages()"
+        (pageIndexChange)="changePage($event)"
+        (pageSizeChange)="changePageSize($event)">
+      </app-list-pagination>
+    }
+  </mat-card>
+</section>

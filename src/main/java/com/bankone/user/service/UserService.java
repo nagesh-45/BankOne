@@ -2,26 +2,34 @@ package com.bankone.user.service;
 
 import com.bankone.common.exception.BadRequestException;
 import com.bankone.common.exception.ConflictException;
+import com.bankone.common.exception.ResourceNotFoundException;
 import com.bankone.common.util.BusinessIdFormatter;
 import com.bankone.role.entity.Role;
 import com.bankone.role.repository.RoleRepository;
 import com.bankone.user.dto.CreateUserRequest;
+import com.bankone.user.dto.UpdateUserRequest;
 import com.bankone.user.dto.UserResponse;
 import com.bankone.user.entity.User;
 import com.bankone.user.entity.UserRole;
 import com.bankone.user.repository.UserRepository;
 import com.bankone.user.repository.UserRoleRepository;
+import com.bankone.user.specification.EmployeeSpecification;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class UserService {
+
+    private static final Set<String> EMPLOYEE_ROLES = Set.of("ADMIN", "EMPLOYEE", "MANAGER");
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
@@ -59,10 +67,7 @@ public class UserService {
             throw new ConflictException("Email already exists");
         }
 
-        String roleName = request.getAccessLevel() == CreateUserRequest.AccessLevel.ADMIN
-                ? "ADMIN"
-                : "EMPLOYEE";
-
+        String roleName = toRoleName(request.getAccessLevel());
         Role role = roleRepository.findByRoleName(roleName)
                 .orElseThrow(() -> new BadRequestException("Role not found: " + roleName));
 
@@ -89,58 +94,89 @@ public class UserService {
         return toResponse(savedUser, List.of(role.getRoleName()));
     }
 
-    @Transactional(readOnly = true)
-    public Page<UserResponse> getEmployees(String search, Pageable pageable) {
-        String term = search == null ? "" : search.trim().toLowerCase();
+    @Transactional
+    public UserResponse updateUser(Long userId, UpdateUserRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + userId));
 
-        List<UserResponse> filtered = userRepository.findAll().stream()
-                .map(user -> {
-                    List<String> roles = userRoleRepository.findByUserWithRole(user).stream()
-                            .filter(userRole -> Boolean.TRUE.equals(userRole.getActive()))
-                            .map(userRole -> userRole.getRole().getRoleName())
-                            .toList();
-                    return toResponse(user, roles);
-                })
-                .filter(response -> response.getRoles().stream()
-                        .anyMatch(role -> "ADMIN".equals(role) || "EMPLOYEE".equals(role) || "MANAGER".equals(role)))
-                .filter(response -> matchesSearch(response, term))
-                .toList();
+        List<UserRole> existingRoles = userRoleRepository.findByUserWithRole(user);
+        boolean isEmployee = existingRoles.stream()
+                .anyMatch(role -> Boolean.TRUE.equals(role.getActive())
+                        && EMPLOYEE_ROLES.contains(role.getRoleName()));
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), filtered.size());
-        List<UserResponse> content = start >= filtered.size()
-                ? List.of()
-                : filtered.subList(start, end);
+        if (!isEmployee) {
+            throw new BadRequestException("Only employee accounts can be updated here");
+        }
 
-        return new PageImpl<>(content, pageable, filtered.size());
+        String email = request.getEmail().trim();
+        if (userRepository.existsByEmailIgnoreCaseAndUserIdNot(email, userId)) {
+            throw new ConflictException("Email already exists");
+        }
+
+        user.setFirstName(request.getFirstName().trim());
+        user.setLastName(request.getLastName().trim());
+        user.setEmail(email);
+        user.setEnabled(Boolean.TRUE.equals(request.getEnabled()));
+
+        User savedUser = userRepository.save(user);
+
+        String targetRoleName = toRoleName(request.getAccessLevel());
+        Role targetRole = roleRepository.findByRoleName(targetRoleName)
+                .orElseThrow(() -> new BadRequestException("Role not found: " + targetRoleName));
+
+        boolean alreadyHasTarget = false;
+        for (UserRole userRole : existingRoles) {
+            if (!Boolean.TRUE.equals(userRole.getActive())) {
+                continue;
+            }
+            if (targetRoleName.equals(userRole.getRoleName())) {
+                alreadyHasTarget = true;
+            } else if (EMPLOYEE_ROLES.contains(userRole.getRoleName())) {
+                userRole.setActive(false);
+                userRoleRepository.save(userRole);
+            }
+        }
+
+        if (!alreadyHasTarget) {
+            UserRole userRole = new UserRole();
+            userRole.setUser(savedUser);
+            userRole.setRole(targetRole);
+            userRole.setRoleName(targetRole.getRoleName());
+            userRole.setActive(true);
+            userRoleRepository.save(userRole);
+        }
+
+        return toResponse(savedUser, List.of(targetRoleName));
     }
 
-    private boolean matchesSearch(UserResponse response, String term) {
-        if (term.isBlank()) {
-            return true;
+    @Transactional(readOnly = true)
+    public Page<UserResponse> getEmployees(String search, Pageable pageable) {
+        Page<User> users = userRepository.findAll(
+                EmployeeSpecification.matching(search),
+                pageable
+        );
+
+        List<Long> userIds = users.getContent().stream()
+                .map(User::getUserId)
+                .toList();
+
+        Map<Long, List<String>> rolesByUserId = new HashMap<>();
+        if (!userIds.isEmpty()) {
+            for (UserRole userRole : userRoleRepository.findActiveByUserIds(userIds)) {
+                rolesByUserId
+                        .computeIfAbsent(userRole.getUser().getUserId(), ignored -> new ArrayList<>())
+                        .add(userRole.getRole().getRoleName());
+            }
         }
 
-        Long codedId = BusinessIdFormatter.parseEmployeeId(term);
-        if (codedId != null) {
-            return codedId.equals(response.getUserId());
-        }
+        return users.map(user -> toResponse(
+                user,
+                rolesByUserId.getOrDefault(user.getUserId(), List.of())
+        ));
+    }
 
-        String userId = response.getUserId() == null ? "" : response.getUserId().toString();
-        String employeeCode = response.getEmployeeCode() == null
-                ? ""
-                : response.getEmployeeCode().toLowerCase();
-        String fullName = ((response.getFirstName() == null ? "" : response.getFirstName()) + " "
-                + (response.getLastName() == null ? "" : response.getLastName())).toLowerCase();
-        String username = response.getUsername() == null ? "" : response.getUsername().toLowerCase();
-        String email = response.getEmail() == null ? "" : response.getEmail().toLowerCase();
-        String access = String.join(" ", response.getRoles()).toLowerCase();
-
-        return userId.contains(term)
-                || employeeCode.contains(term)
-                || fullName.contains(term)
-                || username.contains(term)
-                || email.contains(term)
-                || access.contains(term);
+    private String toRoleName(CreateUserRequest.AccessLevel accessLevel) {
+        return accessLevel == CreateUserRequest.AccessLevel.ADMIN ? "ADMIN" : "EMPLOYEE";
     }
 
     private UserResponse toResponse(User user, List<String> roles) {
