@@ -7,7 +7,7 @@ deposit / min balance metadata), search accounts, update status, and
 post simple deposits that credit balances.
 
 **Status:** Implemented for open / search / get-by-id / status / deposit / policies / transaction list API.
-Deposit now writes a **CREDIT** row via `TransactionService.record`.
+Deposit and **opening deposit** (`openAccount` when amount > 0) write a **CREDIT** row via `TransactionService.record` (opening narration: "Opening deposit").
 No withdraw/transfer; transaction list API exists; no ledger UI yet.
 
 ## 2. Business Purpose
@@ -139,7 +139,7 @@ SQL debug in dev; no structured account event log.
 ## 18. Audit Events
 
 Account has `created_by` / timestamps; `AccountPolicy` uses
-`AuditableEntity`. Post-open deposits also write an immutable
+`AuditableEntity`. Opening deposits (> 0) and post-open deposits write an immutable
 `bank_transaction` CREDIT via `TransactionService.record`.
 
 ## 19. Testing Strategy
@@ -153,7 +153,7 @@ Account has `created_by` / timestamps; `AccountPolicy` uses
 
 ## 20. Future Extension Guide
 
-- Persist ledger on openAccount + withdraw/transfer (deposit CREDIT done)
+- Persist ledger on withdraw/transfer (openAccount opening CREDIT + deposit CREDIT done)
 - Withdraw / transfer with limits
 - Account detail page
 - Status transition state machine
@@ -190,10 +190,7 @@ Account has `created_by` / timestamps; `AccountPolicy` uses
 
 ### Requirement: Change deposit to write a ledger entry
 
-**Done (deposit path):** `AccountServiceImpl.deposit()` calls
-`TransactionService.record(..., CREDIT, ...)` after balance
-update. Still TODO: opening CREDIT on `openAccount`; withdraw/
-transfer; ledger UI; dashboard `todayTransactionCount`.
+**Done (deposit + openAccount):** `AccountServiceImpl.deposit()` and `openAccount()` (when `openingDeposit` > 0) call `TransactionService.record` after balance update. Still TODO: withdraw/transfer; ledger UI; dashboard `todayTransactionCount`.
 
   ------------------------------------------------------------
   Item                      Detail

@@ -4,10 +4,11 @@
 
 Immutable ledger of credits/debits (and later transfers). Foundation
 is in place under `com.bankone.transaction`: entity, repository,
-`TransactionService.record`, **CREDIT** on deposit, and
+`TransactionService.record`, **CREDIT** on deposit and on opening deposit
+(`openAccount` when amount > 0, narration "Opening deposit"), and
 `GET /accounts/{accountId}/transactions` (paged list). No ledger UI yet.
 
-**Status:** Partial (write on deposit + list API; no withdraw/transfer/UI)
+**Status:** Partial (write on deposit + opening deposit + list API; no withdraw/transfer/UI)
 
 ## 2. Business Purpose
 
@@ -16,8 +17,8 @@ enable withdraw/transfer.
 
 ## 3. User Workflow
 
-Implemented path: Accounts list → Deposit → balance update + CREDIT
-ledger row.
+Implemented paths: Accounts list → Deposit → balance update + CREDIT ledger row;
+open account / customer create with openingDeposit > 0 → CREDIT with narration "Opening deposit".
 
 API ready for Account detail → transaction list. Still planned:
 withdraw/transfer create rows; sidebar Transactions route (nav stub
@@ -122,7 +123,7 @@ Planned for debit: sufficient balance; currency match.
 
 ## 15. Security Rules
 
-Write today only via Account deposit (ADMIN/EMPLOYEE). List read aligns
+Write today via Account deposit and openAccount opening deposit (ADMIN/EMPLOYEE). List read aligns
 with accounts (ADMIN, EMPLOYEE, MANAGER).
 
 ## 16. Exception Handling
@@ -148,8 +149,7 @@ metadata later.
 
 ## 20. Future Extension Guide
 
-Next: CREDIT on `openAccount` opening deposit; then withdraw (DEBIT);
-then transfer + beneficiary; then ledger UI; wire dashboard
+Next: withdraw (DEBIT); then transfer + beneficiary; then ledger UI; wire dashboard
 `todayTransactionCount`.
 
 ------------------------------------------------------------------------

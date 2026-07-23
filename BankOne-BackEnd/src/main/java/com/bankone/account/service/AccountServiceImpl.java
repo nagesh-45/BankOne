@@ -49,6 +49,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional
     public AccountResponse openAccount(OpenAccountRequest request) {
         // Validate customer
         Optional<Customer> customerOpt = customerRepository.findById(request.getCustomerId());
@@ -101,59 +102,49 @@ public class AccountServiceImpl implements AccountService {
                 request.getCurrencyCode()
         );
 
-        // Create Account entity
+        BigDecimal openingDeposit = request.getOpeningDeposit() == null
+                ? BigDecimal.ZERO
+                : request.getOpeningDeposit();
+
         Account account = new Account();
         account.setAccountNumber(accountNumber);
         account.setBranchCode(request.getBranchCode());
         account.setAccountType(request.getAccountType().name());
         account.setOrdinal(ordinal.intValue());
         account.setCurrencyCode(request.getCurrencyCode().name());
-        // Assume check digit is always the last char(s) of account number
         String checkDigitStr = accountNumber.substring(accountNumber.length() - 1);
         try {
             account.setCheckDigit(Integer.parseInt(checkDigitStr));
         } catch (NumberFormatException e) {
             account.setCheckDigit(0);
         }
-        BigDecimal openingDeposit = request.getOpeningDeposit() == null
-        ? BigDecimal.ZERO
-        : request.getOpeningDeposit();
-
-account.setAvailableBalance(openingDeposit);
-account.setLedgerBalance(openingDeposit);
-         openingDeposit = request.getOpeningDeposit() == null
-        ? BigDecimal.ZERO
-        : request.getOpeningDeposit();
-
-account.setAvailableBalance(openingDeposit);
-account.setLedgerBalance(openingDeposit);
-        account.setStatus(AccountStatus.ACTIVE.name());
-        account.setCreatedAt(LocalDateTime.now());
-        account.setCreatedBy(request.getCreatedBy());
-        account.setCustomer(customer);
-         openingDeposit = request.getOpeningDeposit() == null
-        ? BigDecimal.ZERO
-        : request.getOpeningDeposit();
-
-account.setAvailableBalance(openingDeposit);
-account.setLedgerBalance(openingDeposit);
-         openingDeposit = request.getOpeningDeposit() == null
-        ? BigDecimal.ZERO
-        : request.getOpeningDeposit();
-
-account.setAvailableBalance(openingDeposit);
-account.setLedgerBalance(openingDeposit);
-
+        account.setAvailableBalance(openingDeposit);
+        account.setLedgerBalance(openingDeposit);
         account.setDebitCount(0);
-        account.setCreditCount(0);
-
+        account.setCreditCount(openingDeposit.compareTo(BigDecimal.ZERO) > 0 ? 1 : 0);
+        if (openingDeposit.compareTo(BigDecimal.ZERO) > 0) {
+            account.setLastCreditAt(now);
+            account.setLastTransactionAt(now);
+        }
         account.setStatus(AccountStatus.ACTIVE.name());
-        account.setCreatedAt(LocalDateTime.now());
-        account.setActivatedAt(LocalDateTime.now());
-        account.setCreatedBy(request.getCreatedBy());
-
+        account.setCreatedAt(now);
+        account.setActivatedAt(now);
+        account.setCreatedBy(request.getCreatedBy() != null ? request.getCreatedBy() : "SYSTEM");
         account.setCustomer(customer);
+
         Account savedAccount = accountRepository.save(account);
+
+        if (openingDeposit.compareTo(BigDecimal.ZERO) > 0) {
+            transactionService.record(
+                    savedAccount,
+                    TransactionType.CREDIT,
+                    openingDeposit,
+                    savedAccount.getLedgerBalance(),
+                    "Opening deposit",
+                    savedAccount.getCreatedBy()
+            );
+        }
+
         return toResponse(savedAccount);
     }
 

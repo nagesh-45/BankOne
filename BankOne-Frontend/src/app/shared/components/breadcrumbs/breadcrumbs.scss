@@ -1,0 +1,43 @@
+.breadcrumbs {
+  margin: 0 0 16px;
+}
+
+ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.current {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.sep {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+}

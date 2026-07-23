@@ -153,4 +153,7 @@ export class AccountList {
       }
     });
   }
+  openAccount(account: Account): void {
+    this.router.navigate(['/app/accounts', account.accountId]);
+  }
 }

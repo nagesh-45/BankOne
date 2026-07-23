@@ -1,10 +1,41 @@
-HELP.md
-target/
+# OS / IDE
+.DS_Store
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*~
+
+# Secrets / local env (never commit)
+.env
+.env.*
+!.env.example
+!**/.env.example
+**/application-local.properties
+**/secrets/
+
+# Backend (Maven)
+**/target/
+BankOne-BackEnd/target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# Frontend (Node / Angular)
+BankOne-Frontend/node_modules/
+BankOne-Frontend/dist/
+BankOne-Frontend/.angular/
+BankOne-Frontend/coverage/
+npm-debug.log*
+yarn-error.log*
+
+# Logs
+*.log
+logs/
+
+# Java / Spring misc
 .apt_generated
 .classpath
 .factorypath
@@ -13,24 +44,8 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# Build / temp
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
-
-
-.DS_Store
+out/
+tmp/
+temp/

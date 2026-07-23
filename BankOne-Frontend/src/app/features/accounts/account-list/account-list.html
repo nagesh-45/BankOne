@@ -96,7 +96,7 @@
           </thead>
           <tbody>
             @for (account of accounts(); track account.accountId) {
-              <tr class="clickable-row" (click)="openCustomer(account)">
+              <tr class="clickable-row" (click)="openAccount(account)">
                 <td>{{ account.accountNumber }}</td>
                 <td>
                   {{ account.customerCode || (account.customerId | businessId:'C') }}

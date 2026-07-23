@@ -4,10 +4,33 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
-## 2026-07-23 — Slice 2: get account + transactions APIs
+## 2026-07-23 — Opening deposit writes CREDIT ledger
 
 | Field | Value |
 |-------|-------|
+| **Feature** | openAccount records CREDIT when openingDeposit > 0 (customer create + add account) |
+| **Files Modified** | `AccountServiceImpl.openAccount` |
+| **Classes Modified** | `AccountServiceImpl` |
+| **Methods Modified** | `openAccount` |
+| **Reason** | History missing for opening deposits |
+| **Impact** | bank_transaction rows with narration "Opening deposit" |
+
+---
+
+## 2026-07-23 — Fix blank screen after login (breadcrumbs)
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Make `Breadcrumbs` resilient so `MainLayout` does not crash post-login |
+| **Files Modified** | `BankOne-Frontend/src/app/shared/components/breadcrumbs/breadcrumbs.ts` |
+| **Classes Modified** | `Breadcrumbs` |
+| **Methods Modified** | `buildCrumbs`, `urlOf`, `resolveLabel`; `crumbs` `toSignal` initialValue |
+| **Reason** | `toSignal({ initialValue: this.buildCrumbs() })` ran before router tree ready; `pathFromRoot`/`snapshot.url` could throw and blank the app |
+| **Impact** | After login, MainLayout renders; breadcrumbs fall back to Dashboard on error |
+
+---
+
+----|-------|
 | **Feature** | `GET /accounts/{accountId}` and `GET /accounts/{accountId}/transactions` |
 | **Files Modified** | `AccountController.java`, `AccountService`/`Impl`, `TransactionService`/`Impl`, `TransactionResponse.java`; docs `_source` API_DOCUMENTATION, MODULES/Account, MODULES/Transaction, CALL_FLOW, FUNCTIONAL_SPECIFICATION, CHANGELOG |
 | **Classes Modified** | `AccountController`, `AccountService`/`Impl`, `TransactionService`/`Impl`, `TransactionResponse` |
@@ -134,3 +157,15 @@ Append-only history of documentation-relevant product changes.
 | **Impact** | No ledger rows yet; Transaction module still stub |
 
 ---
+
+## 2026-07-23 — System-wide breadcrumbs
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Breadcrumbs in main layout from route `data.breadcrumb` / `data.breadcrumbParents` |
+| **Files Modified** | Frontend: `shared/breadcrumbs/*`, `layout/main-layout/*`, feature `*.routes.ts` (breadcrumb metadata) |
+| **Classes Modified** | `Breadcrumbs`, `MainLayout` |
+| **Methods Modified** | Breadcrumb build from `ActivatedRoute` snapshot / router events |
+| **Reason** | Staff navigation context across Customers, Accounts, Users, Dashboard |
+| **Impact** | All authenticated shell pages show trail; leaf routes declare parents for nested screens |
+

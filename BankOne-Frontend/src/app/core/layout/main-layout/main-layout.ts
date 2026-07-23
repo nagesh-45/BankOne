@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { Header } from '../header/header';
 import { Sidebar } from '../sidebar/sidebar';
+import { Breadcrumbs } from '../../../shared/components/breadcrumbs/breadcrumbs';
 
 @Component({
   selector: 'app-main-layout',
@@ -11,7 +12,8 @@ import { Sidebar } from '../sidebar/sidebar';
     RouterOutlet,
     MatSidenavModule,
     Header,
-    Sidebar
+    Sidebar,
+    Breadcrumbs
   ],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss'

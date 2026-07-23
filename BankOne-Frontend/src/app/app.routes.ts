@@ -10,6 +10,7 @@ import { ChangePassword } from './features/profile/change-password/change-passwo
 import { MainLayout } from './core/layout/main-layout/main-layout';
 import { authGuard } from './core/guards/auth-guard';
 import { AccountList } from './features/accounts/account-list/account-list';
+import { AccountDetail } from './features/accounts/account-detail/account-detail';
 
 export const routes: Routes = [
   {
@@ -23,22 +24,29 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        component: Dashboard
+        component: Dashboard,
+        data: { breadcrumb: 'Dashboard' }
       },
       {
         path: 'profile',
-        component: Profile
+        component: Profile,
+        data: { breadcrumb: 'Profile' }
       },
       {
         path: 'profile/password',
-        component: ChangePassword
+        component: ChangePassword,
+        data: {
+          breadcrumb: 'Change password',
+          breadcrumbParents: [{ label: 'Profile', url: '/app/profile' }]
+        }
       },
       {
         path: 'customers',
         component: CustomerList,
         canActivate: [authGuard],
         data: {
-          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER']
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER'],
+          breadcrumb: 'Customers'
         }
       },
       {
@@ -46,7 +54,9 @@ export const routes: Routes = [
         component: CustomerDetail,
         canActivate: [authGuard],
         data: {
-          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER']
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER'],
+          breadcrumb: 'Customer',
+          breadcrumbParents: [{ label: 'Customers', url: '/app/customers' }]
         }
       },
       {
@@ -54,7 +64,18 @@ export const routes: Routes = [
         component: AccountList,
         canActivate: [authGuard],
         data: {
-          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER']
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER'],
+          breadcrumb: 'Accounts'
+        }
+      },
+      {
+        path: 'accounts/:id',
+        component: AccountDetail,
+        canActivate: [authGuard],
+        data: {
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER'],
+          breadcrumb: 'Account',
+          breadcrumbParents: [{ label: 'Accounts', url: '/app/accounts' }]
         }
       },
       {
@@ -62,7 +83,8 @@ export const routes: Routes = [
         component: EmployeeList,
         canActivate: [authGuard],
         data: {
-          roles: ['ADMIN']
+          roles: ['ADMIN'],
+          breadcrumb: 'Employees'
         }
       },
       {
@@ -70,7 +92,8 @@ export const routes: Routes = [
         component: Management,
         canActivate: [authGuard],
         data: {
-          roles: ['ADMIN', 'EMPLOYEE']
+          roles: ['ADMIN', 'EMPLOYEE'],
+          breadcrumb: 'Management'
         }
       },
       {

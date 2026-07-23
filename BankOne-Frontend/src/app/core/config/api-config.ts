@@ -1,8 +1,9 @@
+import { environment } from '../../environments/environment';
+
 /**
- * API base URL for this machine's Open Liberty.
- *
- * Use the Mac's LAN IP so other devices on the same Wi‑Fi/LAN can call the API.
- * If your IP changes (ipconfig getifaddr en0), update this and restart ng serve.
- * Then redeploy Liberty if you also change CORS in SecurityConfig.
+ * API base URL.
+ * - Local/dev: src/environments/environment.ts
+ * - Production build: environment.prod.ts (file replacement)
+ * - Docker web image: can overwrite environment.prod.ts at build with --build-arg
  */
-export const API_BASE_URL = 'http://192.168.0.4:9080';
+export const API_BASE_URL = environment.apiBaseUrl;

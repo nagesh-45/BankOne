@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api-config';
 import { Account } from '../models/account';
 import { PagedResponse } from '../models/paged-response';
-
+import { Transaction } from '../models/transaction';
 export interface OpenAccountRequest {
   customerId: number;
   branchCode: string;
@@ -69,5 +69,27 @@ export class AccountService {
     return this.http.post<Account>(`${this.baseUrl}/${accountId}/deposit`, {
       amount
     });
+  }
+  getById(accountId: number): Observable<Account> {
+    return this.http.get<Account>(`${this.baseUrl}/${accountId}`);
+  }
+
+  getTransactions(
+    accountId: number,
+    page = 0,
+    size = 10,
+    sortBy = 'createdAt',
+    sortDir: 'asc' | 'desc' = 'desc'
+  ): Observable<PagedResponse<Transaction>> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('sortBy', sortBy)
+      .set('sortDir', sortDir);
+
+    return this.http.get<PagedResponse<Transaction>>(
+      `${this.baseUrl}/${accountId}/transactions`,
+      { params }
+    );
   }
 }
