@@ -44,6 +44,9 @@ API base used by the UI:
   [ARCHITECTURE.md](./ARCHITECTURE.md)                           System layers, packages,
                                                                  deployment
 
+  [TECH_STACK.md](./TECH_STACK.md)                               Technologies & versions
+                                                                 (keep current)
+
   [FUNCTIONAL_SPECIFICATION.md](./FUNCTIONAL_SPECIFICATION.md)   What the product does
                                                                  (implemented vs planned)
 

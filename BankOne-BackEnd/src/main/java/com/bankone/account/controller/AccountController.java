@@ -6,6 +6,8 @@ import com.bankone.account.dto.OpenAccountRequest;
 import com.bankone.account.dto.UpdateAccountStatusRequest;
 import com.bankone.account.service.AccountService;
 import com.bankone.common.util.PageRequests;
+import com.bankone.transaction.dto.TransactionResponse;
+import com.bankone.transaction.service.TransactionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -30,10 +32,17 @@ public class AccountController {
             "availableBalance", "status", "createdAt", "accountId"
     );
 
-    private final AccountService accountService;
+    private static final Set<String> TX_SORT_FIELDS = Set.of(
+            "createdAt", "amount", "transactionId", "transactionType"
+    );
 
-    public AccountController(AccountService accountService) {
+    private final AccountService accountService;
+    private final TransactionService transactionService;
+
+    public AccountController(AccountService accountService,
+                             TransactionService transactionService) {
         this.accountService = accountService;
+        this.transactionService = transactionService;
     }
 
     @PostMapping
@@ -62,6 +71,7 @@ public class AccountController {
     ) {
         return ResponseEntity.ok(accountService.updateAccountStatus(accountId, request));
     }
+
     @GetMapping
     public ResponseEntity<Page<AccountResponse>> searchAccounts(
             @RequestParam(defaultValue = "") String search,
@@ -75,11 +85,29 @@ public class AccountController {
         return ResponseEntity.ok(accountService.searchAccounts(search, pageable));
     }
 
+    @GetMapping("/{accountId}/transactions")
+    public ResponseEntity<Page<TransactionResponse>> getTransactions(
+            @PathVariable Long accountId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        Pageable pageable = PageRequests.of(
+                page, size, sortBy, sortDir, TX_SORT_FIELDS, "createdAt");
+        return ResponseEntity.ok(transactionService.getByAccountId(accountId, pageable));
+    }
+
     @PostMapping("/{accountId}/deposit")
     public ResponseEntity<AccountResponse> deposit(
             @PathVariable Long accountId,
             @RequestBody DepositRequest request
     ) {
         return ResponseEntity.ok(accountService.deposit(accountId, request));
+    }
+
+    @GetMapping("/{accountId}")
+    public ResponseEntity<AccountResponse> getAccountById(@PathVariable Long accountId) {
+        return ResponseEntity.ok(accountService.getAccountById(accountId));
     }
 }

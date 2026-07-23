@@ -78,10 +78,12 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
 
   List accounts by customer  Implemented       
 
+  Get account by id          Implemented       `GET /accounts/{id}`
+
   Update account status      Implemented       API present
 
-  Deposit (post-open)        Implemented       Credits balances only; no
-                                               ledger row
+  Deposit (post-open)        Implemented       Credits balances + writes
+                                               CREDIT ledger row
 
   Withdraw / transfer        Stub              Not built
 
@@ -140,8 +142,11 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
   --------------------------------------------------------------
   Capability           Status               Notes
   -------------------- -------------------- --------------------
-  Transaction ledger   Stub                 Empty `transaction`
-  entity/API                                package
+  Transaction ledger   Partial              Write on deposit +
+  entity/API                                `GET .../transactions`
+                                            list implemented; no
+                                            withdraw/transfer/UI;
+                                            dashboard count stub
 
   Reports              Stub                 Empty `report`
                                             package; sidebar

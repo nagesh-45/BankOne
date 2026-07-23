@@ -11,6 +11,9 @@ Backend code lives in **`BankOne-BackEnd/`** (Maven); UI in **`BankOne-Frontend/
 - **Frontend:** Angular SPA with JWT Bearer auth
 - **Database:** PostgreSQL (`bankone`)
 
+Full technology and version inventory:
+[TECH_STACK.md](./TECH_STACK.md).
+
 ```
 flowchart LR
   UI[Angular SPA :4200] -->|HTTPS/HTTP JWT| API[Spring Boot on Liberty :9080]

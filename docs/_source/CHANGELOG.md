@@ -4,6 +4,46 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-23 — Slice 2: get account + transactions APIs
+
+| Field | Value |
+|-------|-------|
+| **Feature** | `GET /accounts/{accountId}` and `GET /accounts/{accountId}/transactions` |
+| **Files Modified** | `AccountController.java`, `AccountService`/`Impl`, `TransactionService`/`Impl`, `TransactionResponse.java`; docs `_source` API_DOCUMENTATION, MODULES/Account, MODULES/Transaction, CALL_FLOW, FUNCTIONAL_SPECIFICATION, CHANGELOG |
+| **Classes Modified** | `AccountController`, `AccountService`/`Impl`, `TransactionService`/`Impl`, `TransactionResponse` |
+| **Methods Modified** | `getAccountById`, `getTransactions`, `TransactionService.getByAccountId` |
+| **Reason** | Staff can load one account and its paged ledger without UI yet |
+| **Impact** | List API implemented (Partial overall: no withdraw/transfer/UI; dashboard count still stub) |
+
+---
+
+
+## 2026-07-23 — Technology stack living document
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Add `TECH_STACK` inventory; keep in sync on dependency changes |
+| **Files Modified** | `docs/_source/TECH_STACK.md`, `docs/_source/README.md`, `.cursor/rules/documentation-architect.mdc`, `CHANGELOG.md` |
+| **Classes Modified** | N/A |
+| **Methods Modified** | N/A |
+| **Reason** | Single place listing all technologies/versions used in the project |
+| **Impact** | Architect rule requires updating TECH_STACK when pom/package.json/deploy/auth/DB change |
+
+---
+
+## 2026-07-23 — Transaction ledger foundation + deposit CREDIT write
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Transaction module foundation; deposit posts CREDIT ledger row |
+| **Files Modified** | `transaction/entity/Transaction.java`, `enums/TransactionType.java`, `repository/TransactionRepository.java`, `service/TransactionService.java`, `TransactionServiceImpl.java`; `AccountServiceImpl.java`; docs `_source` MODULES/Transaction, Account, FUNCTIONAL_SPECIFICATION, CALL_FLOW, DATABASE_SCHEMA, CHANGELOG |
+| **Classes Modified** | `Transaction`, `TransactionType`, `TransactionRepository`, `TransactionService`/`Impl`, `AccountServiceImpl` |
+| **Methods Modified** | `TransactionServiceImpl.record()`; `AccountServiceImpl.deposit()` |
+| **Reason** | Start immutable money-movement history; deposit must not only mutate balances |
+| **Impact** | `bank_transaction` table; list/API still stub; dashboard `todayTransactionCount` still 0; openAccount does not yet write CREDIT |
+
+---
+
 ## 2026-07-23 — Rename BanOne-BackEnd → BankOne-BackEnd
 
 | Field | Value |

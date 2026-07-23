@@ -13,7 +13,7 @@ public interface AccountService {
     AccountResponse openAccount(OpenAccountRequest request);
 
     List<AccountResponse> getAccountsByCustomerId(Long customerId);
-
+    AccountResponse getAccountById(Long accountId);
     Page<AccountResponse> getAccountsByCustomerId(Long customerId, Pageable pageable);
     AccountResponse deposit(Long accountId, DepositRequest request);
     AccountResponse updateAccountStatus(Long accountId, UpdateAccountStatusRequest request);

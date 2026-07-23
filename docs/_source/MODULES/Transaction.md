@@ -2,11 +2,12 @@
 
 ## 1. Feature Overview
 
-Immutable ledger of credits/debits (and later transfers). **Not
-implemented** --- empty package `com.bankone.transaction`. Deposits
-today only mutate `account` balances.
+Immutable ledger of credits/debits (and later transfers). Foundation
+is in place under `com.bankone.transaction`: entity, repository,
+`TransactionService.record`, **CREDIT** on deposit, and
+`GET /accounts/{accountId}/transactions` (paged list). No ledger UI yet.
 
-**Status:** Stub / Planned
+**Status:** Partial (write on deposit + list API; no withdraw/transfer/UI)
 
 ## 2. Business Purpose
 
@@ -15,18 +16,40 @@ enable withdraw/transfer.
 
 ## 3. User Workflow
 
-Planned: Account detail → transaction list; deposit/withdraw create
-rows; sidebar Transactions route (nav stub today).
+Implemented path: Accounts list → Deposit → balance update + CREDIT
+ledger row.
+
+API ready for Account detail → transaction list. Still planned:
+withdraw/transfer create rows; sidebar Transactions route (nav stub
+today); ledger UI.
 
 ## 4. Execution Flow
 
-Planned (target):
+List by account (implemented):
+
+    AccountController.getTransactions()
+            ↓
+    TransactionServiceImpl.getByAccountId()
+            ↓
+    AccountRepository.existsById()
+            ↓
+    TransactionRepository.findByAccountAccountIdOrderByCreatedAtDesc()
+            ↓
+    Page<TransactionResponse>
+
+Deposit → ledger (implemented):
 
     AccountController.deposit()
             ↓
     AccountServiceImpl.deposit()
             ↓
-    TransactionService.createCredit()
+    AccountRepository.findById()
+            ↓
+    assert ACTIVE + amount > 0
+            ↓
+    increment availableBalance, ledgerBalance, creditCount, timestamps
+            ↓
+    TransactionService.record(..., CREDIT, ...)
             ↓
     TransactionRepository.save()
             ↓
@@ -34,32 +57,51 @@ Planned (target):
 
 ## 5. Database Tables
 
-None yet. Planned: `transaction` / `ledger_entry` with FK to `account`.
+`bank_transaction` (entity `Transaction`). FK `account_id` → `account`.
 
 ## 6. REST APIs
 
-None. Planned examples: `GET /accounts/{id}/transactions`,
-`POST /accounts/{id}/withdraw`.
+  ---------------------------------------------------------------------------------
+  Method   Path                                              Roles
+  -------- ------------------------------------------------- ----------------------
+  GET      `/accounts/{accountId}/transactions?page&size…`   ADMIN, EMPLOYEE,
+                                                             MANAGER
+  ---------------------------------------------------------------------------------
+
+Hosted on `AccountController` (no separate transaction controller).
+Planned: `POST /accounts/{id}/withdraw`. Deposit remains on Account API
+and writes the ledger internally.
 
 ## 7. Controllers
 
-None (`com.bankone.transaction` empty)
+List endpoint on `AccountController`; package `com.bankone.transaction`
+has no dedicated controller yet.
 
 ## 8. Services
 
-None
+- `TransactionService` / `TransactionServiceImpl.record(...)` —
+  validates account, type, amount \> 0, balanceAfter; sets currency from
+  account; persists via repository
+- `getByAccountId(accountId, pageable)` — ensures account exists; returns
+  paged `TransactionResponse`
 
 ## 9. Repositories
 
-None
+- `TransactionRepository` extends `JpaRepository<Transaction, Long>`
+  - `findByAccountAccountIdOrderByCreatedAtDesc(Long)`
+  - `findByAccountAccountIdOrderByCreatedAtDesc(Long, Pageable)`
 
 ## 10. DTOs
 
-None
+`TransactionResponse` for list API. Record path is still internal;
+deposit still uses Account DTOs.
 
 ## 11. Entities
 
-None
+- `Transaction` → table `bank_transaction`
+  - `transactionId`, `account`, `transactionType`, `amount`,
+    `balanceAfter`, `currencyCode`, `narration`, `createdAt`,
+    `createdBy`
 
 ## 12. Utility Classes
 
@@ -67,73 +109,114 @@ None
 
 ## 13. Configuration Classes
 
-None; will need `SecurityConfig` matchers
+None dedicated; deposit and list use existing `/accounts/**` security
+matchers.
 
 ## 14. Validation Rules
 
-Planned: amount \> 0; sufficient balance for debit; status ACTIVE;
-currency match
+In `record`: account required; type required; amount \> 0; balanceAfter
+required. Deposit path still enforces ACTIVE + amount \> 0 before
+calling `record`.
+
+Planned for debit: sufficient balance; currency match.
 
 ## 15. Security Rules
 
-Planned: align with accounts --- write ADMIN/EMPLOYEE; read include
-MANAGER
+Write today only via Account deposit (ADMIN/EMPLOYEE). List read aligns
+with accounts (ADMIN, EMPLOYEE, MANAGER).
 
 ## 16. Exception Handling
 
-Reuse `GlobalExceptionHandler`
+`IllegalArgumentException` from `record` / deposit; reuse
+`GlobalExceptionHandler`
 
 ## 17. Logging
 
-Planned structured log per posting
+None dedicated yet; planned structured log per posting
 
 ## 18. Audit Events
 
-Ledger row **is** the financial audit; optional link to `audit` module
-for who/when metadata
+Ledger row **is** the financial audit (`created_by`, `created_at`,
+`balance_after`). Optional link to `audit` module for richer who/when
+metadata later.
 
 ## 19. Testing Strategy
 
-When built: deposit creates +1 CREDIT; withdraw insufficient funds;
-concurrent balance safety
+- Deposit creates +1 CREDIT with matching amount and `balance_after`
+- Withdraw insufficient funds (when built)
+- Concurrent balance safety
 
 ## 20. Future Extension Guide
 
-First slice: CREDIT on `deposit` + opening credit on `openAccount`. Then
-withdraw. Then transfer + beneficiary.
+Next: CREDIT on `openAccount` opening deposit; then withdraw (DEBIT);
+then transfer + beneficiary; then ledger UI; wire dashboard
+`todayTransactionCount`.
 
 ------------------------------------------------------------------------
 
 # Future Modification Guide
 
-### Requirement: Introduce first ledger on deposit
+### Requirement: Expose transaction list API — **done (API)**
 
   ------------------------------------------------------------------
   Item                      Detail
   ------------------------- ----------------------------------------
-  Files                     New under `com/bankone/transaction/**`;
-                            modify `AccountServiceImpl.java`
+  Files                     `AccountController.java`,
+                            `TransactionService`/`Impl`,
+                            `TransactionResponse.java`
 
-  Classes                   `Transaction`, `TransactionService`,
-                            `TransactionRepository`,
-                            `AccountServiceImpl`
+  Classes                   `AccountController`,
+                            `TransactionServiceImpl`
 
-  Methods                   `deposit()` --- after balance update
-                            call
-                            `transactionService.recordCredit(...)`
+  Methods                   `getTransactions`, `getByAccountId`
 
-  Impact                    `DashboardServiceImpl`
-                            todayTransactionCount; Accounts UI; docs
-                            API/schema
+  Impact                    Account detail UI still pending; API docs
+                            updated
   ------------------------------------------------------------------
 
-### Call hierarchy (target)
+### Requirement: Write CREDIT on openAccount
+
+  ------------------------------------------------------------------
+  Item                      Detail
+  ------------------------- ----------------------------------------
+  Files                     `AccountServiceImpl.java`
+
+  Classes                   `AccountServiceImpl`
+
+  Methods                   `openAccount()` --- after save call
+                            `transactionService.record(..., CREDIT, ...)`
+
+  Impact                    Opening balances appear in ledger;
+                            dashboard counts
+  ------------------------------------------------------------------
+
+### Requirement: Add withdraw (DEBIT)
+
+  ------------------------------------------------------------------
+  Item                      Detail
+  ------------------------- ----------------------------------------
+  Files                     `AccountController`,
+                            `AccountServiceImpl`, possibly
+                            `TransactionService`
+
+  Methods                   New `withdraw()` --- balance check then
+                            `record(..., DEBIT, ...)`
+
+  Impact                    API docs; Accounts UI; status/min-balance
+                            rules
+  ------------------------------------------------------------------
+
+### Call hierarchy (deposit → record) — implemented
 
     AccountController.deposit()
             ↓
     AccountServiceImpl.deposit()
             ↓
-    TransactionService.createTransaction()
+    AccountRepository.findById()
+            ↓
+    TransactionService.record(..., TransactionType.CREDIT, ...)
+            ↓
+    TransactionServiceImpl.record()
             ↓
     TransactionRepository.save()
             ↓

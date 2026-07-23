@@ -76,6 +76,18 @@ erDiagram
     bigint user_id FK
     bigint role_id FK
   }
+  account ||--o{ bank_transaction : posts
+  bank_transaction {
+    bigint transaction_id PK
+    bigint account_id FK
+    string transaction_type
+    decimal amount
+    decimal balance_after
+    string currency_code
+    string narration
+    timestamp created_at
+    string created_by
+  }
 ```
 
 ## Tables
@@ -154,6 +166,38 @@ vary by dialect config).
 `AuditableEntity` columns on User/Role/UserRole/AccountPolicy:
 `created_at`, `updated_at`, `created_by`, `updated_by`, `version`.
 
+### `bank_transaction`
+
+Entity: `com.bankone.transaction.entity.Transaction`
+
+Table name is `bank_transaction` (avoids SQL keyword `transaction`).
+
+  -------------------------------------------------------------
+  Column                           Notes
+  -------------------------------- ----------------------------
+  `transaction_id`                 PK (identity)
+
+  `account_id`                     FK → `account` (required)
+
+  `transaction_type`               Enum string: CREDIT, DEBIT
+
+  `amount`                         > 0; precision 19,2
+
+  `balance_after`                  Account ledger balance after
+                                   posting
+
+  `currency_code`                  Copied from account (length 3)
+
+  `narration`                      Optional text
+
+  `created_at`                     Set in `@PrePersist`
+
+  `created_by`                     Staff username when provided
+  -------------------------------------------------------------
+
+Written today from `AccountServiceImpl.deposit()` via
+`TransactionService.record` (CREDIT). No list API yet.
+
 ## Sequences
 
     -- schema.sql
@@ -164,8 +208,8 @@ Used by `AccountRepository.getNextOrdinal()`.
 
 ## Not present (planned)
 
-No tables yet for: `transaction` / ledger entries, `branch`, `loan`
-product, `audit_event`, `beneficiary`.
+No tables yet for: `branch`, `loan` product, `audit_event`,
+`beneficiary`. Ledger table `bank_transaction` is present.
 
 ## Migration notes
 

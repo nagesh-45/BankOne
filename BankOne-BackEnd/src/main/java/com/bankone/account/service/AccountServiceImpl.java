@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Optional;
 import com.bankone.account.enums.AccountType;
 import com.bankone.account.enums.CurrencyCode;
+import com.bankone.transaction.enums.TransactionType;
+import com.bankone.transaction.service.TransactionService;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -31,16 +33,19 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
     private final AccountNumberGenerator accountNumberGenerator;
+    private final TransactionService transactionService;
 
     @Autowired
     public AccountServiceImpl(AccountRepository accountRepository,
                               CustomerRepository customerRepository,
                               AccountPolicyRepository accountPolicyRepository,
-                              AccountNumberGenerator accountNumberGenerator) {
+                              AccountNumberGenerator accountNumberGenerator,
+                              TransactionService transactionService) {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.accountPolicyRepository = accountPolicyRepository;
         this.accountNumberGenerator = accountNumberGenerator;
+        this.transactionService = transactionService;
     }
 
     @Override
@@ -227,7 +232,18 @@ account.setLedgerBalance(openingDeposit);
         account.setLastCreditAt(LocalDateTime.now());
         account.setLastTransactionAt(LocalDateTime.now());
 
-        return toResponse(accountRepository.save(account));
+        Account saved = accountRepository.save(account);
+
+        transactionService.record(
+                saved,
+                TransactionType.CREDIT,
+                amount,
+                saved.getLedgerBalance(),
+                "Deposit",
+                "SYSTEM"
+        );
+
+        return toResponse(saved);
     }
 
     @Override
@@ -257,6 +273,13 @@ account.setLedgerBalance(openingDeposit);
             response.setCustomerId(savedAccount.getCustomer().getCustomerId());
         }
         return response;
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public AccountResponse getAccountById(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        return toResponse(account);
     }
 
 }

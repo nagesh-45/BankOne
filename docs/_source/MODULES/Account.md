@@ -6,8 +6,9 @@ Open accounts under a customer, enforce account policies (opening
 deposit / min balance metadata), search accounts, update status, and
 post simple deposits that credit balances.
 
-**Status:** Implemented for open / search / status / deposit / policies.
-**No** transaction ledger, withdraw, or transfer.
+**Status:** Implemented for open / search / get-by-id / status / deposit / policies / transaction list API.
+Deposit now writes a **CREDIT** row via `TransactionService.record`.
+No withdraw/transfer; transaction list API exists; no ledger UI yet.
 
 ## 2. Business Purpose
 
@@ -55,6 +56,12 @@ policy](../CALL_FLOW.md#get-active-account-policy).
   GET                  `/accounts/customer/{customerId}`              ADMIN, EMPLOYEE,
                                                                       MANAGER
 
+  GET                  `/accounts/{accountId}`                        ADMIN, EMPLOYEE,
+                                                                      MANAGER
+
+  GET                  `/accounts/{accountId}/transactions`           ADMIN, EMPLOYEE,
+                                                                      MANAGER
+
   PUT                  `/accounts/{accountId}/status`                 ADMIN, EMPLOYEE
 
   POST                 `/accounts/{accountId}/deposit`                ADMIN, EMPLOYEE
@@ -74,8 +81,8 @@ policy](../CALL_FLOW.md#get-active-account-policy).
 ## 8. Services
 
 - `AccountService` / `AccountServiceImpl` --- `openAccount`,
-  `getAccountsByCustomerId`, `updateAccountStatus`, `deposit`,
-  `searchAccounts`
+  `getAccountById`, `getAccountsByCustomerId`, `updateAccountStatus`, `deposit`,
+  `searchAccounts`; transactions via `TransactionService.getByAccountId`
 - `AccountPolicyService` / `AccountPolicyServiceImpl` ---
   `createPolicy`, `getActivePolicy`
 - `AccountPolicyInitializer` --- seed INR policies
@@ -132,7 +139,8 @@ SQL debug in dev; no structured account event log.
 ## 18. Audit Events
 
 Account has `created_by` / timestamps; `AccountPolicy` uses
-`AuditableEntity`. No immutable audit trail of deposits.
+`AuditableEntity`. Post-open deposits also write an immutable
+`bank_transaction` CREDIT via `TransactionService.record`.
 
 ## 19. Testing Strategy
 
@@ -145,7 +153,7 @@ Account has `created_by` / timestamps; `AccountPolicy` uses
 
 ## 20. Future Extension Guide
 
-- Persist ledger rows on every credit/debit
+- Persist ledger on openAccount + withdraw/transfer (deposit CREDIT done)
 - Withdraw / transfer with limits
 - Account detail page
 - Status transition state machine
@@ -182,19 +190,22 @@ Account has `created_by` / timestamps; `AccountPolicy` uses
 
 ### Requirement: Change deposit to write a ledger entry
 
+**Done (deposit path):** `AccountServiceImpl.deposit()` calls
+`TransactionService.record(..., CREDIT, ...)` after balance
+update. Still TODO: opening CREDIT on `openAccount`; withdraw/
+transfer; ledger UI; dashboard `todayTransactionCount`.
+
   ------------------------------------------------------------
   Item                      Detail
   ------------------------- ----------------------------------
-  Files                     New Transaction module +
-                            `AccountServiceImpl.deposit` /
-                            `openAccount`
+  Files                     `AccountServiceImpl.java`,
+                            `com/bankone/transaction/**`
 
-  Methods                   `deposit()` must call transaction
-                            create after balance update (or
-                            same TX)
+  Methods                   `deposit()` →
+                            `transactionService.record(...)`
 
-  Impact                    Dashboard `todayTransactionCount`;
-                            Reports; Audit
+  Impact                    Ledger table populated on deposit;
+                            dashboard count still stub
   ------------------------------------------------------------
 
 ### Requirement: Change account number format
@@ -246,5 +257,9 @@ Account has `created_by` / timestamps; `AccountPolicy` uses
     AccountServiceImpl.deposit()
             ↓
     AccountRepository.findById()
+            ↓
+    TransactionService.record(..., CREDIT, ...)
+            ↓
+    TransactionRepository.save()
             ↓
     AccountRepository.save()

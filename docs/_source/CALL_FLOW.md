@@ -101,12 +101,44 @@ Frontend (Add Current):
             ↓
     increment availableBalance, ledgerBalance, creditCount, timestamps
             ↓
+    TransactionService.record(..., CREDIT, ...)
+            ↓
+    TransactionRepository.save()
+            ↓
     AccountRepository.save()
 
 Frontend: `AccountList` / deposit dialog →
 `POST /accounts/{id}/deposit`.
 
 ------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## Get account by id
+
+    AccountController.getAccountById()
+            ↓
+    AccountServiceImpl.getAccountById()
+            ↓
+    AccountRepository.findById()
+            ↓
+    map → AccountResponse
+
+------------------------------------------------------------------------
+
+## Get transactions by account
+
+    AccountController.getTransactions()
+            ↓
+    PageRequests.of(..., TX_SORT_FIELDS, "createdAt")
+            ↓
+    TransactionServiceImpl.getByAccountId()
+            ↓
+    AccountRepository.existsById()   (else IllegalArgumentException)
+            ↓
+    TransactionRepository.findByAccountAccountIdOrderByCreatedAtDesc()
+            ↓
+    map → Page<TransactionResponse>
 
 ## Search accounts
 

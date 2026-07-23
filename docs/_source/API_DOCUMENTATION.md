@@ -70,6 +70,14 @@ Unless noted, all endpoints require authentication.
                                                                                  EMPLOYEE,       
                                                                                  MANAGER         
 
+  GET               `/accounts/{accountId}`                                      ADMIN,          Single `AccountResponse`
+                                                                                 EMPLOYEE,       
+                                                                                 MANAGER         
+
+  GET               `/accounts/{accountId}/transactions?page&size&sortBy&sortDir` ADMIN,        Page of `TransactionResponse`
+                                                                                 EMPLOYEE,       
+                                                                                 MANAGER         
+
   PUT               `/accounts/{accountId}/status`                               ADMIN, EMPLOYEE `UpdateAccountStatusRequest`
 
   POST              `/accounts/{accountId}/deposit`                              ADMIN, EMPLOYEE `DepositRequest` `{ amount }`
@@ -84,6 +92,15 @@ Unless noted, all endpoints require authentication.
 
 Includes `accountId`, `accountNumber`, balances, `status`, `customerId`,
 timestamps, etc.
+
+### TransactionResponse (list under account)
+
+`transactionId`, `accountId`, `transactionType`, `amount`,
+`balanceAfter`, `currencyCode`, `narration`, `createdAt`, `createdBy`.
+
+Sort whitelist for transactions: `createdAt`, `amount`, `transactionId`,
+`transactionType` (default `createdAt` desc). 404-style business error
+if account id does not exist.
 
 ## Account policies --- `/account-policies`
 
