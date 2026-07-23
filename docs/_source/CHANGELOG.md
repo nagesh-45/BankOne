@@ -4,6 +4,30 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-23 — Netlify npm peer + publish path
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Align Angular 22.0.8 packages; root `netlify.toml` publish path |
+| **Files Modified** | `package.json`, `package-lock.json`, `netlify.toml`, `docs/DEPLOY.md` |
+| **Reason** | `ERESOLVE` (animations 22.0.8 vs core 22.0.7); doubled publish path |
+| **Impact** | `npm ci` succeeds on Netlify; publish resolves to one `BankOne-Frontend/dist/...` |
+
+---
+
+## 2026-07-23 — Netlify frontend deploy fix
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Fix production Angular build + Netlify SPA publish |
+| **Files Modified** | `api-config.ts`, `angular.json`, `BankOne-Frontend/netlify.toml`, `docs/DEPLOY.md` |
+| **Classes Modified** | — |
+| **Methods Modified** | — |
+| **Reason** | Wrong `environment` import broke Netlify build; empty/wrong publish → Netlify 404 |
+| **Impact** | `npm run build --configuration=production` succeeds; publish `dist/BankOne-Frontend/browser` |
+
+---
+
 ## 2026-07-23 — Opening deposit writes CREDIT ledger
 
 | Field | Value |

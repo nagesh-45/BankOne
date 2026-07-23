@@ -1,0 +1,14 @@
+# Repo-root Netlify config (monorepo).
+# Clear Base directory and Publish directory in the Netlify UI so this file controls both.
+# Wrong UI combo (Base=BankOne-Frontend + Publish=BankOne-Frontend/dist/...) doubles the path.
+
+[build]
+  base = "BankOne-Frontend"
+  command = "npm ci && npm run build -- --configuration=production"
+  # Relative to `base` → resolves to BankOne-Frontend/dist/BankOne-Frontend/browser
+  publish = "dist/BankOne-Frontend/browser"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

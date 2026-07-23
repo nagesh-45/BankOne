@@ -1,0 +1,10 @@
+# Netlify: set Base directory to BankOne-Frontend (or leave empty and use this file from repo root via [build] base).
+[build]
+  command = "npm ci && npm run build -- --configuration=production"
+  publish = "dist/BankOne-Frontend/browser"
+
+# Angular SPA — send all routes to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

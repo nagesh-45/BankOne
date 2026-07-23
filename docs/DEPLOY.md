@@ -49,14 +49,18 @@ CI runs on every push (`.github/workflows/ci.yml`): Maven package + Angular prod
 **Option 1 — Netlify / Cloudflare Pages / Vercel (static)**
 
 1. Set `BankOne-Frontend/src/environments/environment.prod.ts` → `apiBaseUrl: 'https://bankone-api.onrender.com'`
-2. Commit + push.
-3. Connect GitHub; build command:
+2. Commit + push (include root `netlify.toml` and a fresh `package-lock.json`).
+3. Connect GitHub. Prefer **clearing** Base/Publish/Build in the Netlify UI so root `netlify.toml` applies:
 
-```bash
-cd BankOne-Frontend && npm ci && npm run build -- --configuration=production
-```
+| Setting | Value |
+|---------|--------|
+| Base | `BankOne-Frontend` (via toml) |
+| Build | `npm ci && npm run build -- --configuration=production` |
+| Publish | `dist/BankOne-Frontend/browser` (relative to base) |
 
-4. Publish directory: `BankOne-Frontend/dist/BankOne-Frontend/browser`
+Do **not** set UI Publish to `BankOne-Frontend/dist/...` while Base is also `BankOne-Frontend` — that becomes `BankOne-Frontend/BankOne-Frontend/dist/...` and 404s.
+
+4. After the site URL works, set Render `APP_CORS_ORIGINS` to that Netlify origin and redeploy the API.
 
 **Option 2 — Docker web service**
 
