@@ -10,13 +10,13 @@
 
 ## Backend
 
-    cd "BankOne/BankOne"
+    cd "BankOne/BankOne-BackEnd"
     # Embedded
     mvn spring-boot:run
     # Liberty (recommended for this project)
     ./scripts/redeploy-liberty.sh
 
-Key config: `src/main/resources/application.properties`
+Key config: `BankOne-BackEnd/src/main/resources/application.properties`
 
   -----------------------------------------------------------------------
   Property                                 Purpose

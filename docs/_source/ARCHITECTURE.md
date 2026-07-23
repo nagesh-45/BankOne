@@ -2,7 +2,9 @@
 
 ## Overview
 
-BankOne is a staff-facing core banking shell:
+BankOne is a staff-facing core banking shell.
+
+Backend code lives in **`BankOne-BackEnd/`** (Maven); UI in **`BankOne-Frontend/`**:
 
 - **Backend:** Spring Boot 4.1, Java 21, packaged as WAR, deployed on
   **Open Liberty**

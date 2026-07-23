@@ -1,15 +1,24 @@
 # BankOne
 
-Spring Boot core banking backend (Java 21 WAR). Frontend lives in `BankOne-Frontend/`.
+Monorepo folder:
 
-## Documentation
-
-Project docs (Word + PDF) are under **`docs/`**:
-
-- Start with `docs/README.docx` or `docs/README.pdf`
-- Module docs: `docs/MODULES/`
-- Change history: `docs/CHANGELOG.docx` / `.pdf`
+| Path | Contents |
+|------|----------|
+| `BankOne-BackEnd/` | Spring Boot 4 / Java 21 WAR (`pom.xml`, `src/`) |
+| `BankOne-Frontend/` | Angular SPA |
+| `docs/` | Word + PDF documentation |
+| `scripts/` | Liberty redeploy, docs regenerate |
 
 ## Quick start
 
-See `docs/DEVELOPMENT_GUIDE.pdf` (or `.docx`). Liberty redeploy: `scripts/redeploy-liberty.sh`.
+```bash
+# Backend (from BankOne-BackEnd)
+cd BankOne-BackEnd && ./mvnw spring-boot:run
+# or Liberty
+../scripts/redeploy-liberty.sh
+
+# Frontend
+cd BankOne-Frontend && ng serve
+```
+
+Docs: start with `docs/README.pdf` (or `.docx`).

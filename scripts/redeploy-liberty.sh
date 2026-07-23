@@ -2,7 +2,8 @@
 # Rebuild BankOne WAR and redeploy to local Open Liberty (server: bankone).
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Backend Maven root is BankOne-BackEnd (sibling of scripts/)
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../BankOne-BackEnd" && pwd)"
 WLP_HOME="${WLP_HOME:-$HOME/tools/wlp}"
 SERVER_NAME="${SERVER_NAME:-bankone}"
 WAR_NAME="bankone-0.0.1-SNAPSHOT.war"

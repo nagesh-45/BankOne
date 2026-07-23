@@ -9,7 +9,7 @@ change.
   -------------------------------------------------------------
   Path                           Description
   ------------------------------ ------------------------------
-  `BankOne/`                     Spring Boot 4 / Java 21
+  `BankOne-BackEnd/`              Spring Boot 4 / Java 21
                                  backend (WAR, Open Liberty)
 
   `BankOne-Frontend/`            Angular frontend (`ng serve` →
