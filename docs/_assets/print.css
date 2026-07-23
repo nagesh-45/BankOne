@@ -1,0 +1,162 @@
+/* BankOne documentation print stylesheet */
+@page {
+  size: A4;
+  margin: 18mm 16mm 18mm 16mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body {
+  font-family: "Segoe UI", Calibri, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: #222;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-size: 20pt;
+  color: #1a365d;
+  border-bottom: 2px solid #2c5282;
+  padding-bottom: 6px;
+  margin: 0 0 14px 0;
+  page-break-after: avoid;
+}
+
+h2 {
+  font-size: 14pt;
+  color: #2c5282;
+  margin: 18px 0 8px 0;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 12pt;
+  color: #333;
+  margin: 14px 0 6px 0;
+  page-break-after: avoid;
+}
+
+h4 {
+  font-size: 11pt;
+  margin: 12px 0 4px 0;
+}
+
+p {
+  margin: 0 0 8px 0;
+  text-align: left;
+}
+
+ul, ol {
+  margin: 4px 0 10px 0;
+  padding-left: 22px;
+}
+
+li {
+  margin: 2px 0;
+}
+
+/* Tables: full width, aligned columns */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0 14px 0;
+  font-size: 9.5pt;
+  table-layout: fixed;
+  page-break-inside: avoid;
+}
+
+thead {
+  display: table-header-group;
+}
+
+th, td {
+  border: 1px solid #cbd5e0;
+  padding: 6px 8px;
+  vertical-align: top;
+  text-align: left;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+th {
+  background: #1a365d;
+  color: #fff;
+  font-weight: 600;
+}
+
+tr:nth-child(even) td {
+  background: #f7fafc;
+}
+
+/* Code / call hierarchies */
+pre, code {
+  font-family: Consolas, "SF Mono", Menlo, monospace;
+  font-size: 8.5pt;
+}
+
+code {
+  background: #edf2f7;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+pre {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #2c5282;
+  padding: 10px 12px;
+  margin: 8px 0 12px 0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.35;
+  page-break-inside: avoid;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+}
+
+blockquote {
+  margin: 8px 0;
+  padding: 6px 12px;
+  border-left: 4px solid #a0aec0;
+  color: #4a5568;
+  background: #f7fafc;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 16px 0;
+}
+
+a {
+  color: #2b6cb0;
+  text-decoration: none;
+}
+
+strong {
+  font-weight: 600;
+}
+
+/* Mermaid / diagram source blocks */
+.mermaid, pre.mermaid {
+  font-size: 8pt;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
