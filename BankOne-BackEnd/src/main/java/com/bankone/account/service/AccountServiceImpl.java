@@ -1,5 +1,5 @@
 package com.bankone.account.service;
-
+import com.bankone.notification.NotificationEventPublisher;
 import com.bankone.account.dto.DepositRequest;
 import com.bankone.account.entity.Account;
 import com.bankone.account.dto.OpenAccountRequest;
@@ -36,18 +36,19 @@ public class AccountServiceImpl implements AccountService {
     private final CustomerRepository customerRepository;
     private final AccountNumberGenerator accountNumberGenerator;
     private final TransactionService transactionService;
-
+    private final NotificationEventPublisher notificationEventPublisher;
     @Autowired
     public AccountServiceImpl(AccountRepository accountRepository,
                               CustomerRepository customerRepository,
                               AccountPolicyRepository accountPolicyRepository,
                               AccountNumberGenerator accountNumberGenerator,
-                              TransactionService transactionService) {
+                              TransactionService transactionService, NotificationEventPublisher notificationEventPublisher) {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.accountPolicyRepository = accountPolicyRepository;
         this.accountNumberGenerator = accountNumberGenerator;
         this.transactionService = transactionService;
+        this.notificationEventPublisher = notificationEventPublisher;
     }
 
     @Override
@@ -146,7 +147,15 @@ public class AccountServiceImpl implements AccountService {
                     savedAccount.getCreatedBy()
             );
         }
-
+        notificationEventPublisher.publish(
+                "ACCOUNT_OPENED",
+                "ACCOUNT",
+                String.valueOf(savedAccount.getAccountId()),
+                "Account " + savedAccount.getAccountNumber()
+                        + " opened for customer "
+                        + customer.getCustomerId(),
+                savedAccount.getCreatedBy()
+        );
         return toResponse(savedAccount);
     }
 
@@ -234,7 +243,15 @@ public class AccountServiceImpl implements AccountService {
                 "Deposit",
                 "SYSTEM"
         );
-
+        notificationEventPublisher.publish(
+                "DEPOSIT_COMPLETE",
+                "DEPOSIT",
+                String.valueOf(request.hashCode()),
+                "Deposit Amount " + request.getAmount()
+                        + " credited successfully to account : "
+                        + account.getAccountNumber(),
+                account.getCreatedBy()
+        );
         return toResponse(saved);
     }
 
@@ -314,7 +331,15 @@ public class AccountServiceImpl implements AccountService {
                 "Withdrawal",
                 "SYSTEM"
         );
-
+        notificationEventPublisher.publish(
+                "WITHDRAW_COMPLETE",
+                "WITH DRAWAL",
+                String.valueOf(request.hashCode()),
+                "Amount " + request.getAmount()
+                        + " Debited successfully from account : "
+                        + account.getAccountNumber(),
+                account.getCreatedBy()
+        );
         return toResponse(saved);
     }
     @Override

@@ -111,6 +111,46 @@ Local Liberty is unchanged:
 
 Cloud deploys use **embedded Tomcat** via Maven profile `-Pdocker` (see `BankOne-BackEnd/Dockerfile`).
 
+### Kafka email notifications (local + Render)
+
+Same code; different env.
+
+| | Local (Liberty) | Render |
+|--|-----------------|--------|
+| Kafka | Docker `localhost:9092` | Managed Kafka (Upstash/Confluent) |
+| Mail | Mailpit `localhost:1025` / UI `:8025` | Gmail or SendGrid SMTP |
+
+Local:
+
+```bash
+docker compose up -d kafka mailpit
+./scripts/redeploy-liberty.sh
+# open account → http://localhost:8025
+```
+
+Render API env (Aiven Kafka + Gmail example):
+
+| Variable | Example |
+|----------|---------|
+| `APP_KAFKA_ENABLED` | `true` (or `false` until Kafka is ready) |
+| `KAFKA_BOOTSTRAP_SERVERS` | from Aiven Overview (host:port) |
+| `KAFKA_SECURITY_PROTOCOL` | `SASL_SSL` |
+| `KAFKA_SASL_MECHANISM` | `SCRAM-SHA-256` |
+| `KAFKA_SASL_JAAS_CONFIG` | `org.apache.kafka.common.security.scram.ScramLoginModule required username="avnadmin" password="...";` |
+| `KAFKA_SSL_TRUSTSTORE_TYPE` | `PEM` |
+| `KAFKA_CA_CERT` | Aiven project CA certificate PEM |
+| `KAFKA_NOTIFICATION_TOPIC` | `bankone.notifications` |
+| `MAIL_HOST` | `smtp.gmail.com` |
+| `MAIL_PORT` | `587` |
+| `MAIL_USERNAME` | your Gmail |
+| `MAIL_PASSWORD` | Gmail **app password** |
+| `MAIL_SMTP_AUTH` | `true` |
+| `MAIL_SMTP_STARTTLS` | `true` |
+| `MAIL_FROM` | your Gmail |
+| `MAIL_NOTIFY_TO` | inbox that should receive alerts |
+
+Do not commit real passwords. See `.env.example`.
+
 ---
 
 ## 5. What we added in the repo
