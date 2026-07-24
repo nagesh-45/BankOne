@@ -154,7 +154,8 @@ public class AccountServiceImpl implements AccountService {
                 "Account " + savedAccount.getAccountNumber()
                         + " opened for customer "
                         + customer.getCustomerId(),
-                savedAccount.getCreatedBy()
+                savedAccount.getCreatedBy(),
+                customer.getEmail()
         );
         return toResponse(savedAccount);
     }
@@ -250,7 +251,8 @@ public class AccountServiceImpl implements AccountService {
                 "Deposit Amount " + request.getAmount()
                         + " credited successfully to account : "
                         + account.getAccountNumber(),
-                account.getCreatedBy()
+                account.getCreatedBy(),
+                customerEmail(account)
         );
         return toResponse(saved);
     }
@@ -261,6 +263,18 @@ public class AccountServiceImpl implements AccountService {
         return accountRepository
                 .findAll(AccountSpecification.matching(search), pageable)
                 .map(this::toResponse);
+    }
+
+    private String customerEmail(Account account) {
+        if (account.getCustomer() != null && account.getCustomer().getEmail() != null) {
+            return account.getCustomer().getEmail();
+        }
+        if (account.getCustomer() != null && account.getCustomer().getCustomerId() != null) {
+            return customerRepository.findById(account.getCustomer().getCustomerId())
+                    .map(Customer::getEmail)
+                    .orElse(null);
+        }
+        return null;
     }
 
     private AccountResponse toResponse(Account savedAccount) {
@@ -338,7 +352,8 @@ public class AccountServiceImpl implements AccountService {
                 "Amount " + request.getAmount()
                         + " Debited successfully from account : "
                         + account.getAccountNumber(),
-                account.getCreatedBy()
+                account.getCreatedBy(),
+                customerEmail(account)
         );
         return toResponse(saved);
     }

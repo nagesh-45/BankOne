@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 
@@ -32,7 +33,8 @@ public class NotificationEventPublisher {
             String entityType,
             String entityId,
             String summary,
-            String actor) {
+            String actor,
+            String recipientEmail) {
 
         BankActionEvent event = new BankActionEvent(
                 action,
@@ -40,7 +42,8 @@ public class NotificationEventPublisher {
                 entityId,
                 summary,
                 actor == null ? "SYSTEM" : actor,
-                Instant.now().toString()
+                Instant.now().toString(),
+                StringUtils.hasText(recipientEmail) ? recipientEmail.trim() : null
         );
 
         if (!enabled) {
@@ -50,9 +53,8 @@ public class NotificationEventPublisher {
 
         try {
             kafkaTemplate.send(topic, entityId, event);
-            log.info("Published to {}: {} {}", topic, action, entityId);
+            log.info("Published to {}: {} {} -> {}", topic, action, entityId, event.getRecipientEmail());
         } catch (Exception ex) {
-            // Fail-soft: business save already succeeded; don't break the API
             log.warn("Kafka publish failed for {} {}: {}", action, entityId, ex.getMessage());
         }
     }

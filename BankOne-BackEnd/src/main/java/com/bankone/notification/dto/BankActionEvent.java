@@ -8,6 +8,8 @@ public class BankActionEvent {
     private String summary;
     private String actor;
     private String occurredAt;
+    /** Customer email from onboarding — primary notification recipient. */
+    private String recipientEmail;
 
     public BankActionEvent() {
     }
@@ -18,13 +20,15 @@ public class BankActionEvent {
             String entityId,
             String summary,
             String actor,
-            String occurredAt) {
+            String occurredAt,
+            String recipientEmail) {
         this.action = action;
         this.entityType = entityType;
         this.entityId = entityId;
         this.summary = summary;
         this.actor = actor;
         this.occurredAt = occurredAt;
+        this.recipientEmail = recipientEmail;
     }
 
     public String getAction() { return action; }
@@ -44,4 +48,7 @@ public class BankActionEvent {
 
     public String getOccurredAt() { return occurredAt; }
     public void setOccurredAt(String occurredAt) { this.occurredAt = occurredAt; }
+
+    public String getRecipientEmail() { return recipientEmail; }
+    public void setRecipientEmail(String recipientEmail) { this.recipientEmail = recipientEmail; }
 }

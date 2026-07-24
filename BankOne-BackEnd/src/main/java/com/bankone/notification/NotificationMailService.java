@@ -6,5 +6,5 @@ package com.bankone.notification;
  */
 public interface NotificationMailService {
 
-    void send(String subject, String body);
+    void send(String toEmail, String subject, String body);
 }

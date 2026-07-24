@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 @ConditionalOnProperty(name = "app.kafka.enabled", havingValue = "true", matchIfMissing = true)
@@ -21,8 +22,16 @@ public class NotificationEventConsumer {
 
     @KafkaListener(topics = "${app.kafka.notification-topic}", groupId = "bankone-notification")
     public void onMessage(BankActionEvent event) {
-        log.info("Consumed: {} {} — {}", event.getAction(), event.getEntityId(), event.getSummary());
+        log.info("Consumed: {} {} — {} (to={})",
+                event.getAction(),
+                event.getEntityId(),
+                event.getSummary(),
+                event.getRecipientEmail());
         try {
+            if (!StringUtils.hasText(event.getRecipientEmail())) {
+                log.warn("No customer email on event {} {}; falling back to MAIL_NOTIFY_TO if set",
+                        event.getAction(), event.getEntityId());
+            }
             String subject = "[BankOne] " + event.getAction() + " #" + event.getEntityId();
             String body = "Action: " + event.getAction() + "\n"
                     + "Type: " + event.getEntityType() + "\n"
@@ -30,8 +39,8 @@ public class NotificationEventConsumer {
                     + "Actor: " + event.getActor() + "\n"
                     + "When: " + event.getOccurredAt() + "\n\n"
                     + event.getSummary() + "\n";
-            mailService.send(subject, body);
-            log.info("Email sent for {}", event.getAction());
+            mailService.send(event.getRecipientEmail(), subject, body);
+            log.info("Email sent for {} to {}", event.getAction(), event.getRecipientEmail());
         } catch (Exception ex) {
             log.warn("Email failed for {}: {}", event.getAction(), ex.toString(), ex);
         }

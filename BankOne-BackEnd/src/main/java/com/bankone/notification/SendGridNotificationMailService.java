@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -26,30 +27,31 @@ public class SendGridNotificationMailService implements NotificationMailService 
     private final RestClient restClient;
     private final String apiKey;
     private final String from;
-    private final String notifyTo;
+    private final String fallbackTo;
 
     public SendGridNotificationMailService(
             @Value("${app.mail.sendgrid-api-key:}") String apiKey,
             @Value("${app.mail.from}") String from,
-            @Value("${app.mail.notify-to}") String notifyTo) {
+            @Value("${app.mail.notify-to}") String fallbackTo) {
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         this.from = from;
-        this.notifyTo = notifyTo;
+        this.fallbackTo = fallbackTo;
         this.restClient = RestClient.builder()
                 .baseUrl("https://api.sendgrid.com")
                 .build();
     }
 
     @Override
-    public void send(String subject, String body) {
+    public void send(String toEmail, String subject, String body) {
         if (apiKey.isBlank()) {
             throw new IllegalStateException("SendGrid API key missing (MAIL_PASSWORD / SENDGRID_API_KEY)");
         }
-        log.info("SendGrid HTTP mail from={} to={}", from, notifyTo);
+        String to = resolveTo(toEmail);
+        log.info("SendGrid HTTP mail from={} to={}", from, to);
 
         Map<String, Object> payload = Map.of(
                 "personalizations", List.of(
-                        Map.of("to", List.of(Map.of("email", notifyTo)))
+                        Map.of("to", List.of(Map.of("email", to)))
                 ),
                 "from", Map.of("email", from),
                 "subject", subject,
@@ -66,6 +68,16 @@ public class SendGridNotificationMailService implements NotificationMailService 
                 .retrieve()
                 .toBodilessEntity();
 
-        log.info("SendGrid email accepted for {}", notifyTo);
+        log.info("SendGrid email accepted for {}", to);
+    }
+
+    private String resolveTo(String toEmail) {
+        if (StringUtils.hasText(toEmail)) {
+            return toEmail.trim();
+        }
+        if (StringUtils.hasText(fallbackTo)) {
+            return fallbackTo.trim();
+        }
+        throw new IllegalStateException("No recipient email (customer email missing and MAIL_NOTIFY_TO unset)");
     }
 }
