@@ -16,27 +16,78 @@
         </select>
       </label>
 
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="pageIndex === 0"
-        (click)="previous()">
-        <mat-icon>chevron_left</mat-icon>
-        Prev
-      </button>
+      <div class="nav-group" role="group" aria-label="Page navigation">
+        <button
+          mat-icon-button
+          type="button"
+          class="nav-btn"
+          [disabled]="pageIndex === 0"
+          (click)="first()"
+          aria-label="First page"
+          title="First page">
+          <mat-icon>first_page</mat-icon>
+        </button>
 
-      <span class="page-number">
-        Page {{ pageIndex + 1 }} / {{ totalPages || 1 }}
-      </span>
+        <button
+          mat-icon-button
+          type="button"
+          class="nav-btn"
+          [disabled]="pageIndex === 0"
+          (click)="previous()"
+          aria-label="Previous page"
+          title="Previous page">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
 
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="pageIndex + 1 >= totalPages"
-        (click)="next()">
-        Next
-        <mat-icon>chevron_right</mat-icon>
-      </button>
+        <span class="page-number" aria-live="polite">
+          {{ pageIndex + 1 }} / {{ totalPages || 1 }}
+        </span>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="nav-btn"
+          [disabled]="pageIndex + 1 >= totalPages"
+          (click)="next()"
+          aria-label="Next page"
+          title="Next page">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="nav-btn"
+          [disabled]="pageIndex + 1 >= totalPages"
+          (click)="last()"
+          aria-label="Last page"
+          title="Last page">
+          <mat-icon>last_page</mat-icon>
+        </button>
+      </div>
+
+      <div class="goto-group">
+        <input
+          #pageInput
+          class="page-input"
+          type="number"
+          min="1"
+          [attr.max]="totalPages || 1"
+          [value]="pageIndex + 1"
+          aria-label="Go to page"
+          title="Go to page"
+          (keydown.enter)="goToPage(pageInput.value); $event.preventDefault()"
+        />
+        <button
+          mat-icon-button
+          type="button"
+          class="nav-btn"
+          (click)="goToPage(pageInput.value)"
+          aria-label="Go to page"
+          title="Go to page">
+          <mat-icon>subdirectory_arrow_right</mat-icon>
+        </button>
+      </div>
     </div>
   </div>
 }

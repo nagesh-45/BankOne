@@ -39,6 +39,12 @@ export class ListPagination {
     return this.totalElements > 0;
   }
 
+  first(): void {
+    if (this.pageIndex > 0) {
+      this.pageIndexChange.emit(0);
+    }
+  }
+
   previous(): void {
     if (this.pageIndex > 0) {
       this.pageIndexChange.emit(this.pageIndex - 1);
@@ -48,6 +54,28 @@ export class ListPagination {
   next(): void {
     if (this.pageIndex + 1 < this.totalPages) {
       this.pageIndexChange.emit(this.pageIndex + 1);
+    }
+  }
+
+  last(): void {
+    if (this.totalPages > 0 && this.pageIndex + 1 < this.totalPages) {
+      this.pageIndexChange.emit(this.totalPages - 1);
+    }
+  }
+
+  /** UI page is 1-based; API pageIndex is 0-based. */
+  goToPage(raw: string | number): void {
+    const page = Number(raw);
+    if (!Number.isFinite(page)) {
+      return;
+    }
+
+    const maxPage = Math.max(this.totalPages, 1);
+    const clamped = Math.min(Math.max(Math.trunc(page), 1), maxPage);
+    const nextIndex = clamped - 1;
+
+    if (nextIndex !== this.pageIndex) {
+      this.pageIndexChange.emit(nextIndex);
     }
   }
 
