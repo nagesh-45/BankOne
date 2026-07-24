@@ -207,7 +207,9 @@ SELECT setval(
 --    Shared password: LoadTest@123
 --    BCrypt (Spring-compatible $2a$): generated via htpasswd -nbBC 10
 -- ---------------------------------------------------------------------------
+-- user_id / user_role_id use Hibernate SEQUENCE (no column DEFAULT) — must nextval()
 INSERT INTO users (
+    user_id,
     username,
     password,
     first_name,
@@ -224,6 +226,7 @@ INSERT INTO users (
     version
 )
 SELECT
+    nextval('user_seq'),
     'loadtest.emp' || lpad(n::text, 6, '0'),
     '$2a$10$QQ2QN3KTJlHanLD17JmuKe1ezuZ.j.FH3aWRITfkLWnMi/5indu1K',
     'LoadTest',
@@ -241,6 +244,7 @@ SELECT
 FROM generate_series(1, 100000) AS n;
 
 INSERT INTO user_roles (
+    user_role_id,
     user_id,
     role_id,
     role_name,
@@ -250,6 +254,7 @@ INSERT INTO user_roles (
     version
 )
 SELECT
+    nextval('user_role_seq'),
     u.user_id,
     r.role_id,
     'EMPLOYEE',
