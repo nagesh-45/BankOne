@@ -8,21 +8,18 @@ is in place under `com.bankone.transaction`: entity, repository,
 (`openAccount` when amount > 0, narration "Opening deposit"), and
 `GET /accounts/{accountId}/transactions` (paged list). No ledger UI yet.
 
-**Status:** Partial (write on deposit + opening deposit + list API; no withdraw/transfer/UI)
+**Status:** Partial (CREDIT deposit/opening; DEBIT withdraw; **transfer DEBIT+CREDIT**; list API)
 
 ## 2. Business Purpose
 
-Provide audit-grade money movement history, feed reports/dashboard,
-enable withdraw/transfer.
+Provide audit-grade money movement history, feed reports/dashboard.
 
 ## 3. User Workflow
 
-Implemented paths: Accounts list → Deposit → balance update + CREDIT ledger row;
+Implemented paths: Accounts list → Deposit / Withdraw / **Transfer**;
 open account / customer create with openingDeposit > 0 → CREDIT with narration "Opening deposit".
 
-API ready for Account detail → transaction list. Still planned:
-withdraw/transfer create rows; sidebar Transactions route (nav stub
-today); ledger UI.
+Still planned: beneficiaries; sidebar Transactions route (nav stub today).
 
 ## 4. Execution Flow
 

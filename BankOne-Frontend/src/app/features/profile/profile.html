@@ -6,7 +6,7 @@
 
   @if (isLoading()) {
     <mat-card class="section-card">
-      <div class="state-message">Loading profile...</div>
+      <app-loading-state message="Loading profile..." />
     </mat-card>
   } @else if (hasError() || !profile()) {
     <mat-card class="section-card">

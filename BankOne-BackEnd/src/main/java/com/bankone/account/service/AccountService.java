@@ -7,7 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.bankone.account.dto.DepositRequest;
 import java.util.List;
-
+import com.bankone.account.dto.WithdrawRequest;
+import com.bankone.account.dto.TransferRequest;
 public interface AccountService {
 
     AccountResponse openAccount(OpenAccountRequest request);
@@ -18,4 +19,6 @@ public interface AccountService {
     AccountResponse deposit(Long accountId, DepositRequest request);
     AccountResponse updateAccountStatus(Long accountId, UpdateAccountStatusRequest request);
     Page<AccountResponse> searchAccounts(String search, Pageable pageable);
+    AccountResponse withdraw(Long accountId, WithdrawRequest request);
+    AccountResponse transfer(Long fromAccountId, TransferRequest request);
 }

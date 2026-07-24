@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Set;
+import com.bankone.account.dto.WithdrawRequest;
+import com.bankone.account.dto.TransferRequest;
 
 @RestController
 @RequestMapping("/accounts")
@@ -109,5 +111,19 @@ public class AccountController {
     @GetMapping("/{accountId}")
     public ResponseEntity<AccountResponse> getAccountById(@PathVariable Long accountId) {
         return ResponseEntity.ok(accountService.getAccountById(accountId));
+    }
+    @PostMapping("/{accountId}/withdraw")
+    public ResponseEntity<AccountResponse> withdraw(
+            @PathVariable Long accountId,
+            @RequestBody WithdrawRequest request
+    ) {
+        return ResponseEntity.ok(accountService.withdraw(accountId, request));
+    }
+    @PostMapping("/{accountId}/transfer")
+    public ResponseEntity<AccountResponse> transfer(
+            @PathVariable Long accountId,
+            @RequestBody TransferRequest request
+    ) {
+        return ResponseEntity.ok(accountService.transfer(accountId, request));
     }
 }

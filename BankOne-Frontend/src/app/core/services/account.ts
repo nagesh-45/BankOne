@@ -92,4 +92,19 @@ export class AccountService {
       { params }
     );
   }
+  withdraw(accountId: number, amount: number): Observable<Account> {
+    return this.http.post<Account>(`${this.baseUrl}/${accountId}/withdraw`, {
+      amount
+    });
+  }
+  transfer(
+    fromAccountId: number,
+    toAccountId: number,
+    amount: number
+  ): Observable<Account> {
+    return this.http.post<Account>(`${this.baseUrl}/${fromAccountId}/transfer`, {
+      toAccountId,
+      amount
+    });
+  }
 }

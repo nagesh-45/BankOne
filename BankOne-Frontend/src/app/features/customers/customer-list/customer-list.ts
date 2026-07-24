@@ -21,6 +21,7 @@ import { Customer } from '../../../core/models/customer';
 import { PagedResponse } from '../../../core/models/paged-response';
 import { CustomerService } from '../../../core/services/customer';
 import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
+import { LoadingState } from '../../../shared/components/loading-state/loading-state';
 import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
 
 @Component({
@@ -33,6 +34,7 @@ import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
     MatCardModule,
     MatIconModule,
     ListPagination,
+    LoadingState,
     BusinessIdPipe
   ],
   templateUrl: './customer-list.html',

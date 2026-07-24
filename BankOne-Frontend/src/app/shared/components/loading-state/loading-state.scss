@@ -1,0 +1,22 @@
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 28px 16px;
+  color: #4b5563;
+
+  /* Explicit navy — theme primary can be too low-contrast on gray cards */
+  --mat-progress-spinner-active-indicator-color: #0b1f3a;
+  --mat-progress-spinner-active-indicator-width: 4px;
+}
+
+.loading-message {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.loading-state mat-progress-spinner {
+  display: block;
+}

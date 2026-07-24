@@ -11,7 +11,6 @@
         <p>Customer {{ customer.customerCode || (customer.customerId | businessId:'C') }}</p>
       } @else if (isLoading()) {
         <h1>Customer details</h1>
-        <p>Loading customer...</p>
       } @else {
         <h1>Customer not found</h1>
         <p>Unable to load this customer.</p>
@@ -21,7 +20,7 @@
 
   @if (isLoading()) {
     <mat-card class="section-card">
-      <div class="state-message">Loading customer details...</div>
+      <app-loading-state message="Loading customer details..." />
     </mat-card>
   } @else if (hasError() || !customer()) {
     <mat-card class="section-card">

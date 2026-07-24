@@ -26,6 +26,8 @@ import com.bankone.account.enums.AccountType;
 import com.bankone.account.enums.CurrencyCode;
 import com.bankone.transaction.enums.TransactionType;
 import com.bankone.transaction.service.TransactionService;
+import com.bankone.account.dto.WithdrawRequest;
+import com.bankone.account.dto.TransferRequest;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -175,7 +177,6 @@ public class AccountServiceImpl implements AccountService {
         if (request == null || request.getStatus() == null) {
             throw new IllegalArgumentException("Account status is required");
         }
-
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
@@ -271,6 +272,132 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
         return toResponse(account);
+    }
+
+    @Override
+    @Transactional
+    public AccountResponse withdraw(Long accountId, WithdrawRequest request) {
+        if (request == null || request.getAmount() == null) {
+            throw new IllegalArgumentException("Withdraw amount is required");
+        }
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Withdraw amount must be greater than zero");
+        }
+
+        Account account = accountRepository.findByIdForUpdate(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+
+        if (!AccountStatus.ACTIVE.name().equals(account.getStatus())) {
+            throw new IllegalArgumentException("Withdrawals are allowed only on ACTIVE accounts");
+        }
+
+        BigDecimal amount = request.getAmount();
+        if (account.getAvailableBalance().compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient funds");
+        }
+
+        account.setAvailableBalance(account.getAvailableBalance().subtract(amount));
+        account.setLedgerBalance(account.getLedgerBalance().subtract(amount));
+
+        int debitCount = account.getDebitCount() == null ? 0 : account.getDebitCount();
+        account.setDebitCount(debitCount + 1);
+        account.setLastDebitAt(LocalDateTime.now());
+        account.setLastTransactionAt(LocalDateTime.now());
+
+        Account saved = accountRepository.save(account);
+
+        transactionService.record(
+                saved,
+                TransactionType.DEBIT,
+                amount,
+                saved.getLedgerBalance(),
+                "Withdrawal",
+                "SYSTEM"
+        );
+
+        return toResponse(saved);
+    }
+    @Override
+    @Transactional
+    public AccountResponse transfer(Long fromAccountId, TransferRequest request) {
+        if (request == null || request.getToAccountId() == null) {
+            throw new IllegalArgumentException("Destination account is required");
+        }
+        if (request.getAmount() == null) {
+            throw new IllegalArgumentException("Transfer amount is required");
+        }
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Transfer amount must be greater than zero");
+        }
+
+        Long toAccountId = request.getToAccountId();
+        if (fromAccountId.equals(toAccountId)) {
+            throw new IllegalArgumentException("Cannot transfer to the same account");
+        }
+
+        // Lock in ascending id order to avoid deadlocks
+        Long firstId = fromAccountId < toAccountId ? fromAccountId : toAccountId;
+        Long secondId = fromAccountId < toAccountId ? toAccountId : fromAccountId;
+
+        Account first = accountRepository.findByIdForUpdate(firstId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        Account second = accountRepository.findByIdForUpdate(secondId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+
+        Account from = fromAccountId.equals(first.getAccountId()) ? first : second;
+        Account to = toAccountId.equals(first.getAccountId()) ? first : second;
+
+        if (!AccountStatus.ACTIVE.name().equals(from.getStatus())
+                || !AccountStatus.ACTIVE.name().equals(to.getStatus())) {
+            throw new IllegalArgumentException("Transfers are allowed only between ACTIVE accounts");
+        }
+
+        if (!from.getCurrencyCode().equals(to.getCurrencyCode())) {
+            throw new IllegalArgumentException("Currency mismatch between accounts");
+        }
+
+        BigDecimal amount = request.getAmount();
+        if (from.getAvailableBalance().compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient funds");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        from.setAvailableBalance(from.getAvailableBalance().subtract(amount));
+        from.setLedgerBalance(from.getLedgerBalance().subtract(amount));
+        int fromDebits = from.getDebitCount() == null ? 0 : from.getDebitCount();
+        from.setDebitCount(fromDebits + 1);
+        from.setLastDebitAt(now);
+        from.setLastTransactionAt(now);
+
+        to.setAvailableBalance(to.getAvailableBalance().add(amount));
+        to.setLedgerBalance(to.getLedgerBalance().add(amount));
+        int toCredits = to.getCreditCount() == null ? 0 : to.getCreditCount();
+        to.setCreditCount(toCredits + 1);
+        to.setLastCreditAt(now);
+        to.setLastTransactionAt(now);
+
+        Account savedFrom = accountRepository.save(from);
+        Account savedTo = accountRepository.save(to);
+
+        transactionService.record(
+                savedFrom,
+                TransactionType.DEBIT,
+                amount,
+                savedFrom.getLedgerBalance(),
+                "Transfer to " + savedTo.getAccountNumber(),
+                "SYSTEM"
+        );
+        transactionService.record(
+                savedTo,
+                TransactionType.CREDIT,
+                amount,
+                savedTo.getLedgerBalance(),
+                "Transfer from " + savedFrom.getAccountNumber(),
+                "SYSTEM"
+        );
+
+        return toResponse(savedFrom);
     }
 
 }

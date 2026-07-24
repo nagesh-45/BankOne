@@ -6,9 +6,10 @@ Open accounts under a customer, enforce account policies (opening
 deposit / min balance metadata), search accounts, update status, and
 post simple deposits that credit balances.
 
-**Status:** Implemented for open / search / get-by-id / status / deposit / policies / transaction list API.
-Deposit and **opening deposit** (`openAccount` when amount > 0) write a **CREDIT** row via `TransactionService.record` (opening narration: "Opening deposit").
-No withdraw/transfer; transaction list API exists; no ledger UI yet.
+**Status:** Implemented for open / search / get-by-id / status / deposit / withdraw / **transfer** / policies / transaction list API.
+Deposit and **opening deposit** (`openAccount` when amount > 0) write a **CREDIT** row; **withdraw** writes a **DEBIT** row; **transfer** writes DEBIT+CREDIT via `TransactionService.record`.
+Withdraw uses `findByIdForUpdate` (pessimistic lock) and rejects insufficient funds.
+**Transfer** locks both accounts in id order, rejects same-account / currency mismatch / insufficient funds; writes DEBIT + CREDIT ledger rows.
 
 ## 2. Business Purpose
 
@@ -17,7 +18,7 @@ RD, LOAN) with branch-coded account numbers.
 
 ## 3. User Workflow
 
-1.  `/app/accounts` --- search list, Deposit action
+1.  `/app/accounts` --- search list, Deposit / Withdraw / Transfer actions
 2.  Customer detail --- Add Current (loads policy → opening deposit
     dialog if required) / Add Loan
 3.  Customer create --- optional first account

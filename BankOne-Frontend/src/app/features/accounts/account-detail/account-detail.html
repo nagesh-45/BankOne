@@ -11,7 +11,6 @@
         <p>{{ account.accountType }} · {{ account.status }}</p>
       } @else if (isLoadingAccount()) {
         <h1>Account details</h1>
-        <p>Loading account...</p>
       } @else {
         <h1>Account not found</h1>
         <p>Unable to load this account.</p>
@@ -21,7 +20,7 @@
 
   @if (isLoadingAccount()) {
     <mat-card class="section-card">
-      <div class="state-message">Loading account details...</div>
+      <app-loading-state message="Loading account details..." />
     </mat-card>
   } @else if (hasAccountError() || !account()) {
     <mat-card class="section-card">
@@ -65,7 +64,7 @@
       </div>
 
       @if (isLoadingTx()) {
-        <div class="state-message">Loading transactions...</div>
+        <app-loading-state message="Loading transactions..." />
       } @else if (hasTxError()) {
         <div class="state-message error-message">Unable to load transactions.</div>
       } @else if (transactions().length === 0) {

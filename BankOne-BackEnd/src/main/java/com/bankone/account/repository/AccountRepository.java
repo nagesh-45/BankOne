@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 
 public interface AccountRepository extends JpaRepository<Account, Long>, JpaSpecificationExecutor<Account> {
 
@@ -27,4 +29,7 @@ public interface AccountRepository extends JpaRepository<Account, Long>, JpaSpec
 
     @Query(value = "SELECT nextval('account_ordinal_seq')", nativeQuery = true)
     Long getNextOrdinal();
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM Account a WHERE a.accountId = :accountId")
+    Optional<Account> findByIdForUpdate(Long accountId);
 }

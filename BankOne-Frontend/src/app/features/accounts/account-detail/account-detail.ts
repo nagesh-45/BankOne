@@ -12,6 +12,7 @@ import { PagedResponse } from '../../../core/models/paged-response';
 import { Transaction } from '../../../core/models/transaction';
 import { AccountService } from '../../../core/services/account';
 import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
+import { LoadingState } from '../../../shared/components/loading-state/loading-state';
 
 type AccountState = {
   state: 'loading' | 'loaded' | 'error';
@@ -33,7 +34,8 @@ type TxState = {
     MatButtonModule,
     MatCardModule,
     MatIconModule,
-    ListPagination
+    ListPagination,
+    LoadingState
   ],
   templateUrl: './account-detail.html',
   styleUrl: './account-detail.scss'

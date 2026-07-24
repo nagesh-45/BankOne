@@ -41,7 +41,7 @@
       </div>
     }
     @if (isLoading()) {
-      <div class="state-message">Loading customers...</div>
+      <app-loading-state message="Loading customers..." />
     } @else if (hasError()) {
       <div class="state-message error-message">
         Unable to load customers right now.

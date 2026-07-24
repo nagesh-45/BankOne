@@ -17,13 +17,15 @@ import {
   startWith,
   switchMap
 } from 'rxjs';
-
+import { TransferDialog } from '../transfer-dialog/transfer-dialog';
 import { Account } from '../../../core/models/account';
 import { PagedResponse } from '../../../core/models/paged-response';
 import { AccountService } from '../../../core/services/account';
 import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
+import { LoadingState } from '../../../shared/components/loading-state/loading-state';
 import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
 import { DepositDialog } from '../deposit-dialog/deposit-dialog';
+import { WithdrawDialog } from '../withdraw-dialog/withdraw-dialog';
 
 @Component({
   selector: 'app-account-list',
@@ -36,6 +38,7 @@ import { DepositDialog } from '../deposit-dialog/deposit-dialog';
     MatCardModule,
     MatIconModule,
     ListPagination,
+    LoadingState,
     BusinessIdPipe
   ],
   templateUrl: './account-list.html',
@@ -153,7 +156,31 @@ export class AccountList {
       }
     });
   }
+  openWithdraw(account?: Account): void {
+    const dialogRef = this.dialog.open(WithdrawDialog, {
+      width: '420px',
+      data: account ? { account } : {}
+    });
+
+    dialogRef.afterClosed().subscribe((saved) => {
+      if (saved) {
+        this.reloadTick.update((n) => n + 1);
+      }
+    });
+  }
   openAccount(account: Account): void {
     this.router.navigate(['/app/accounts', account.accountId]);
+  }
+  openTransfer(fromAccount?: Account): void {
+    const dialogRef = this.dialog.open(TransferDialog, {
+      width: '480px',
+      data: fromAccount ? { fromAccount } : {}
+    });
+
+    dialogRef.afterClosed().subscribe((saved) => {
+      if (saved) {
+        this.reloadTick.update((n) => n + 1);
+      }
+    });
   }
 }

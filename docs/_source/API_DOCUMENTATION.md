@@ -81,6 +81,10 @@ Unless noted, all endpoints require authentication.
   PUT               `/accounts/{accountId}/status`                               ADMIN, EMPLOYEE `UpdateAccountStatusRequest`
 
   POST              `/accounts/{accountId}/deposit`                              ADMIN, EMPLOYEE `DepositRequest` `{ amount }`
+
+  POST              `/accounts/{accountId}/withdraw`                             ADMIN, EMPLOYEE `WithdrawRequest` `{ amount }`
+
+  POST              `/accounts/{accountId}/transfer`                             ADMIN, EMPLOYEE `TransferRequest` `{ toAccountId, amount }`
   -----------------------------------------------------------------------------------------------------------------------------
 
 ### OpenAccountRequest

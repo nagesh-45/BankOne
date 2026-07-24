@@ -39,7 +39,7 @@
       </div>
     }
     @if (isLoading()) {
-      <div class="state-message">Loading employees...</div>
+      <app-loading-state message="Loading employees..." />
     } @else if (hasError()) {
       <div class="state-message error-message">
         Unable to load employees right now.

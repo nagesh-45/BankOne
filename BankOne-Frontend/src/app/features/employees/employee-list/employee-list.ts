@@ -22,6 +22,7 @@ import { PagedResponse } from '../../../core/models/paged-response';
 import { Auth } from '../../../core/services/auth';
 import { UserService } from '../../../core/services/user';
 import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
+import { LoadingState } from '../../../shared/components/loading-state/loading-state';
 import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
 import { UserEditDialog } from '../user-edit-dialog/user-edit-dialog';
 
@@ -35,6 +36,7 @@ import { UserEditDialog } from '../user-edit-dialog/user-edit-dialog';
     MatCardModule,
     MatIconModule,
     ListPagination,
+    LoadingState,
     BusinessIdPipe
   ],
   templateUrl: './employee-list.html',

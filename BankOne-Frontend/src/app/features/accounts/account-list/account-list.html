@@ -14,7 +14,21 @@
         <mat-icon>add_card</mat-icon>
         Deposit
       </button>
-
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="openWithdraw()">
+        <mat-icon>add_card</mat-icon>
+        WithDraw
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="openTransfer()">
+        <mat-icon>swap_horiz</mat-icon>
+        Transfer
+      </button>
       <div class="search-bar">
         <mat-icon>search</mat-icon>
         <input
@@ -43,7 +57,7 @@
       </div>
     }
     @if (isLoading()) {
-      <div class="state-message">Loading accounts...</div>
+      <app-loading-state message="Loading accounts..." />
     } @else if (hasError()) {
       <div class="state-message error-message">
         Unable to load accounts right now.

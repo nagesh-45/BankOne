@@ -9,6 +9,7 @@ import { catchError, map, of, startWith } from 'rxjs';
 import { Auth } from '../../core/services/auth';
 import { UserProfile } from '../../core/models/user-profile';
 import { BusinessIdPipe } from '../../core/pipes/business-id.pipe';
+import { LoadingState } from '../../shared/components/loading-state/loading-state';
 
 @Component({
   selector: 'app-profile',
@@ -18,7 +19,8 @@ import { BusinessIdPipe } from '../../core/pipes/business-id.pipe';
     MatButtonModule,
     MatCardModule,
     MatIconModule,
-    BusinessIdPipe
+    BusinessIdPipe,
+    LoadingState
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss'

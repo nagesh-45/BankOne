@@ -18,6 +18,7 @@ import { Auth } from '../../../core/services/auth';
 import { CustomerService } from '../../../core/services/customer';
 import { Notification } from '../../../core/services/notification';
 import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
+import { LoadingState } from '../../../shared/components/loading-state/loading-state';
 import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
 import { AccountStatusDialog } from '../account-status-dialog/account-status-dialog';
 import { CustomerEditDialog } from '../customer-edit-dialog/customer-edit-dialog';
@@ -39,6 +40,7 @@ type DetailState = {
     MatCardModule,
     MatIconModule,
     ListPagination,
+    LoadingState,
     BusinessIdPipe
   ],
   templateUrl: './customer-detail.html',

@@ -4,6 +4,41 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-24 — Transfer between accounts
+
+| Field | Value |
+|-------|-------|
+| **Feature** | `POST /accounts/{fromId}/transfer`; Accounts Transfer dialog |
+| **Files Modified** | `TransferRequest`, `AccountService(Impl).transfer`, `AccountController`; FE `account.ts`, `transfer-dialog`, `account-list` |
+| **Methods Modified** | `transfer` (ordered pessimistic locks; DEBIT+CREDIT ledger) |
+| **Reason** | Slice 5 — move money between two ACTIVE same-currency accounts |
+| **Impact** | UI From/To pickers on Accounts; no beneficiaries yet |
+
+---
+
+## 2026-07-24 — Withdraw (DEBIT) + UI
+
+| Field | Value |
+|-------|-------|
+| **Feature** | `POST /accounts/{id}/withdraw`; Accounts Withdraw dialog |
+| **Files Modified** | `WithdrawRequest`, `AccountRepository.findByIdForUpdate`, `AccountService(Impl).withdraw`, `AccountController`; FE `account.ts`, `withdraw-dialog`, `account-list` |
+| **Methods Modified** | `withdraw`; lock on withdraw load |
+| **Reason** | Slice 4 — debit balance with insufficient-funds check + row lock |
+| **Impact** | Ledger DEBIT "Withdrawal"; UI on Accounts list |
+
+---
+
+## 2026-07-24 — System-wide loading spinner
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Shared `app-loading-state` (Material spinner) on list/detail/profile loads |
+| **Files Modified** | `shared/components/loading-state/*`; account/customer/employee lists + details; profile |
+| **Reason** | Replace plain “Loading…” text with consistent spinner UX |
+| **Impact** | Dashboard refresh control unchanged; error/empty states still text |
+
+---
+
 ## 2026-07-23 — Netlify npm peer + publish path
 
 | Field | Value |
