@@ -5,7 +5,7 @@ import com.bankone.transaction.enums.TransactionType;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "bank_transaction")
@@ -37,7 +37,7 @@ public class Transaction {
     private String narration;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "created_by", length = 100)
     private String createdBy;
@@ -45,7 +45,7 @@ public class Transaction {
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = Instant.now();
         }
     }
 
@@ -105,11 +105,11 @@ public class Transaction {
         this.narration = narration;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 

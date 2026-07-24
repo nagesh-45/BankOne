@@ -4,6 +4,28 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-24 — Fix Liberty boot after Jackson property
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Remove invalid `spring.jackson.serialization.write-dates-as-timestamps` |
+| **Files Modified** | `application.properties` |
+| **Reason** | Spring Boot 4 / Jackson 3 rejects that property → app failed to start on Liberty → login “Failed to fetch” |
+| **Impact** | Redeploy WAR; Instant still emits UTC `Z` without that flag |
+
+---
+
+## 2026-07-24 — Transaction timestamps UTC
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Ledger `createdAt` as `Instant` (UTC/`Z`); UI `asUtc` + local `date` pipe |
+| **Files Modified** | `Transaction.java`, `TransactionResponse.java`, `application.properties`; `as-utc.pipe.ts`, `account-detail` |
+| **Reason** | Render UTC vs browser IST made debit/credit times look ~5.5h off |
+| **Impact** | New/updated ledger rows align with header clock in IST; legacy rows treated as UTC via `asUtc` |
+
+---
+
 ## 2026-07-24 — Transfer between accounts
 
 | Field | Value |

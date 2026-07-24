@@ -98,7 +98,7 @@ deposit still uses Account DTOs.
 
 - `Transaction` → table `bank_transaction`
   - `transactionId`, `account`, `transactionType`, `amount`,
-    `balanceAfter`, `currencyCode`, `narration`, `createdAt`,
+    `balanceAfter`, `currencyCode`, `narration`, `createdAt` (**UTC `Instant`**, JSON with `Z`),
     `createdBy`
 
 ## 12. Utility Classes

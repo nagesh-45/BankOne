@@ -84,7 +84,7 @@
             <tbody>
               @for (tx of transactions(); track tx.transactionId) {
                 <tr>
-                  <td>{{ tx.createdAt | date: 'medium' }}</td>
+                  <td>{{ tx.createdAt | asUtc | date: 'medium' }}</td>
                   <td>
                     <span
                       class="type-chip"

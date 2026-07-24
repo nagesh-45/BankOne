@@ -13,6 +13,7 @@ import { Transaction } from '../../../core/models/transaction';
 import { AccountService } from '../../../core/services/account';
 import { ListPagination } from '../../../shared/components/list-pagination/list-pagination';
 import { LoadingState } from '../../../shared/components/loading-state/loading-state';
+import { AsUtcPipe } from '../../../core/pipes/as-utc.pipe';
 
 type AccountState = {
   state: 'loading' | 'loaded' | 'error';
@@ -35,7 +36,8 @@ type TxState = {
     MatCardModule,
     MatIconModule,
     ListPagination,
-    LoadingState
+    LoadingState,
+    AsUtcPipe
   ],
   templateUrl: './account-detail.html',
   styleUrl: './account-detail.scss'

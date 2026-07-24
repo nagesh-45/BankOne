@@ -3,7 +3,7 @@ package com.bankone.transaction.dto;
 import com.bankone.transaction.enums.TransactionType;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class TransactionResponse {
 
@@ -14,7 +14,7 @@ public class TransactionResponse {
     private BigDecimal balanceAfter;
     private String currencyCode;
     private String narration;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     private String createdBy;
 
     public Long getTransactionId() {
@@ -73,11 +73,11 @@ public class TransactionResponse {
         this.narration = narration;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
