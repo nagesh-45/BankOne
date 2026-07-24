@@ -4,13 +4,16 @@ import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+/**
+ * Default mail path (Mailpit locally). Used whenever SendGrid HTTP bean is not active.
+ */
 @Service
-@ConditionalOnProperty(name = "app.mail.transport", havingValue = "smtp", matchIfMissing = true)
+@ConditionalOnMissingBean(NotificationMailService.class)
 public class SmtpNotificationMailService implements NotificationMailService {
 
     private static final Logger log = LoggerFactory.getLogger(SmtpNotificationMailService.class);

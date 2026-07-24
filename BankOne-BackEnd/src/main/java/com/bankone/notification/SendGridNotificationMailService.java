@@ -16,7 +16,7 @@ import java.util.Map;
  * API key = MAIL_PASSWORD (or SENDGRID_API_KEY).
  */
 @Service
-@ConditionalOnProperty(name = "app.mail.transport", havingValue = "sendgrid")
+@ConditionalOnProperty(name = "app.mail.transport", havingValue = "sendgrid", matchIfMissing = false)
 public class SendGridNotificationMailService implements NotificationMailService {
 
     private static final Logger log = LoggerFactory.getLogger(SendGridNotificationMailService.class);
@@ -27,7 +27,7 @@ public class SendGridNotificationMailService implements NotificationMailService 
     private final String notifyTo;
 
     public SendGridNotificationMailService(
-            @Value("${app.mail.sendgrid-api-key:${MAIL_PASSWORD:}}") String apiKey,
+            @Value("${app.mail.sendgrid-api-key:}") String apiKey,
             @Value("${app.mail.from}") String from,
             @Value("${app.mail.notify-to}") String notifyTo) {
         this.apiKey = apiKey == null ? "" : apiKey.trim();
