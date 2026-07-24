@@ -15,9 +15,13 @@ public class NotificationEventConsumer {
     private static final Logger log = LoggerFactory.getLogger(NotificationEventConsumer.class);
 
     private final NotificationMailService mailService;
+    private final NotificationEmailComposer emailComposer;
 
-    public NotificationEventConsumer(NotificationMailService mailService) {
+    public NotificationEventConsumer(
+            NotificationMailService mailService,
+            NotificationEmailComposer emailComposer) {
         this.mailService = mailService;
+        this.emailComposer = emailComposer;
     }
 
     @KafkaListener(topics = "${app.kafka.notification-topic}", groupId = "bankone-notification")
@@ -32,15 +36,10 @@ public class NotificationEventConsumer {
                 log.warn("No customer email on event {} {}; falling back to MAIL_NOTIFY_TO if set",
                         event.getAction(), event.getEntityId());
             }
-            String subject = "[BankOne] " + event.getAction() + " #" + event.getEntityId();
-            String body = "Action: " + event.getAction() + "\n"
-                    + "Type: " + event.getEntityType() + "\n"
-                    + "Id: " + event.getEntityId() + "\n"
-                    + "Actor: " + event.getActor() + "\n"
-                    + "When: " + event.getOccurredAt() + "\n\n"
-                    + event.getSummary() + "\n";
-            mailService.send(event.getRecipientEmail(), subject, body);
-            log.info("Email sent for {} to {}", event.getAction(), event.getRecipientEmail());
+            NotificationEmailContent content = emailComposer.compose(event);
+            mailService.send(event.getRecipientEmail(), content);
+            log.info("Email sent for {} to {} subject={}",
+                    event.getAction(), event.getRecipientEmail(), content.subject());
         } catch (Exception ex) {
             log.warn("Email failed for {}: {}", event.getAction(), ex.toString(), ex);
         }

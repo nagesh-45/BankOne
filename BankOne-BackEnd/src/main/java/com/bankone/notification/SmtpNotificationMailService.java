@@ -1,5 +1,6 @@
 package com.bankone.notification;
 
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,28 +20,31 @@ public class SmtpNotificationMailService implements NotificationMailService {
 
     private final JavaMailSender mailSender;
     private final String from;
+    private final String fromName;
     private final String fallbackTo;
 
     public SmtpNotificationMailService(
             JavaMailSender mailSender,
             @Value("${app.mail.from}") String from,
+            @Value("${app.mail.from-name:BankOne}") String fromName,
             @Value("${app.mail.notify-to}") String fallbackTo) {
         this.mailSender = mailSender;
         this.from = from;
+        this.fromName = fromName;
         this.fallbackTo = fallbackTo;
     }
 
     @Override
-    public void send(String toEmail, String subject, String body) {
+    public void send(String toEmail, NotificationEmailContent content) {
         String to = resolveTo(toEmail);
-        log.info("SMTP mail from={} to={}", from, to);
+        log.info("SMTP mail from={} to={} subject={}", from, to, content.subject());
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
-            helper.setFrom(from);
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(new InternetAddress(from, fromName, "UTF-8"));
             helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(body, false);
+            helper.setSubject(content.subject());
+            helper.setText(content.plainText(), content.htmlBody());
             mailSender.send(message);
             log.info("SMTP email sent to {}", to);
         } catch (Exception ex) {

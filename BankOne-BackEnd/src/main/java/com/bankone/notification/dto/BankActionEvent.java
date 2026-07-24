@@ -8,7 +8,7 @@ public class BankActionEvent {
     private String summary;
     private String actor;
     private String occurredAt;
-    /** Customer email from onboarding — primary notification recipient. */
+        /** Customer email from onboarding — primary notification recipient. */
     private String recipientEmail;
 
     public BankActionEvent() {
