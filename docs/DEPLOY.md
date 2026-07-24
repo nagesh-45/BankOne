@@ -140,7 +140,7 @@ Render API env (Aiven Kafka + Twilio SendGrid → Gmail inbox):
 | `KAFKA_SSL_TRUSTSTORE_TYPE` | `PEM` |
 | `KAFKA_CA_CERT` | Aiven project CA PEM |
 | `KAFKA_NOTIFICATION_TOPIC` | `bankone.notifications` |
-| `MAIL_TRANSPORT` | `sendgrid` (HTTPS API — required on Render; local uses default `smtp`) |
+| `MAIL_TRANSPORT` or `APP_MAIL_TRANSPORT` | `sendgrid` (HTTPS API — required on Render; local uses default `smtp`) |
 | `MAIL_PASSWORD` | SendGrid API key (`SG....`) |
 | `MAIL_FROM` | SendGrid **verified** sender |
 | `MAIL_NOTIFY_TO` | your Gmail inbox |

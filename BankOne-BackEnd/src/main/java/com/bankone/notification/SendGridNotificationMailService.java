@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -13,10 +14,11 @@ import java.util.Map;
 
 /**
  * SendGrid Web API (HTTPS :443). Use on Render when SMTP is blocked.
- * API key = MAIL_PASSWORD (or SENDGRID_API_KEY).
+ * Set MAIL_TRANSPORT=sendgrid. API key = MAIL_PASSWORD or SENDGRID_API_KEY.
  */
 @Service
-@ConditionalOnProperty(name = "app.mail.transport", havingValue = "sendgrid", matchIfMissing = false)
+@Primary
+@ConditionalOnProperty(name = "app.mail.transport", havingValue = "sendgrid")
 public class SendGridNotificationMailService implements NotificationMailService {
 
     private static final Logger log = LoggerFactory.getLogger(SendGridNotificationMailService.class);
