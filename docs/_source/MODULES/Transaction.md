@@ -2,13 +2,14 @@
 
 ## 1. Feature Overview
 
-Immutable ledger of credits/debits (and later transfers). Foundation
-is in place under `com.bankone.transaction`: entity, repository,
-`TransactionService.record`, **CREDIT** on deposit and on opening deposit
-(`openAccount` when amount > 0, narration "Opening deposit"), and
-`GET /accounts/{accountId}/transactions` (paged list). No ledger UI yet.
+Immutable ledger of credits/debits (including transfers). Package
+`com.bankone.transaction`: entity, repository, `TransactionService.record`,
+**CREDIT** on deposit and opening deposit, **DEBIT** on withdraw,
+**DEBIT+CREDIT** on transfer, and `GET /accounts/{accountId}/transactions`
+(paged). Account detail UI shows the ledger for an account.
 
-**Status:** Partial (CREDIT deposit/opening; DEBIT withdraw; **transfer DEBIT+CREDIT**; list API)
+**Status:** Partial (write paths + list API + account-detail UI;
+dashboard `todayTransactionCount` still stub; no standalone Transactions nav)
 
 ## 2. Business Purpose
 
@@ -67,8 +68,8 @@ Deposit → ledger (implemented):
   ---------------------------------------------------------------------------------
 
 Hosted on `AccountController` (no separate transaction controller).
-Planned: `POST /accounts/{id}/withdraw`. Deposit remains on Account API
-and writes the ledger internally.
+Money-movement POSTs stay on Account API and write the ledger internally
+(`deposit` / `withdraw` / `transfer` / opening deposit).
 
 ## 7. Controllers
 
@@ -141,66 +142,60 @@ metadata later.
 ## 19. Testing Strategy
 
 - Deposit creates +1 CREDIT with matching amount and `balance_after`
-- Withdraw insufficient funds (when built)
-- Concurrent balance safety
+- Withdraw insufficient funds → reject
+- Transfer same-account / currency mismatch → reject
+- Concurrent balance safety (pessimistic lock on withdraw/transfer)
 
 ## 20. Future Extension Guide
 
-Next: withdraw (DEBIT); then transfer + beneficiary; then ledger UI; wire dashboard
-`todayTransactionCount`.
+Next: beneficiary-linked transfers; standalone Transactions nav; wire
+dashboard `todayTransactionCount`; richer statement PDF.
 
 ------------------------------------------------------------------------
 
 # Future Modification Guide
 
-### Requirement: Expose transaction list API — **done (API)**
+### Requirement: Expose transaction list API — **done**
 
   ------------------------------------------------------------------
   Item                      Detail
   ------------------------- ----------------------------------------
   Files                     `AccountController.java`,
                             `TransactionService`/`Impl`,
-                            `TransactionResponse.java`
-
-  Classes                   `AccountController`,
-                            `TransactionServiceImpl`
+                            `TransactionResponse.java`,
+                            account-detail UI
 
   Methods                   `getTransactions`, `getByAccountId`
 
-  Impact                    Account detail UI still pending; API docs
-                            updated
+  Impact                    Paged ledger on account detail
   ------------------------------------------------------------------
 
-### Requirement: Write CREDIT on openAccount
+### Requirement: Write CREDIT on openAccount — **done**
 
   ------------------------------------------------------------------
   Item                      Detail
   ------------------------- ----------------------------------------
   Files                     `AccountServiceImpl.java`
 
-  Classes                   `AccountServiceImpl`
-
   Methods                   `openAccount()` --- after save call
                             `transactionService.record(..., CREDIT, ...)`
 
-  Impact                    Opening balances appear in ledger;
-                            dashboard counts
+  Impact                    Opening balances appear in ledger
   ------------------------------------------------------------------
 
-### Requirement: Add withdraw (DEBIT)
+### Requirement: Add withdraw (DEBIT) — **done**
 
   ------------------------------------------------------------------
   Item                      Detail
   ------------------------- ----------------------------------------
   Files                     `AccountController`,
-                            `AccountServiceImpl`, possibly
-                            `TransactionService`
+                            `AccountServiceImpl`,
+                            withdraw dialog FE
 
-  Methods                   New `withdraw()` --- balance check then
+  Methods                   `withdraw()` --- lock, balance check,
                             `record(..., DEBIT, ...)`
 
-  Impact                    API docs; Accounts UI; status/min-balance
-                            rules
+  Impact                    API + Accounts UI; Kafka email
   ------------------------------------------------------------------
 
 ### Call hierarchy (deposit → record) — implemented

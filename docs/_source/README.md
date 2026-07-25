@@ -24,6 +24,12 @@ change.
   Component          How to run                              Default URL
   ------------------ --------------------------------------- -------------------------
   Backend (Liberty)  `BankOne/scripts/redeploy-liberty.sh`   `http://localhost:9080`
+                     (JDWP debug attach `:7777`)
+
+  Kafka + Mailpit    `docker compose up -d kafka mailpit`    Kafka `:9092` /
+                                                             Mailpit UI `:8025`
+
+  Load-test seed     `psql … -f scripts/seed-loadtest-10k.sql` 10k LoadTest rows
 
   Backend (embedded  `mvn spring-boot:run`                   `http://localhost:8080`
   Boot)                                                      
@@ -85,9 +91,14 @@ API base used by the UI:
 
   Account                Implemented            [MODULES/Account.md](./MODULES/Account.md)
 
+  Notification           Implemented            [MODULES/Notification.md](./MODULES/Notification.md)
+                                                 (Kafka → email)
+
   Employee               Implemented            [MODULES/Employee.md](./MODULES/Employee.md)
 
-  Transaction            Stub                   [MODULES/Transaction.md](./MODULES/Transaction.md)
+  Transaction            Partial                [MODULES/Transaction.md](./MODULES/Transaction.md)
+                                                 (ledger via deposit/
+                                                 withdraw/transfer)
 
   Branch                 Not implemented        [MODULES/Branch.md](./MODULES/Branch.md)
                          (branch code string    

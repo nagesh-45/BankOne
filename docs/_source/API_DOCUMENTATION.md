@@ -5,6 +5,11 @@ Auth header: `Authorization: Bearer <jwt>`
 
 Unless noted, all endpoints require authentication.
 
+**Side effect (implemented):** successful open account / deposit /
+withdraw / transfer publishes a Kafka `BankActionEvent` and emails the
+**customer** (`customers.email`). Not a separate REST resource — see
+`MODULES/Notification.md`.
+
 ## Authentication --- `/auth`
 
   ------------------------------------------------------------------------------------------------

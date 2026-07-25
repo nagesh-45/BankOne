@@ -4,6 +4,60 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-25 — Docs sync: Kafka notifications, pagination, load-test seed
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Documentation catch-up for Kafka→email, list pagination jump, Liberty JDWP, load-test SQL |
+| **Files Modified** | `docs/_source/*`, `docs/DEPLOY.md`, `MODULES/Notification.md`, regenerate DOCX/PDF |
+| **Reason** | Code landed for notifications/pagination/debug/seed; docs lagged |
+| **Impact** | Staff docs match implemented stack (Aiven + SendGrid HTTP, Mailpit local) |
+
+---
+
+## 2026-07-24 — Kafka notifications → customer email
+
+| Field | Value |
+|-------|-------|
+| **Feature** | After account open/deposit/withdraw/transfer, publish `BankActionEvent` to Kafka; consumer emails customer |
+| **Files Modified** | `com.bankone.notification.*`; `AccountServiceImpl`; `application.properties`; `docker-compose.yml` (kafka, mailpit); `.env.example` |
+| **Classes / Methods** | `NotificationEventPublisher.publish`; `NotificationEventConsumer.onMessage`; `SmtpNotificationMailService` / `SendGridNotificationMailService`; `NotificationEmailComposer` |
+| **Reason** | Async customer notifications; learn Kafka; Render SMTP blocked → SendGrid HTTPS |
+| **Impact** | Local Mailpit `:8025`; Render needs Aiven + `MAIL_TRANSPORT=sendgrid`; recipient = `customers.email` |
+
+---
+
+## 2026-07-24 — List pagination First/Last/Go to page
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Shared `list-pagination`: first/last + jump-to-page (1-based UI → 0-based API) |
+| **Files Modified** | `list-pagination.ts/html/scss/spec.ts` |
+| **Reason** | 10k+ load-test rows made Prev/Next-only unusable |
+| **Impact** | Accounts, customers, employees, nested account/tx lists |
+
+---
+
+## 2026-07-24 — Load-test seed 10k customers
+
+| Field | Value |
+|-------|-------|
+| **Feature** | `scripts/seed-loadtest-10k.sql` — 10k LoadTest customers + 12k accounts (branch 9999) |
+| **Reason** | Pagination / list performance testing |
+| **Impact** | Re-runnable; identifiable emails `loadtest.customer*@bankone.test` |
+
+---
+
+## 2026-07-24 — Liberty redeploy always JDWP debug
+
+| Field | Value |
+|-------|-------|
+| **Feature** | `scripts/redeploy-liberty.sh` writes JDWP `suspend=n` on port 7777 by default |
+| **Reason** | Attach IntelliJ Remote Debug after every redeploy |
+| **Impact** | `LIBERTY_DEBUG=0` disables; `WLP_DEBUG_ADDRESS` overrides port |
+
+---
+
 ## 2026-07-24 — Fix Liberty boot after Jackson property
 
 | Field | Value |

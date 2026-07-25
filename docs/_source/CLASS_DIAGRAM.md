@@ -31,11 +31,16 @@ classDiagram
     +getAccountsByCustomer()
     +updateAccountStatus()
     +deposit()
+    +withdraw()
+    +transfer()
+    +getTransactions()
   }
   class AccountService
   class AccountServiceImpl {
     +openAccount()
     +deposit()
+    +withdraw()
+    +transfer()
     +searchAccounts()
     +updateAccountStatus()
   }
@@ -52,6 +57,8 @@ classDiagram
   class AccountPolicyRepository
   class AccountPolicy
   class Customer
+  class TransactionService
+  class NotificationEventPublisher
 
   AccountController --> AccountService
   AccountService <|.. AccountServiceImpl
@@ -59,6 +66,8 @@ classDiagram
   AccountServiceImpl --> AccountPolicyRepository
   AccountServiceImpl --> AccountNumberGenerator
   AccountServiceImpl --> Customer
+  AccountServiceImpl --> TransactionService
+  AccountServiceImpl --> NotificationEventPublisher
   AccountRepository --> Account
   AccountSpecification ..> Account
   Account --> Customer : customer_id
@@ -66,6 +75,26 @@ classDiagram
   AccountPolicyService <|.. AccountPolicyServiceImpl
   AccountPolicyServiceImpl --> AccountPolicyRepository
   AccountPolicyRepository --> AccountPolicy
+```
+
+## Notification (Kafka → email)
+
+```
+classDiagram
+  direction TB
+  class NotificationEventPublisher
+  class NotificationEventConsumer
+  class BankActionEvent
+  class NotificationEmailComposer
+  class NotificationMailService
+  class SmtpNotificationMailService
+  class SendGridNotificationMailService
+
+  NotificationEventPublisher --> BankActionEvent
+  NotificationEventConsumer --> NotificationEmailComposer
+  NotificationEventConsumer --> NotificationMailService
+  NotificationMailService <|.. SmtpNotificationMailService
+  NotificationMailService <|.. SendGridNotificationMailService
 ```
 
 ## Customer domain

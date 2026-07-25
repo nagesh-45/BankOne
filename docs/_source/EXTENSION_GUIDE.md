@@ -35,9 +35,12 @@
   deposit      
   change       
 
-  Ledger /     Introduce `transaction` entity; call from
-  withdraw     deposit/withdraw/open; stop mutating balances
-               alone
+  Ledger /     Already via `TransactionService.record` on
+  money move   open/deposit/withdraw/transfer; extend types /
+               narrations carefully
+
+  Notify on    Add publish site in service after save; reuse
+  new action   `BankActionEvent` + composer (see Notification)
 
   Branch       New `branch` table; replace free-text
   master       `branchCode` gradually
@@ -55,12 +58,16 @@ Today: `ddl-auto=update` + `schema.sql` for sequences.\
 Target: Flyway/Liquibase migrations under
 `src/main/resources/db/migration`, set `ddl-auto=validate`.
 
-## Stub modules ready for first implementation
+## Stub / thin modules ready for next slices
 
   ------------------------------------------------------------------------
-  Module        Empty package               Suggested first slice
+  Module        Package                     Suggested first slice
   ------------- --------------------------- ------------------------------
-  Transaction   `com.bankone.transaction`   CREDIT entry on deposit + open
+  Transaction   `com.bankone.transaction`   Dashboard `todayTransactionCount`;
+  (Partial)                                 beneficiary-linked transfers
+
+  Notification  `com.bankone.notification`  Notify both transfer parties;
+  (Implemented)                             transactional outbox
 
   Report        `com.bankone.report`        Daily deposits summary
 

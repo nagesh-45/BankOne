@@ -5,7 +5,7 @@ whenever dependencies, runtimes, or tooling change** (add, upgrade,
 remove, or replace). Source of truth for versions: `BankOne-BackEnd/pom.xml`
 and `BankOne-Frontend/package.json`.
 
-Last reviewed: 2026-07-23
+Last reviewed: 2026-07-25
 
 ## At a glance
 
@@ -15,9 +15,11 @@ Last reviewed: 2026-07-23
   Backend              Java 21 · Spring Boot 4.1 · Maven · WAR
   Frontend             Angular 22 · TypeScript 6 · npm · SCSS
   Database             PostgreSQL
+  Messaging            Apache Kafka (local Docker / Aiven on Render)
+  Email                Mailpit (local SMTP) · Twilio SendGrid HTTPS (Render)
   Auth                 Spring Security · JWT (JJWT)
-  Deploy (primary)     Open Liberty (`:9080` / `:9443`)
-  Deploy (dev alt)     Embedded Tomcat (`:8080`)
+  Deploy (primary)     Open Liberty (`:9080` / `:9443`, JDWP `:7777`)
+  Deploy (cloud)       Render (Docker `-Pdocker`) · Netlify (Angular)
   Docs tooling         Pandoc · Google Chrome (PDF) · python-docx
   -----------------------------------------------------------------------
 
@@ -85,6 +87,30 @@ Last reviewed: 2026-07-23
 
   schema.sql /         SQL init (`spring.sql.init.mode=always`)
   data.sql
+  -----------------------------------------------------------------------
+
+### Messaging & email
+
+  -----------------------------------------------------------------------
+  Technology           Purpose
+  -------------------- --------------------------------------------------
+  spring-boot-starter- Kafka produce/consume
+  kafka                (`com.bankone.notification`)
+
+  spring-boot-starter- SMTP path (Mailpit locally)
+  mail
+
+  Apache Kafka 3.9     Local: `docker compose` service
+                       `kafka` (`apache/kafka:3.9.0` :9092)
+
+  Aiven Kafka          Render managed broker (SASL_SSL +
+                       SCRAM + CA PEM)
+
+  Mailpit              Local fake inbox SMTP `:1025` /
+                       UI `:8025`
+
+  Twilio SendGrid      Render email via HTTPS API when
+                       `MAIL_TRANSPORT=sendgrid`
   -----------------------------------------------------------------------
 
 ### Code generation & container

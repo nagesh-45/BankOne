@@ -10,6 +10,7 @@ post simple deposits that credit balances.
 Deposit and **opening deposit** (`openAccount` when amount > 0) write a **CREDIT** row; **withdraw** writes a **DEBIT** row; **transfer** writes DEBIT+CREDIT via `TransactionService.record`.
 Withdraw uses `findByIdForUpdate` (pessimistic lock) and rejects insufficient funds.
 **Transfer** locks both accounts in id order, rejects same-account / currency mismatch / insufficient funds; writes DEBIT + CREDIT ledger rows.
+**Notifications:** after open/deposit/withdraw/transfer, `NotificationEventPublisher` sends Kafka events; email goes to the **customer email** (see [Notification.md](./Notification.md)).
 
 ## 2. Business Purpose
 
@@ -154,12 +155,11 @@ Account has `created_by` / timestamps; `AccountPolicy` uses
 
 ## 20. Future Extension Guide
 
-- Persist ledger on withdraw/transfer (openAccount opening CREDIT + deposit CREDIT done)
-- Withdraw / transfer with limits
-- Account detail page
-- Status transition state machine
+- Status transition state machine (no CLOSED→ACTIVE; close with zero balance)
 - Seed LOAN policy or block LOAN until product module exists
 - Maker--checker for large deposits
+- Notify **both** parties on transfer; Kafka outbox
+- Daily interest / statement PDF
 
 ------------------------------------------------------------------------
 
@@ -191,7 +191,9 @@ Account has `created_by` / timestamps; `AccountPolicy` uses
 
 ### Requirement: Change deposit to write a ledger entry
 
-**Done (deposit + openAccount):** `AccountServiceImpl.deposit()` and `openAccount()` (when `openingDeposit` > 0) call `TransactionService.record` after balance update. Still TODO: withdraw/transfer; ledger UI; dashboard `todayTransactionCount`.
+**Done:** deposit, openAccount (opening CREDIT), withdraw (DEBIT), transfer
+(DEBIT+CREDIT), account-detail ledger UI. Still TODO: dashboard
+`todayTransactionCount`.
 
   ------------------------------------------------------------
   Item                      Detail
@@ -258,6 +260,6 @@ Account has `created_by` / timestamps; `AccountPolicy` uses
             ↓
     TransactionService.record(..., CREDIT, ...)
             ↓
-    TransactionRepository.save()
+    NotificationEventPublisher.publish(DEPOSIT_COMPLETE, recipientEmail)
             ↓
-    AccountRepository.save()
+    Kafka → NotificationEventConsumer → email (SMTP/SendGrid)

@@ -10,6 +10,8 @@ Backend code lives in **`BankOne-BackEnd/`** (Maven); UI in **`BankOne-Frontend/
   **Open Liberty**
 - **Frontend:** Angular SPA with JWT Bearer auth
 - **Database:** PostgreSQL (`bankone`)
+- **Notifications (implemented):** Kafka topic `bankone.notifications` →
+  email (Mailpit locally, SendGrid HTTPS on Render)
 
 Full technology and version inventory:
 [TECH_STACK.md](./TECH_STACK.md).
@@ -18,6 +20,9 @@ Full technology and version inventory:
 flowchart LR
   UI[Angular SPA :4200] -->|HTTPS/HTTP JWT| API[Spring Boot on Liberty :9080]
   API --> PG[(PostgreSQL :5432)]
+  API -->|publish BankActionEvent| Kafka[Kafka]
+  Kafka --> Consumer[NotificationConsumer]
+  Consumer --> Mail[Mailpit or SendGrid]
 ```
 
 ## Package dependencies
@@ -30,6 +35,7 @@ flowchart TB
     role[role]
     customer[customer]
     account[account]
+    notification[notification]
     dashboard[dashboard]
     common[common]
   end
@@ -39,6 +45,7 @@ flowchart TB
   customer --> account
   account --> customer
   account --> common
+  account --> notification
   user --> role
   user --> common
   dashboard --> customer
@@ -46,8 +53,8 @@ flowchart TB
   dashboard --> user
 ```
 
-Empty placeholder packages (no classes yet): `transaction`, `report`,
-`audit`, `beneficiary`.
+Implemented packages include `transaction` (ledger) and `notification`
+(Kafka → email). Placeholder / thin: `report`, `audit`, `beneficiary`.
 
 ## Layering (per feature module)
 
@@ -86,7 +93,12 @@ Protected routes use `authGuard` with optional `data.roles`.
   Mode                Port                Notes
   ------------------- ------------------- -------------------------------
   Open Liberty        9080 HTTP / 9443    `scripts/redeploy-liberty.sh`
-  (primary)           HTTPS               
+  (primary)           HTTPS               JDWP debug **7777** by default
+                                          (`LIBERTY_DEBUG=0` to disable)
+
+  Kafka (local)       9092                `docker compose up -d kafka`
+
+  Mailpit (local)     SMTP 1025 / UI 8025 `docker compose up -d mailpit`
 
   Embedded Tomcat     8080                `application.properties`
                                           `server.port`

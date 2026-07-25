@@ -26,8 +26,13 @@ module's **Future Modification Guide**.
   deposit      `AccountServiceImpl.openAccount`   customer create flow
   rules                                           
 
-  Balance      `AccountServiceImpl.deposit`       Future Transaction module,
-  mutation     (today)                            dashboard counts
+  Balance      `AccountServiceImpl` deposit /    `TransactionService.record`,
+  mutation     withdraw / transfer / open         Kafka publish sites,
+                                                dashboard counts
+
+  Notification `NotificationEventPublisher`,     Mail env (`MAIL_*`),
+  email        `NotificationEventConsumer`,      Kafka topic / Aiven,
+               composers / mail services         customer `email` field
 
   Customer     `BusinessIdFormatter`,             All UI showing customer
   identity     `Customer.getCustomerCode`         code
@@ -45,10 +50,9 @@ module's **Future Modification Guide**.
                                     `AccountService.openAccount`,
                                     policies
 
-  Deposit                           Account balances only ---
-                                    **no** transaction table yet;
-                                    adding ledger will touch
-                                    deposit + openAccount
+  Deposit / withdraw /          Account balances +
+  transfer                      `TransactionService.record` +
+                                `NotificationEventPublisher`
 
   Account status                    Future status-transition rules;
                                     deposit currently requires
@@ -59,6 +63,9 @@ module's **Future Modification Guide**.
 
   User/employee create              Roles, login, `/users` ADMIN
                                     gate
+
+  Mail / Kafka config               `.env` / Render env; topic must
+                                    exist; SendGrid on Render
 
   Dashboard counts                  `DashboardServiceImpl`;
                                     transaction count still stub

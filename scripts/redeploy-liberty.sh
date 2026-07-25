@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Rebuild BankOne WAR and redeploy to local Open Liberty (server: bankone).
+# Always starts with JDWP debug enabled (attach IntelliJ to localhost:7777).
+# Set LIBERTY_DEBUG=0 to start without the debugger.
 set -euo pipefail
 
 # Backend Maven root is BankOne-BackEnd (sibling of scripts/)
@@ -8,6 +10,10 @@ WLP_HOME="${WLP_HOME:-$HOME/tools/wlp}"
 SERVER_NAME="${SERVER_NAME:-bankone}"
 WAR_NAME="bankone-0.0.1-SNAPSHOT.war"
 APPS_DIR="$WLP_HOME/usr/servers/$SERVER_NAME/apps"
+SERVER_DIR="$WLP_HOME/usr/servers/$SERVER_NAME"
+JVM_OPTIONS="$SERVER_DIR/jvm.options"
+DEBUG_PORT="${WLP_DEBUG_ADDRESS:-7777}"
+LIBERTY_DEBUG="${LIBERTY_DEBUG:-1}"
 
 echo "==> Using JAVA_HOME (JDK 21)..."
 export JAVA_HOME
@@ -41,6 +47,26 @@ rm -rf "$APPS_DIR/expanded" "$APPS_DIR/$WAR_NAME"
 cp "$WAR_PATH" "$APPS_DIR/$WAR_NAME"
 ls -lh "$APPS_DIR/$WAR_NAME"
 
+# JDWP on every redeploy (suspend=n so API starts without waiting for IntelliJ)
+mkdir -p "$SERVER_DIR"
+if [[ "$LIBERTY_DEBUG" == "1" ]]; then
+  echo "==> Enabling debug listener on port $DEBUG_PORT (suspend=n)..."
+  # Keep any non-jdwp lines the user may have added
+  if [[ -f "$JVM_OPTIONS" ]]; then
+    grep -v 'agentlib:jdwp' "$JVM_OPTIONS" > "${JVM_OPTIONS}.tmp" || true
+    mv "${JVM_OPTIONS}.tmp" "$JVM_OPTIONS"
+  else
+    : > "$JVM_OPTIONS"
+  fi
+  echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:${DEBUG_PORT}" >> "$JVM_OPTIONS"
+else
+  echo "==> LIBERTY_DEBUG=0 — starting without JDWP"
+  if [[ -f "$JVM_OPTIONS" ]]; then
+    grep -v 'agentlib:jdwp' "$JVM_OPTIONS" > "${JVM_OPTIONS}.tmp" || true
+    mv "${JVM_OPTIONS}.tmp" "$JVM_OPTIONS"
+  fi
+fi
+
 echo "==> Starting Liberty server '$SERVER_NAME'..."
 "$WLP_HOME/bin/server" start "$SERVER_NAME"
 
@@ -62,6 +88,9 @@ echo "HTTP $HTTP_CODE"
 if [[ "$HTTP_CODE" == "200" ]]; then
   echo "Redeploy OK — API on http://localhost:9080"
   echo "UI: keep ng serve on http://localhost:4200 (API base should be 9080)"
+  if [[ "$LIBERTY_DEBUG" == "1" ]]; then
+    echo "Debug: attach IntelliJ Remote JVM Debug → localhost:${DEBUG_PORT}"
+  fi
 else
   echo "WARNING: login smoke test did not return 200."
   echo "Check: $WLP_HOME/usr/servers/$SERVER_NAME/logs/messages.log"

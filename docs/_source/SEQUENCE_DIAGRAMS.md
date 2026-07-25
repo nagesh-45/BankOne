@@ -55,6 +55,7 @@ sequenceDiagram
   AC->>AS: openAccount()
   AS->>Pol: find active policy
   AS->>Acc: next ordinal + save
+  AS->>AS: optional CREDIT + Kafka ACCOUNT_OPENED
   Acc-->>Staff: AccountResponse
 ```
 
@@ -66,6 +67,8 @@ sequenceDiagram
   participant UI as Deposit dialog / Accounts
   participant AC as AccountController
   participant AS as AccountServiceImpl
+  participant Tx as TransactionService
+  participant Pub as NotificationEventPublisher
   participant Repo as AccountRepository
 
   Staff->>UI: amount
@@ -73,8 +76,27 @@ sequenceDiagram
   AC->>AS: deposit(id, request)
   AS->>Repo: findById
   AS->>AS: validate ACTIVE + amount
+  AS->>Tx: record(CREDIT)
   AS->>Repo: save (balances++)
+  AS->>Pub: publish(DEPOSIT_COMPLETE)
   AS-->>UI: AccountResponse
+```
+
+## Kafka notification → email
+
+```
+sequenceDiagram
+  participant AS as AccountServiceImpl
+  participant Pub as NotificationEventPublisher
+  participant K as Kafka
+  participant C as NotificationEventConsumer
+  participant Mail as NotificationMailService
+
+  AS->>Pub: publish(BankActionEvent)
+  Pub->>K: bankone.notifications
+  K->>C: BankActionEvent
+  C->>Mail: send HTML+plain email
+  Note over Mail: Mailpit local / SendGrid Render
 ```
 
 ## Create customer with first account

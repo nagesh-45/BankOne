@@ -103,49 +103,55 @@ Login: `admin` / `Admin@123` (seeded by your app initializers).
 
 ## 4. Liberty (your current local path)
 
-Local Liberty is unchanged:
-
 ```bash
 ./scripts/redeploy-liberty.sh
 ```
+
+Always enables **JDWP on port 7777** (`suspend=n`) so IntelliJ Remote Debug
+can attach. Disable with `LIBERTY_DEBUG=0`.
 
 Cloud deploys use **embedded Tomcat** via Maven profile `-Pdocker` (see `BankOne-BackEnd/Dockerfile`).
 
 ### Kafka email notifications (local + Render)
 
-Same code; different env.
+Same code; different env. Recipient = **customer email** from onboarding
+(`MAIL_NOTIFY_TO` is fallback only).
 
 | | Local (Liberty) | Render |
 |--|-----------------|--------|
-| Kafka | Docker `localhost:9092` | Managed Kafka (Upstash/Confluent) |
-| Mail | Mailpit `localhost:1025` / UI `:8025` | Gmail or SendGrid SMTP |
+| Kafka | Docker `localhost:9092` | **Aiven** Kafka (SASL_SSL) |
+| Mail | Mailpit `localhost:1025` / UI `:8025` | Twilio **SendGrid HTTPS** (`MAIL_TRANSPORT=sendgrid`) |
 
 Local:
 
 ```bash
 docker compose up -d kafka mailpit
 ./scripts/redeploy-liberty.sh
-# open account → http://localhost:8025
+# open account / deposit → http://localhost:8025
 ```
 
-Render API env (Aiven Kafka + Twilio SendGrid → Gmail inbox):
+Render API env (Aiven + SendGrid):
 
 | Variable | Example |
 |----------|---------|
 | `APP_KAFKA_ENABLED` | `true` |
-| `KAFKA_BOOTSTRAP_SERVERS` | from Aiven Overview (host:port) |
+| `KAFKA_BOOTSTRAP_SERVERS` | Aiven host:port |
 | `KAFKA_SECURITY_PROTOCOL` | `SASL_SSL` |
 | `KAFKA_SASL_MECHANISM` | `SCRAM-SHA-256` |
 | `KAFKA_SASL_JAAS_CONFIG` | ScramLoginModule JAAS (see `.env.example`) |
 | `KAFKA_SSL_TRUSTSTORE_TYPE` | `PEM` |
 | `KAFKA_CA_CERT` | Aiven project CA PEM |
 | `KAFKA_NOTIFICATION_TOPIC` | `bankone.notifications` |
-| `MAIL_TRANSPORT` or `APP_MAIL_TRANSPORT` | `sendgrid` (HTTPS API — required on Render; local uses default `smtp`) |
+| `MAIL_TRANSPORT` / `APP_MAIL_TRANSPORT` | `sendgrid` |
 | `MAIL_PASSWORD` | SendGrid API key (`SG....`) |
 | `MAIL_FROM` | SendGrid **verified** sender |
-| `MAIL_NOTIFY_TO` | your Gmail inbox |
+| `MAIL_FROM_NAME` | `BankOne` (optional) |
+| `MAIL_NOTIFY_TO` | fallback only |
 
-Do **not** use `MAIL_HOST=smtp.sendgrid.net` on Render — outbound SMTP is blocked. Use `MAIL_TRANSPORT=sendgrid` instead.
+Do **not** rely on Gmail/SendGrid SMTP from Render — outbound SMTP is often
+blocked. Use `MAIL_TRANSPORT=sendgrid` (HTTPS API).
+
+If Docker build shows `CACHED` old WAR: **Clear build cache & deploy**.
 
 Do not commit real passwords. See `.env.example`.
 

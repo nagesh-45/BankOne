@@ -83,17 +83,27 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
   Update account status      Implemented       API present
 
   Deposit (post-open)        Implemented       Credits balances + writes
-                                               CREDIT ledger row
+                                               CREDIT ledger row; Kafka
+                                               email to customer
 
-  Withdraw / transfer        Stub              Not built
+  Withdraw                   Implemented       DEBIT + Kafka email
 
-  Account detail + ledger UI Stub              Not built
+  Transfer                   Implemented       DEBIT+CREDIT; Kafka email
+                                               to destination customer
+
+  Account detail + ledger UI Implemented       Account detail + paged
+                                               transactions
+
+  List pagination            Implemented       First/Last + Go to page
+                                               (`list-pagination`)
 
   Account policies (create + Implemented       Seeded INR policies; no
   get active)                                  LOAN seed
 
   Opening-deposit dialog     Implemented       Uses
   (Current)                                    `GET /account-policies`
+
+  Kafka customer email       Implemented       See MODULES/Notification.md
   ----------------------------------------------------------------------
 
 ## 5. Employees (users)
@@ -142,11 +152,11 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
   --------------------------------------------------------------
   Capability           Status               Notes
   -------------------- -------------------- --------------------
-  Transaction ledger   Partial              Write on deposit +
-  entity/API                                `GET .../transactions`
-                                            list implemented; no
-                                            withdraw/transfer/UI;
-                                            dashboard count stub
+  Transaction ledger   Partial              Write on deposit /
+  entity/API                                withdraw / transfer /
+                                            opening; list + account-
+                                            detail UI; dashboard
+                                            count still stub
 
   Reports              Stub                 Empty `report`
                                             package; sidebar
@@ -156,7 +166,23 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
                                             package
   --------------------------------------------------------------
 
-## 9. Audit
+## 9. Notifications
+
+  ----------------------------------------------------------------
+  Capability                 Status            Notes
+  -------------------------- ----------------- -------------------
+  Kafka bank-action events   Implemented       Topic
+                                               `bankone.notifications`
+
+  Customer email on open /   Implemented       Recipient =
+  deposit / withdraw /                         `customers.email`
+  transfer                                     
+
+  Local Mailpit / Render     Implemented       See
+  SendGrid HTTPS                               MODULES/Notification.md
+  ----------------------------------------------------------------
+
+## 10. Audit
 
   ----------------------------------------------------------------
   Capability                 Status            Notes
@@ -185,7 +211,11 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
   Logging                        Hibernate SQL DEBUG
                                  (dev-oriented)
 
-  Deploy                         Open Liberty WAR primary path
+  Deploy                         Open Liberty WAR primary path;
+                                 Render Docker + Aiven + SendGrid
+
+  Messaging                      Kafka (optional via
+                                 `APP_KAFKA_ENABLED`)
   -------------------------------------------------------------
 
 Deferred hardening items are tracked in

@@ -66,6 +66,10 @@ Frontend: `AuthService.login()` → store token → navigate
     AccountNumberGenerator.generate()
             ↓
     AccountRepository.save()
+            ↓
+    (if openingDeposit > 0) TransactionService.record(CREDIT)
+            ↓
+    NotificationEventPublisher.publish(ACCOUNT_OPENED, recipientEmail)
 
 Frontend (Add Current):
 
@@ -103,14 +107,60 @@ Frontend (Add Current):
             ↓
     TransactionService.record(..., CREDIT, ...)
             ↓
-    TransactionRepository.save()
-            ↓
     AccountRepository.save()
+            ↓
+    NotificationEventPublisher.publish(DEPOSIT_COMPLETE, recipientEmail)
 
 Frontend: `AccountList` / deposit dialog →
 `POST /accounts/{id}/deposit`.
 
 ------------------------------------------------------------------------
+
+## Withdraw
+
+    AccountController.withdraw()
+            ↓
+    AccountServiceImpl.withdraw()
+            ↓
+    AccountRepository.findByIdForUpdate()
+            ↓
+    assert ACTIVE + funds
+            ↓
+    TransactionService.record(..., DEBIT, ...)
+            ↓
+    AccountRepository.save()
+            ↓
+    NotificationEventPublisher.publish(WITHDRAW_COMPLETE, recipientEmail)
+
+------------------------------------------------------------------------
+
+## Transfer
+
+    AccountController.transfer()
+            ↓
+    AccountServiceImpl.transfer()
+            ↓
+    lock both accounts (id order)
+            ↓
+    DEBIT from + CREDIT to via TransactionService.record
+            ↓
+    NotificationEventPublisher.publish(TRANSFER_SUCCESS, dest customer email)
+
+------------------------------------------------------------------------
+
+## Kafka notification → email
+
+    AccountServiceImpl (after commit of money movement)
+            ↓
+    NotificationEventPublisher.publish(BankActionEvent)
+            ↓
+    Kafka topic bankone.notifications
+            ↓
+    NotificationEventConsumer
+            ↓
+    NotificationEmailComposer
+            ↓
+    NotificationMailService (SMTP / SendGrid)
 
 ------------------------------------------------------------------------
 

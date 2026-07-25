@@ -13,8 +13,23 @@
     cd "BankOne/BankOne-BackEnd"
     # Embedded
     mvn spring-boot:run
-    # Liberty (recommended for this project)
+    # Liberty (recommended) — rebuilds WAR, always enables JDWP :7777
     ./scripts/redeploy-liberty.sh
+    # Attach IntelliJ: Remote JVM Debug → localhost:7777
+    # Disable debug: LIBERTY_DEBUG=0 ./scripts/redeploy-liberty.sh
+
+### Local Kafka + Mailpit (notifications)
+
+    cd "BankOne"
+    docker compose up -d kafka mailpit
+    # Mailpit UI: http://localhost:8025
+    # Kafka: localhost:9092
+
+### Load-test data (optional)
+
+    psql -h localhost -U bankone_user -d bankone \
+      -f scripts/seed-loadtest-10k.sql
+    # Search UI for LoadTest; filter accounts by branch 9999
 
 Key config: `BankOne-BackEnd/src/main/resources/application.properties`
 
@@ -30,6 +45,10 @@ Key config: `BankOne-BackEnd/src/main/resources/application.properties`
   `server.port=8080`                       Embedded only
 
   `jwt.secret` / `jwt.expiration`          JWT signing
+
+  `app.kafka.*` / `KAFKA_*`                Kafka notifications
+
+  `app.mail.*` / `MAIL_*`                  SMTP or SendGrid transport
   -----------------------------------------------------------------------
 
 After Liberty redeploy, smoke login expects `admin` / `Admin@123`.
@@ -63,6 +82,8 @@ Liberty / LAN host on port **9080**).
 - Models in `src/app/core/models/`
 - Bearer token via `auth.interceptor.ts`
 - Dialogs as standalone components (e.g. `opening-deposit-dialog/`)
+- Shared list footer: `app-list-pagination` (First/Prev/Next/Last +
+  Go to page; 1-based UI → 0-based API `page`)
 
 ## Teach-while-building
 
@@ -93,13 +114,20 @@ sync still applies when code lands.
 
   Roles missing after   Roles not in JWT --- check
   login                 `user_roles` and filter reload
+
+  Email shows           Do not concatenate `Customer`
+  `Customer@hash`       entity --- use `customerLabel`
+
+  Render mail timeout   Use `MAIL_TRANSPORT=sendgrid`
+  on SMTP               (HTTPS); outbound SMTP blocked
+
+  Render Docker CACHED  Manual Deploy → Clear build
+  old WAR               cache & deploy
   ------------------------------------------------------------
 
 ## Suggested next build slices
 
-1.  Transaction ledger foundation
-2.  Account detail + debit/credit history
-3.  Withdraw
-4.  Account list filters / polish
-5.  Status transition rules
-6.  Maker--checker
+1.  Notify both parties on transfer; Kafka outbox
+2.  Real customer portal / statement PDF
+3.  Deferred hardening list (security / validation)
+4.  Status transition rules / maker--checker
