@@ -4,6 +4,17 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-26 — Interview follow-up answers
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Answer the remaining follow-up interview questions |
+| **Files Modified** | `docs/_source/INTERVIEW_QA.md`, `docs/_source/CHANGELOG.md` |
+| **Reason** | User asked for direct answers to the end-of-guide follow-up prompts |
+| **Impact** | The handbook now includes concrete answers for JWT, outbox, audit, branch permissions, and duplicates |
+
+---
+
 ## 2026-07-26 — Interview wording polish pass
 
 | Field | Value |

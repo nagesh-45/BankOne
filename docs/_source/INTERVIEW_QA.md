@@ -819,11 +819,26 @@ Some managed Postgres platforms require SSL for connectivity. The config detects
 
 ## Good interview follow-up questions
 
-- Why did you choose JWT instead of server sessions?
-- Why did you keep balance updates synchronous but notifications async?
-- How would you add a new role-management screen safely?
-- How would you make notification delivery reliable across Kafka failures?
-- How would you add audit history for money movement?
-- How would you introduce a transactional outbox here?
-- How would you support branch-level permissions later?
-- How would you prevent duplicate onboarding requests?
+**Q: Why did you choose JWT instead of server sessions?**  
+JWT fits this app because the frontend is a separate Angular SPA and the backend is an API service. Stateless tokens keep the backend simpler to scale, avoid server-side session storage, and work well with the route-guard plus interceptor model already used in the UI.
+
+**Q: Why did you keep balance updates synchronous but notifications async?**  
+Because the balance change is the business-critical action. It must succeed or fail inside the database transaction. Notifications are important, but they are secondary side effects, so they should not slow down or endanger the money movement itself.
+
+**Q: How would you add a new role-management screen safely?**  
+I would first expose a read-only `/roles` API, then build a frontend list page for admins. After that, I would add a controlled edit flow only if the backend has proper role assignment rules, validation, and audit logging. Security must stay server-side; the UI alone is not enough.
+
+**Q: How would you make notification delivery reliable across Kafka failures?**  
+I would use a transactional outbox. The account transaction would write both the business change and an outbox record in the same database transaction. A separate publisher would read unsent outbox rows and publish them to Kafka with retries and idempotency.
+
+**Q: How would you add audit history for money movement?**  
+The current `Transaction` table is already a strong starting point, but I would add richer audit metadata such as request id, actor id, channel, correlation id, and before/after balance snapshots. That would make investigations and compliance reporting much easier.
+
+**Q: How would you introduce a transactional outbox here?**  
+I would create an `outbox_event` table with payload, event type, aggregate id, status, retry count, and timestamps. The account service would write the outbox row in the same transaction as the account update, and a background worker would deliver it to Kafka and mark it as sent.
+
+**Q: How would you support branch-level permissions later?**  
+I would extend the current role model with branch scope or branch assignment data, then enforce it in service methods and `@PreAuthorize` checks. The UI could hide branch-inaccessible data, but the backend would need to verify the user’s branch context before returning or mutating records.
+
+**Q: How would you prevent duplicate onboarding requests?**  
+I would keep the uniqueness checks on email and phone, but I would also add idempotency for onboarding requests, probably through a client-generated request id or a server-side deduplication key. That protects against double-clicks and retry storms where the same request is submitted twice.
