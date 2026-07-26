@@ -4,6 +4,17 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-26 — Interview Q&A expanded again
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Add deeper backend, frontend, deployment, and design tradeoff interview questions |
+| **Files Modified** | `docs/_source/INTERVIEW_QA.md`, `docs/_source/CHANGELOG.md` |
+| **Reason** | User asked for a much more exhaustive Q&A set |
+| **Impact** | The interview guide now covers ~160 questions and deeper technical follow-ups |
+
+---
+
 ## 2026-07-26 — Extensive interview Q&A doc
 
 | Field | Value |
