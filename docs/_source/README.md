@@ -78,6 +78,9 @@ API base used by the UI:
   [EXTENSION_GUIDE.md](./EXTENSION_GUIDE.md)                     How to add modules safely
 
   [CHANGELOG.md](./CHANGELOG.md)                                 Append-only change history
+
+  [INTERVIEW_QA.md](./INTERVIEW_QA.md)                           Interview questions and
+                                                                  answers from codebase
   -------------------------------------------------------------------------------------------
 
 ### Modules

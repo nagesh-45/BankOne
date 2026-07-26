@@ -4,6 +4,17 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-26 — Extensive interview Q&A doc
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Expand `INTERVIEW_QA.md` with codebase-specific technical and functional questions |
+| **Files Modified** | `docs/_source/INTERVIEW_QA.md`, `docs/_source/README.md`, `docs/_source/CHANGELOG.md` |
+| **Reason** | User requested an extensive interview prep list grounded in the current codebase |
+| **Impact** | Docs index now links to the interview guide; the guide covers backend, frontend, security, Kafka, and deployment |
+
+---
+
 ## 2026-07-25 — Docs sync: Kafka notifications, pagination, load-test seed
 
 | Field | Value |
@@ -303,4 +314,3 @@ Append-only history of documentation-relevant product changes.
 | **Methods Modified** | Breadcrumb build from `ActivatedRoute` snapshot / router events |
 | **Reason** | Staff navigation context across Customers, Accounts, Users, Dashboard |
 | **Impact** | All authenticated shell pages show trail; leaf routes declare parents for nested screens |
-
