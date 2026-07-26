@@ -4,6 +4,28 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-26 — Interview wording polish pass
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Smooth remaining awkward sentences in the handbook |
+| **Files Modified** | `docs/_source/INTERVIEW_QA.md`, `docs/_source/CHANGELOG.md` |
+| **Reason** | User asked for a re-check of phrasing correctness |
+| **Impact** | A few note-like lines were rewritten to sound more natural |
+
+---
+
+## 2026-07-26 — Interview handbook prose polish
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Polish handbook wording for more natural interview phrasing |
+| **Files Modified** | `docs/_source/INTERVIEW_QA.md`, `docs/_source/CHANGELOG.md` |
+| **Reason** | User asked whether the sentences were phrased correctly |
+| **Impact** | Tone is now less template-like and more interview-ready |
+
+---
+
 ## 2026-07-26 — Interview follow-up drills and revision sheet
 
 | Field | Value |

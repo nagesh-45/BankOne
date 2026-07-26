@@ -620,7 +620,7 @@ Explaining JWT only as “token login” and forgetting the filter chain and aut
 A new customer record is created, uniqueness is checked, and the first account is opened as part of onboarding.
 
 **Why**
-The product treats onboarding as a business process, not just a person record insert.
+The product treats onboarding as a business process, not as a simple customer insert.
 
 **How**
 `CustomerController -> CustomerServiceImpl.createCustomer -> CustomerRepository.save -> AccountService.openAccount`.
@@ -652,7 +652,7 @@ No active policy, policy not yet effective, expired policy, required opening dep
 Saying the account number is random. It is business-generated and sequence-based.
 
 **Model answer**
-“Account opening is policy-driven. The service first verifies that the policy is active and valid for the requested type and currency, then generates a deterministic account number and saves the account. The policy is the business gatekeeper.”
+“Account opening is policy-driven. The service first verifies that the policy is active and valid for the requested type and currency, then generates a deterministic account number and saves the account. The policy acts as the business gatekeeper.”
 
 ### Transactions and money movement
 
@@ -753,7 +753,7 @@ Spring Security’s role checks are built around `ROLE_`-prefixed authorities. T
 Because the product flow treats onboarding as one business action. If the customer is created but the initial account is not opened, the onboarding experience is incomplete and the business has to handle partial state. Doing both together reduces that gap.
 
 **Q: How does the service protect customer data quality?**  
-It trims fields, checks duplicate email and phone, validates inputs through request DTOs, and rejects invalid onboarding steps like loan account creation. The service is not only persisting rows; it is enforcing business rules before data hits the database.
+It trims fields, checks duplicate email and phone, validates inputs through request DTOs, and rejects invalid onboarding steps like loan account creation. The service is enforcing business rules before data reaches the database.
 
 ### Account drill
 
