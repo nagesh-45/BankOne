@@ -516,13 +516,13 @@ It’s a working banking platform with auth, customers, accounts, transactions, 
 
 ### 1) Login and authorization flow
 
-When a user logs in, the frontend sends username and password to `POST /auth/login`. The backend does not trust the request body by itself; `AuthenticationService` first looks up the user, checks whether the account is locked, then delegates the actual credential verification to Spring Security’s `AuthenticationManager`. That manager uses `CustomUserDetailsService`, which loads the user and active roles from the database and exposes them as authorities. If authentication succeeds, `JwtService` generates a token and the backend also updates `lastLogin` and resets failed attempts.
+When a user logs in, the frontend sends the username and password to `POST /auth/login`. The backend does not trust the request body by itself; `AuthenticationService` first looks up the user, checks whether the account is locked, and then delegates the credential check to Spring Security’s `AuthenticationManager`. That manager uses `CustomUserDetailsService`, which loads the user and active roles from the database and exposes them as authorities. If authentication succeeds, `JwtService` generates a token, and the backend also updates `lastLogin` and resets failed attempts.
 
 After login, the frontend stores the token and role list in browser storage. From that point on, `authInterceptor` attaches the token to every API call, and `authGuard` blocks routes when the user is either unauthenticated or does not have the route’s allowed roles. That means security is enforced twice: once by the frontend for UX and once by the backend for real access control.
 
 ### 2) Customer onboarding flow
 
-Customer onboarding is intentionally opinionated. The backend accepts one create-customer request, validates uniqueness for email and phone, saves the customer, and then immediately opens the first account. That makes onboarding feel like a business operation rather than a set of loosely coupled database inserts. The service also enforces a rule that loan accounts cannot be created during customer onboarding, which reflects a product decision rather than a technical limitation.
+Customer onboarding is intentionally opinionated. The backend accepts one create-customer request, validates uniqueness for email and phone, saves the customer, and then immediately opens the first account. That makes onboarding feel like a business operation rather than a set of loosely coupled database inserts. The service also enforces a rule that loan accounts cannot be created during customer onboarding, which is a product decision rather than a technical limitation.
 
 The important interview point here is that customer creation is not just CRUD. It triggers account-policy validation, account-number generation, and sometimes a ledger entry if the opening deposit is required and provided. That means the onboarding flow crosses customer, account, and transaction domains in one business transaction.
 
@@ -534,13 +534,13 @@ Then the app obtains the next ordinal from the database sequence and combines br
 
 ### 4) Deposit, withdraw, and transfer flow
 
-Deposit, withdraw, and transfer all follow the same broad pattern: validate input, load account(s), enforce business rules, update balances, save the entity, record transaction rows, and publish notification events. The difference is in the locking and invariants. Withdrawal locks the account row because insufficient-funds checks must be based on the latest balance. Transfer locks both accounts in a stable order so two concurrent transfers do not deadlock each other.
+Deposit, withdraw, and transfer all follow the same broad pattern: validate the input, load account(s), enforce business rules, update balances, save the entity, record transaction rows, and publish notification events. The difference is in the locking and invariants. Withdrawal locks the account row because insufficient-funds checks must be based on the latest balance. Transfer locks both accounts in a stable order so two concurrent transfers do not deadlock each other.
 
 In transfer, the source and destination accounts must be active and must use the same currency. That is a business rule the service enforces before any money moves. After updating balances, the service writes one debit transaction and one credit transaction so the ledger mirrors both sides of the movement. This is important in interviews because it shows the app treats account state and transaction history as separate but related records.
 
 ### 5) Kafka notification flow
 
-After a banking event completes, the account service publishes a `BankActionEvent` to Kafka. That event is not the email itself; it is a compact business event describing what happened, which account or entity was affected, who acted, and which customer email should receive the notice. The consumer then receives the event, composes the subject/body, and sends the actual email through SMTP or SendGrid depending on environment.
+After a banking event completes, the account service publishes a `BankActionEvent` to Kafka. That event is not the email itself; it is a compact business event describing what happened, which account or entity was affected, who acted, and which customer email should receive the notice. The consumer then receives the event, composes the subject and body, and sends the actual email through SMTP or SendGrid depending on the environment.
 
 This separation matters because email sending is slow and failure-prone compared to database writes. If the app tried to send mail inline during the transfer or deposit transaction, users would see slower responses and a mail outage could break banking operations. By using Kafka, the app keeps the core money action fast and lets the side effect happen asynchronously.
 
@@ -560,11 +560,11 @@ This layering matters because it keeps auth failures distinct from business-rule
 
 The backend is designed to run in two modes: Open Liberty as a WAR and embedded Boot for Docker/cloud. The same code reads datasource details from standard Spring properties or platform-specific environment variables. It also supports JDBC URLs and `postgres://`-style URLs, which makes deployment easier across local machines, Render, and containers.
 
-At runtime, logs appear in Liberty’s messages log and in application logs if Logback is enabled. Hibernate SQL/bind logging can be turned on through configuration, which makes debugging account/transaction behavior much easier. A strong interview answer here is that the codebase is built for both portability and observability.
+At runtime, logs appear in Liberty’s messages log and in application logs if Logback is enabled. Hibernate SQL/bind logging can be turned on through configuration, which makes debugging account and transaction behavior much easier. A strong interview answer here is that the codebase is built for both portability and observability.
 
 ## Interview handbook: how to answer
 
-Use this structure for almost every question:
+Use this structure for most questions:
 
 1. **What it is** — define the feature in one sentence.
 2. **Why it exists** — explain the business need.
@@ -574,7 +574,7 @@ Use this structure for almost every question:
 
 ### Strong answer pattern
 
-**“This feature does X. It exists because Y. In the code, the controller calls A, the service enforces B, and the repository persists C. Edge cases like invalid input, duplicates, or concurrent updates are handled by D. If I had to improve it, I’d add E.”**
+**“This feature solves X because Y matters to the business. In the code, the controller receives the request, the service applies the rules, and the repository stores the result. Edge cases like invalid input, duplicates, or concurrent updates are handled before the data is committed. If I had to improve it, I’d add E.”**
 
 ### Common interview traps
 
@@ -612,7 +612,7 @@ Wrong password, locked account, missing token, expired token, and role mismatch.
 Explaining JWT only as “token login” and forgetting the filter chain and authorities.
 
 **Model answer**
-“Login is JWT-based and stateless. The backend authenticates credentials through Spring Security, then returns a token. On later requests, the JWT filter validates the token and loads the user authorities so `@PreAuthorize` and URL rules can enforce access.”
+“Login is JWT-based and stateless. The backend authenticates credentials through Spring Security, then returns a token. On later requests, the JWT filter validates that token and loads the user authorities, which lets `@PreAuthorize` and URL rules enforce access.”
 
 ### Customer onboarding
 
@@ -632,7 +632,7 @@ Duplicate email/phone, missing data, invalid account type, loan accounts blocked
 Forgetting that onboarding also triggers account creation and sometimes a ledger event.
 
 **Model answer**
-“Customer onboarding is multi-step in one service method: validate uniqueness, persist the customer, then create the initial account. That keeps the first banking relationship consistent and avoids partially created customers without banking access.”
+“Customer onboarding is handled in one service method: validate uniqueness, persist the customer, then create the initial account. That keeps the first banking relationship consistent and avoids leaving a customer half-created without banking access.”
 
 ### Accounts and policies
 
@@ -652,7 +652,7 @@ No active policy, policy not yet effective, expired policy, required opening dep
 Saying the account number is random. It is business-generated and sequence-based.
 
 **Model answer**
-“Account opening is policy-driven. The service first verifies the policy is active and valid for the requested type and currency, then generates a deterministic account number and saves the account. The policy acts as the business gatekeeper.”
+“Account opening is policy-driven. The service first verifies that the policy is active and valid for the requested type and currency, then generates a deterministic account number and saves the account. The policy is the business gatekeeper.”
 
 ### Transactions and money movement
 
@@ -672,7 +672,7 @@ Insufficient funds, inactive accounts, same-account transfer, currency mismatch,
 Forgetting the ledger rows and talking only about the account balance.
 
 **Model answer**
-“The balance change and the ledger entry are separate steps. The account table shows the current state; the transaction table keeps history. For withdrawals and transfers, the code locks rows to avoid concurrent overspending.”
+“The balance change and the ledger entry are separate steps. The account table shows the current state, while the transaction table keeps the history. For withdrawals and transfers, the code locks rows to avoid concurrent overspending.”
 
 ### Kafka notifications
 
@@ -692,7 +692,7 @@ No recipient email, Kafka unavailable, mail provider failure, duplicate events, 
 Thinking Kafka is the business operation itself. In this code it is only the async side effect path.
 
 **Model answer**
-“Kafka is used as the async event path for notifications. The banking operation commits in the database first, then an event triggers the email flow. That keeps core banking fast and isolates mail delivery from the transaction.”
+“Kafka is used as the async event path for notifications. The banking operation commits in the database first, and then an event triggers the email flow. That keeps core banking fast and isolates mail delivery from the transaction.”
 
 ### Frontend architecture
 
