@@ -8,10 +8,13 @@ import com.bankone.account.service.AccountService;
 import com.bankone.common.util.PageRequests;
 import com.bankone.transaction.dto.TransactionResponse;
 import com.bankone.transaction.service.TransactionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,13 +24,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import java.util.Set;
 import com.bankone.account.dto.WithdrawRequest;
 import com.bankone.account.dto.TransferRequest;
 
 @RestController
 @RequestMapping("/accounts")
+@Validated
 public class AccountController {
+
+    private static final Logger log = LoggerFactory.getLogger(AccountController.class);
 
     private static final Set<String> SORT_FIELDS = Set.of(
             "accountNumber", "accountType", "branchCode", "currencyCode",
@@ -48,7 +55,8 @@ public class AccountController {
     }
 
     @PostMapping
-    public ResponseEntity<AccountResponse> openAccount(@RequestBody OpenAccountRequest request) {
+    public ResponseEntity<AccountResponse> openAccount(@Valid @RequestBody OpenAccountRequest request) {
+        log.debug("openAccount called for customer={}", request.getCustomerId());
         AccountResponse response = accountService.openAccount(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -61,15 +69,14 @@ public class AccountController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir
     ) {
-        Pageable pageable = PageRequests.of(
-                page, size, sortBy, sortDir, SORT_FIELDS, "createdAt");
+        Pageable pageable = buildPageable(page, size, sortBy, sortDir, SORT_FIELDS, "createdAt");
         return ResponseEntity.ok(accountService.getAccountsByCustomerId(customerId, pageable));
     }
 
     @PutMapping("/{accountId}/status")
     public ResponseEntity<AccountResponse> updateAccountStatus(
             @PathVariable Long accountId,
-            @RequestBody UpdateAccountStatusRequest request
+            @Valid @RequestBody UpdateAccountStatusRequest request
     ) {
         return ResponseEntity.ok(accountService.updateAccountStatus(accountId, request));
     }
@@ -82,8 +89,7 @@ public class AccountController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir
     ) {
-        Pageable pageable = PageRequests.of(
-                page, size, sortBy, sortDir, SORT_FIELDS, "createdAt");
+        Pageable pageable = buildPageable(page, size, sortBy, sortDir, SORT_FIELDS, "createdAt");
         return ResponseEntity.ok(accountService.searchAccounts(search, pageable));
     }
 
@@ -95,15 +101,14 @@ public class AccountController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir
     ) {
-        Pageable pageable = PageRequests.of(
-                page, size, sortBy, sortDir, TX_SORT_FIELDS, "createdAt");
+        Pageable pageable = buildPageable(page, size, sortBy, sortDir, TX_SORT_FIELDS, "createdAt");
         return ResponseEntity.ok(transactionService.getByAccountId(accountId, pageable));
     }
 
     @PostMapping("/{accountId}/deposit")
     public ResponseEntity<AccountResponse> deposit(
             @PathVariable Long accountId,
-            @RequestBody DepositRequest request
+            @Valid @RequestBody DepositRequest request
     ) {
         return ResponseEntity.ok(accountService.deposit(accountId, request));
     }
@@ -112,18 +117,30 @@ public class AccountController {
     public ResponseEntity<AccountResponse> getAccountById(@PathVariable Long accountId) {
         return ResponseEntity.ok(accountService.getAccountById(accountId));
     }
+
     @PostMapping("/{accountId}/withdraw")
     public ResponseEntity<AccountResponse> withdraw(
             @PathVariable Long accountId,
-            @RequestBody WithdrawRequest request
+            @Valid @RequestBody WithdrawRequest request
     ) {
         return ResponseEntity.ok(accountService.withdraw(accountId, request));
     }
+
     @PostMapping("/{accountId}/transfer")
     public ResponseEntity<AccountResponse> transfer(
             @PathVariable Long accountId,
-            @RequestBody TransferRequest request
+            @Valid @RequestBody TransferRequest request
     ) {
         return ResponseEntity.ok(accountService.transfer(accountId, request));
+    }
+
+    private Pageable buildPageable(int page, int size, String sortBy, String sortDir, Set<String> allowedFields, String defaultSort) {
+        String effectiveSort = (sortBy == null || sortBy.isBlank()) ? defaultSort : sortBy;
+        if (!allowedFields.contains(effectiveSort)) {
+            String msg = "Invalid sort field: " + effectiveSort;
+            log.warn(msg);
+            throw new IllegalArgumentException(msg);
+        }
+        return PageRequests.of(page, size, effectiveSort, sortDir, allowedFields, defaultSort);
     }
 }

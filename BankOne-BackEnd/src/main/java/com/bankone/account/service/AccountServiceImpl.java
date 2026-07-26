@@ -151,7 +151,7 @@ public class AccountServiceImpl implements AccountService {
                 "ACCOUNT_OPENED",
                 "ACCOUNT",
                 String.valueOf(savedAccount.getAccountId()),
-                "Account " + savedAccount.getAccountNumber()
+                " Hi " + customerLabel(account) +"Account " + savedAccount.getAccountNumber()
                         + " opened for customer "
                         + customer.getCustomerId(),
                 savedAccount.getCreatedBy(),
@@ -247,10 +247,10 @@ public class AccountServiceImpl implements AccountService {
         notificationEventPublisher.publish(
                 "DEPOSIT_COMPLETE",
                 "DEPOSIT",
-                String.valueOf(request.hashCode()),
-                "Deposit Amount " + request.getAmount()
-                        + " credited successfully to account : "
-                        + account.getAccountNumber(),
+                String.valueOf(saved.getAccountId()),
+                " Hi " + customerLabel(account)+" Deposit of rupees " + request.getAmount()
+                        + " credited to account " + account.getAccountNumber()
+                        + ".",
                 account.getCreatedBy(),
                 customerEmail(account)
         );
@@ -263,6 +263,26 @@ public class AccountServiceImpl implements AccountService {
         return accountRepository
                 .findAll(AccountSpecification.matching(search), pageable)
                 .map(this::toResponse);
+    }
+
+    private String customerLabel(Account account) {
+        Customer customer = account.getCustomer();
+        if (customer == null) {
+            return "customer";
+        }
+        String name = ((customer.getFirstName() == null ? "" : customer.getFirstName())
+                + " "
+                + (customer.getLastName() == null ? "" : customer.getLastName())).trim();
+        if (!name.isEmpty() && customer.getCustomerId() != null) {
+            return name + " (C" + String.format("%05d", customer.getCustomerId()) + ")";
+        }
+        if (!name.isEmpty()) {
+            return name;
+        }
+        if (customer.getCustomerId() != null) {
+            return "C" + String.format("%05d", customer.getCustomerId());
+        }
+        return "customer";
     }
 
     private String customerEmail(Account account) {
@@ -347,11 +367,11 @@ public class AccountServiceImpl implements AccountService {
         );
         notificationEventPublisher.publish(
                 "WITHDRAW_COMPLETE",
-                "WITH DRAWAL",
-                String.valueOf(request.hashCode()),
-                "Amount " + request.getAmount()
-                        + " Debited successfully from account : "
-                        + account.getAccountNumber(),
+                "WITHDRAWAL",
+                String.valueOf(saved.getAccountId()),
+                 " Hi " + customerLabel(account) + "Withdrawal of " + request.getAmount()
+                        + " debited from account " + account.getAccountNumber()
+                       ,
                 account.getCreatedBy(),
                 customerEmail(account)
         );
@@ -436,7 +456,22 @@ public class AccountServiceImpl implements AccountService {
                 "Transfer from " + savedFrom.getAccountNumber(),
                 "SYSTEM"
         );
+        notificationEventPublisher.publish(
+                "TRANSFER_SUCCESS",
+                "TRANSFER",
+                String.valueOf(savedTo.getAccountId()),
+                " Dear " + customerLabel(savedTo) + ", your transfer of ₹" + request.getAmount()
+                        + " has been successfully completed, The amount has been debited from account "
+                        + savedFrom.getAccountNumber()
+                        +" and credited to account " + savedTo.getAccountNumber()
 
+                        +" and available balance " + savedTo.getAvailableBalance()
+
+                ,
+                savedTo.getCreatedBy(),
+                customerEmail(savedTo)
+
+        );
         return toResponse(savedFrom);
     }
 

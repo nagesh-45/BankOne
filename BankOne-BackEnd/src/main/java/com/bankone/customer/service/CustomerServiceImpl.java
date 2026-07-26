@@ -32,11 +32,21 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public Customer createCustomer(CreateCustomerRequest request) {
+        String email = request.getEmail() == null ? null : request.getEmail().trim();
+        String phone = request.getPhoneNumber() == null ? null : request.getPhoneNumber().trim();
+
+        if (email != null && customerRepository.existsByEmailIgnoreCaseAndCustomerIdNot(email, -1L)) {
+            throw new ConflictException("Email already exists");
+        }
+        if (phone != null && customerRepository.existsByPhoneNumberAndCustomerIdNot(phone, -1L)) {
+            throw new ConflictException("Phone number already exists");
+        }
+
         Customer customer = new Customer();
         customer.setFirstName(request.getFirstName());
         customer.setLastName(request.getLastName());
-        customer.setEmail(request.getEmail());
-        customer.setPhoneNumber(request.getPhoneNumber());
+        customer.setEmail(email);
+        customer.setPhoneNumber(phone);
         customer.setDateOfBirth(request.getDateOfBirth());
         customer.setAddress(request.getAddress());
         customer.setStatus(request.getStatus());
