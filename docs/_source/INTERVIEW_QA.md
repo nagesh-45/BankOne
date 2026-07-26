@@ -512,6 +512,311 @@ They mark planned admin features that are not built yet.
 **160. What is the best interview answer about the project’s current state?**  
 It’s a working banking platform with auth, customers, accounts, transactions, notification events, and a growing Angular admin UI.
 
+## Deep dive walkthroughs
+
+### 1) Login and authorization flow
+
+When a user logs in, the frontend sends username and password to `POST /auth/login`. The backend does not trust the request body by itself; `AuthenticationService` first looks up the user, checks whether the account is locked, then delegates the actual credential verification to Spring Security’s `AuthenticationManager`. That manager uses `CustomUserDetailsService`, which loads the user and active roles from the database and exposes them as authorities. If authentication succeeds, `JwtService` generates a token and the backend also updates `lastLogin` and resets failed attempts.
+
+After login, the frontend stores the token and role list in browser storage. From that point on, `authInterceptor` attaches the token to every API call, and `authGuard` blocks routes when the user is either unauthenticated or does not have the route’s allowed roles. That means security is enforced twice: once by the frontend for UX and once by the backend for real access control.
+
+### 2) Customer onboarding flow
+
+Customer onboarding is intentionally opinionated. The backend accepts one create-customer request, validates uniqueness for email and phone, saves the customer, and then immediately opens the first account. That makes onboarding feel like a business operation rather than a set of loosely coupled database inserts. The service also enforces a rule that loan accounts cannot be created during customer onboarding, which reflects a product decision rather than a technical limitation.
+
+The important interview point here is that customer creation is not just CRUD. It triggers account-policy validation, account-number generation, and sometimes a ledger entry if the opening deposit is required and provided. That means the onboarding flow crosses customer, account, and transaction domains in one business transaction.
+
+### 3) Account opening and policy flow
+
+When an account is opened, the code first looks up the customer and then finds an active policy for the requested account type and currency. The policy matters because banking rules are not static: a current account may require a minimum opening deposit, and some policies can have effective date windows. If the policy says an opening deposit is mandatory, the service enforces that before any persistence happens.
+
+Then the app obtains the next ordinal from the database sequence and combines branch code, account type, currency, and ordinal into a business account number. This is why `AccountNumberGenerator` exists: it keeps account numbers deterministic and business-friendly. Once the account is saved, the service optionally creates a transaction record for the opening deposit and publishes an account-opened notification event.
+
+### 4) Deposit, withdraw, and transfer flow
+
+Deposit, withdraw, and transfer all follow the same broad pattern: validate input, load account(s), enforce business rules, update balances, save the entity, record transaction rows, and publish notification events. The difference is in the locking and invariants. Withdrawal locks the account row because insufficient-funds checks must be based on the latest balance. Transfer locks both accounts in a stable order so two concurrent transfers do not deadlock each other.
+
+In transfer, the source and destination accounts must be active and must use the same currency. That is a business rule the service enforces before any money moves. After updating balances, the service writes one debit transaction and one credit transaction so the ledger mirrors both sides of the movement. This is important in interviews because it shows the app treats account state and transaction history as separate but related records.
+
+### 5) Kafka notification flow
+
+After a banking event completes, the account service publishes a `BankActionEvent` to Kafka. That event is not the email itself; it is a compact business event describing what happened, which account or entity was affected, who acted, and which customer email should receive the notice. The consumer then receives the event, composes the subject/body, and sends the actual email through SMTP or SendGrid depending on environment.
+
+This separation matters because email sending is slow and failure-prone compared to database writes. If the app tried to send mail inline during the transfer or deposit transaction, users would see slower responses and a mail outage could break banking operations. By using Kafka, the app keeps the core money action fast and lets the side effect happen asynchronously.
+
+### 6) Frontend state and list rendering flow
+
+The Angular app uses a reactive pattern for most lists and detail screens. A user types into search, changes sorting, or changes page size, and those signals are merged with RxJS streams. The UI then issues a new API call and maps the result into `loading`, `loaded`, or `error` state. That gives the page a simple mental model and avoids manual subscription cleanup.
+
+The interview angle here is that the UI is not static HTML. It reacts to state, and the state comes from backend paging APIs that already enforce allowed sort fields. That gives the frontend a responsive feel while preserving backend control over what can be queried.
+
+### 7) Security and error-handling flow
+
+Spring Security and the global exception handler work together. Security decides whether the request should proceed. If it should not, the JWT entry point or access-denied handler returns the appropriate response. If the request gets past security but fails business validation, the controller or service throws an application exception and `GlobalExceptionHandler` turns it into a structured error response.
+
+This layering matters because it keeps auth failures distinct from business-rule failures. For example, a missing token should not look the same as an invalid deposit amount or a duplicate email. In interviews, this is a good place to explain how you keep concerns separate and make client error handling predictable.
+
+### 8) Deployment and runtime flow
+
+The backend is designed to run in two modes: Open Liberty as a WAR and embedded Boot for Docker/cloud. The same code reads datasource details from standard Spring properties or platform-specific environment variables. It also supports JDBC URLs and `postgres://`-style URLs, which makes deployment easier across local machines, Render, and containers.
+
+At runtime, logs appear in Liberty’s messages log and in application logs if Logback is enabled. Hibernate SQL/bind logging can be turned on through configuration, which makes debugging account/transaction behavior much easier. A strong interview answer here is that the codebase is built for both portability and observability.
+
+## Interview handbook: how to answer
+
+Use this structure for almost every question:
+
+1. **What it is** — define the feature in one sentence.
+2. **Why it exists** — explain the business need.
+3. **How it works** — describe the path through controller/service/repository/UI.
+4. **Edge cases** — call out validation, locking, auth, and failure behavior.
+5. **Tradeoff** — mention what the code currently does well and what you would improve later.
+
+### Strong answer pattern
+
+**“This feature does X. It exists because Y. In the code, the controller calls A, the service enforces B, and the repository persists C. Edge cases like invalid input, duplicates, or concurrent updates are handled by D. If I had to improve it, I’d add E.”**
+
+### Common interview traps
+
+- Saying “Kafka is a queue” without explaining that it is a topic-based event stream in this code.
+- Saying “JWT is just login” without mentioning stateless auth, Spring Security, and filters.
+- Saying “deposit/withdraw is CRUD” without explaining validation, transactions, and ledger rows.
+- Forgetting that security is enforced both in the backend and in the Angular route guard.
+- Ignoring concurrency concerns in transfer/withdraw.
+
+### Short memorisable answer style
+
+For fast rounds, answer in this order:
+- one-line definition
+- one-line reason
+- one-line flow
+- one-line edge case
+
+## Topic playbooks
+
+### Authentication and authorization
+
+**What**
+JWT-based stateless authentication backed by Spring Security. Login creates a token, and each request carries the token in the Authorization header.
+
+**Why**
+The app needs secure access control without server sessions. Stateless auth is simpler for frontend apps and easier to scale.
+
+**How**
+`AuthenticationController -> AuthenticationService -> AuthenticationManager -> CustomUserDetailsService -> JwtService`. The filter reads the token later and repopulates the security context.
+
+**Edge cases**
+Wrong password, locked account, missing token, expired token, and role mismatch.
+
+**Common trap**
+Explaining JWT only as “token login” and forgetting the filter chain and authorities.
+
+**Model answer**
+“Login is JWT-based and stateless. The backend authenticates credentials through Spring Security, then returns a token. On later requests, the JWT filter validates the token and loads the user authorities so `@PreAuthorize` and URL rules can enforce access.”
+
+### Customer onboarding
+
+**What**
+A new customer record is created, uniqueness is checked, and the first account is opened as part of onboarding.
+
+**Why**
+The product treats onboarding as a business process, not just a person record insert.
+
+**How**
+`CustomerController -> CustomerServiceImpl.createCustomer -> CustomerRepository.save -> AccountService.openAccount`.
+
+**Edge cases**
+Duplicate email/phone, missing data, invalid account type, loan accounts blocked during onboarding.
+
+**Common trap**
+Forgetting that onboarding also triggers account creation and sometimes a ledger event.
+
+**Model answer**
+“Customer onboarding is multi-step in one service method: validate uniqueness, persist the customer, then create the initial account. That keeps the first banking relationship consistent and avoids partially created customers without banking access.”
+
+### Accounts and policies
+
+**What**
+Accounts belong to customers and are governed by active account policies by type and currency.
+
+**Why**
+Banking rules differ by account type and need policy-driven enforcement.
+
+**How**
+The service loads the customer, loads the active policy, enforces effective dates and minimum deposit rules, generates the account number, saves the account, and optionally writes an opening transaction.
+
+**Edge cases**
+No active policy, policy not yet effective, expired policy, required opening deposit missing.
+
+**Common trap**
+Saying the account number is random. It is business-generated and sequence-based.
+
+**Model answer**
+“Account opening is policy-driven. The service first verifies the policy is active and valid for the requested type and currency, then generates a deterministic account number and saves the account. The policy acts as the business gatekeeper.”
+
+### Transactions and money movement
+
+**What**
+Deposit, withdraw, and transfer update balances and store immutable transaction history.
+
+**Why**
+Money movement must be auditable and resistant to race conditions.
+
+**How**
+Validate request, lock account(s) where needed, check status/currency/funds, mutate balances, save, then write transaction rows.
+
+**Edge cases**
+Insufficient funds, inactive accounts, same-account transfer, currency mismatch, concurrent withdrawal.
+
+**Common trap**
+Forgetting the ledger rows and talking only about the account balance.
+
+**Model answer**
+“The balance change and the ledger entry are separate steps. The account table shows the current state; the transaction table keeps history. For withdrawals and transfers, the code locks rows to avoid concurrent overspending.”
+
+### Kafka notifications
+
+**What**
+Bank actions publish events to Kafka, and a consumer turns them into customer email notifications.
+
+**Why**
+Emails are slow and failure-prone compared to database writes, so they should not block core banking actions.
+
+**How**
+`AccountServiceImpl` publishes a `BankActionEvent`, `NotificationEventConsumer` receives it, `NotificationEmailComposer` builds the mail, and `NotificationMailService` sends it.
+
+**Edge cases**
+No recipient email, Kafka unavailable, mail provider failure, duplicate events, and event ordering.
+
+**Common trap**
+Thinking Kafka is the business operation itself. In this code it is only the async side effect path.
+
+**Model answer**
+“Kafka is used as the async event path for notifications. The banking operation commits in the database first, then an event triggers the email flow. That keeps core banking fast and isolates mail delivery from the transaction.”
+
+### Frontend architecture
+
+**What**
+Angular standalone components, route guards, signals, and reusable list components make up the UI.
+
+**Why**
+The frontend needs a modular structure that is easy to extend by feature.
+
+**How**
+Pages call services, services call REST APIs, signals track loading/error state, and route data controls access.
+
+**Edge cases**
+Unauthorized redirects, loading/error states, stale cached dashboard data, list pagination resets.
+
+**Common trap**
+Explaining the frontend as if it is just templates; the state flow matters a lot here.
+
+**Model answer**
+“The UI is feature-based Angular. Each page owns its API stream and uses signals for derived state. Access is protected both by route guards and by backend authorization, so UI restrictions are only the first layer.”
+
+### Error handling and observability
+
+**What**
+The app maps exceptions into structured error responses and logs through Liberty plus application logging.
+
+**Why**
+Users need stable API errors and developers need traceable server behavior.
+
+**How**
+Business exceptions bubble up to `GlobalExceptionHandler`, while Liberty logs and Hibernate SQL logs help diagnose runtime issues.
+
+**Edge cases**
+Duplicate data, invalid input, locked account, permission denied, and backend startup issues.
+
+**Common trap**
+Treating a 500 the same as a validation problem.
+
+**Model answer**
+“Validation and business errors are intentionally separated from security failures and runtime exceptions. That makes the API predictable and easier to support, especially in banking flows where the difference between conflict, bad request, and unauthorized matters.”
+
+## Follow-up drill questions and answers
+
+### Authentication drill
+
+**Q: Why do you need both `authGuard` and backend `@PreAuthorize`?**  
+`authGuard` improves UX by hiding pages users cannot access, but it is not security by itself. A user can still call backend APIs directly from tools like Postman. The backend must therefore enforce the actual rule. That is why the code uses `@PreAuthorize` on controllers and also checks roles in the Angular route config.
+
+**Q: What would break if the JWT filter were removed?**  
+Requests would no longer have their security context rebuilt from the token, so the backend would treat authenticated users as anonymous on each request. That would make `@PreAuthorize` fail and protected endpoints would return 401/403 even if the frontend sent a token.
+
+**Q: Why is `ROLE_` prefixed in `CustomUserDetailsService`?**  
+Spring Security’s role checks are built around `ROLE_`-prefixed authorities. The database stores plain names like `ADMIN`, but Spring expects `ROLE_ADMIN` when evaluating `hasRole('ADMIN')`.
+
+### Customer drill
+
+**Q: Why not just save the customer and let the UI open an account later?**  
+Because the product flow treats onboarding as one business action. If the customer is created but the initial account is not opened, the onboarding experience is incomplete and the business has to handle partial state. Doing both together reduces that gap.
+
+**Q: How does the service protect customer data quality?**  
+It trims fields, checks duplicate email and phone, validates inputs through request DTOs, and rejects invalid onboarding steps like loan account creation. The service is not only persisting rows; it is enforcing business rules before data hits the database.
+
+### Account drill
+
+**Q: What is the difference between business identity and technical identity for an account?**  
+The technical identity is the database `accountId`. The business identity is the generated account number, branch code, account type, currency, and ordinal. Interviews often expect you to know both because users see the account number while the DB uses the numeric id.
+
+**Q: Why do you need a policy table at all?**  
+Because account opening rules should not be hardcoded. Minimum opening deposit, effective date, and currency/type combinations can change over time. Putting them in a policy table makes the business rules configurable rather than baked into Java constants.
+
+### Transaction drill
+
+**Q: Why keep a separate transaction table if the account balance is already updated?**  
+Because balances tell you the current state, but transactions tell you how you got there. In banking, history is just as important as the current number. Without a ledger, you cannot explain why the balance changed or audit an error later.
+
+**Q: Why does withdrawal lock the row?**  
+Without a lock, two concurrent withdrawals could both read the same available balance and both succeed, leaving the account overdrawn. The pessimistic lock makes the read-modify-write sequence safe.
+
+**Q: Why is transfer more complicated than deposit?**  
+Deposit updates one account only. Transfer touches two accounts, must preserve money conservation, must avoid deadlock, and must write two transaction rows. It has more places to fail and more invariants to preserve.
+
+### Kafka drill
+
+**Q: Why not send email inside the same account transaction?**  
+If email sending is inside the transaction, the user waits on external infrastructure and a mail failure could roll back the banking action or at least make it slower and more fragile. Kafka decouples those concerns.
+
+**Q: What is the biggest weakness in the current Kafka design?**  
+The event is published after the banking action, but there is no transactional outbox or retry state. If Kafka is down after commit, the email event can be lost. Banking systems usually want stronger guarantees than “log and continue”.
+
+### Frontend drill
+
+**Q: Why use `toSignal()` on top of observables?**  
+Because Angular templates are easier to bind to signals than to manually subscribed observables. It also fits the component style used throughout the app.
+
+**Q: Why reset page number on search?**  
+If you search while on page 7, the filtered dataset might only have 1 or 2 pages. Resetting to page 0 avoids empty or confusing results.
+
+**Q: Why is the dashboard cached?**  
+Dashboard counts are summary data and usually don’t need refetching on every navigation. Caching avoids unnecessary network calls, and a refresh button lets the user manually force a reload.
+
+### Deployment drill
+
+**Q: Why support both `jdbc:postgresql://` and `postgres://` URLs?**  
+Different hosting platforms expose connection strings in different formats. Supporting both avoids deployment-specific code changes.
+
+**Q: Why is `sslmode=require` added automatically on some hosts?**  
+Some managed Postgres platforms require SSL for connectivity. The config detects those hosts and appends the setting so the app works out of the box.
+
+## 5-minute revision sheet
+
+### If you only have 5 minutes, remember this:
+
+- **Auth**: JWT + Spring Security + stateless + `@PreAuthorize` + frontend guard
+- **Customer**: create customer, enforce uniqueness, open first account
+- **Account**: policy-driven opening, account number generation, status updates
+- **Transaction**: deposit/withdraw/transfer, locks, ledger rows, audit history
+- **Kafka**: async notifications only, not core balance logic
+- **Frontend**: standalone Angular, signals, RxJS, route guards, dialogs
+- **Deployment**: Liberty WAR, embedded Boot support, PostgreSQL config, logs in Liberty
+
+### One-line memorisable summary
+
+“BankOne is a stateless JWT-secured banking platform where the backend owns business rules, the frontend owns UX, account flows are policy-driven, money movement is transactional and auditable, and Kafka handles asynchronous notifications.”
+
 ## Good interview follow-up questions
 
 - Why did you choose JWT instead of server sessions?

@@ -4,6 +4,39 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-26 — Interview follow-up drills and revision sheet
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Add follow-up drill answers and a 5-minute revision sheet |
+| **Files Modified** | `docs/_source/INTERVIEW_QA.md`, `docs/_source/CHANGELOG.md` |
+| **Reason** | User wanted deeper interview prep with memorisable answers |
+| **Impact** | Handbook now has a revision summary and topic-specific drill questions |
+
+---
+
+## 2026-07-26 — Interview handbook framework
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Add answer framework, traps, and topic playbooks to interview guide |
+| **Files Modified** | `docs/_source/INTERVIEW_QA.md`, `docs/_source/CHANGELOG.md` |
+| **Reason** | User wanted deeper memorisable interview prep, not just Q&A bullets |
+| **Impact** | Guide now teaches how to answer, what to avoid, and how the flows work |
+
+---
+
+## 2026-07-26 — Interview guide deep-dive walkthroughs
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Add long-form flow explanations for login, onboarding, accounts, Kafka, frontend, security, and deployment |
+| **Files Modified** | `docs/_source/INTERVIEW_QA.md`, `docs/_source/CHANGELOG.md` |
+| **Reason** | User asked for deeper interview answers rather than one-line notes |
+| **Impact** | The guide now teaches end-to-end reasoning, not just surface definitions |
+
+---
+
 ## 2026-07-26 — Interview Q&A expanded again
 
 | Field | Value |
