@@ -146,13 +146,14 @@
       mat-flat-button
       color="primary"
       type="button"
+      data-testid="customer-create-submit"
       (click)="save()"
       [disabled]="saving()">
       {{ saving() ? 'Saving...' : 'Create' }}
     </button>
   </mat-dialog-actions>
 } @else {
-  <h2 mat-dialog-title>Customer created</h2>
+  <h2 mat-dialog-title data-testid="customer-created-title">Customer created</h2>
 
   <mat-dialog-content>
     <div class="success-panel">

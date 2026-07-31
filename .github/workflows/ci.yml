@@ -1,42 +1,126 @@
 name: CI
 
+# Every commit (all branches) + PRs
 on:
   push:
-    branches: [main, master]
   pull_request:
-    branches: [main, master]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  POSTGRES_DB: bankone
+  POSTGRES_USER: bankone_user
+  POSTGRES_PASSWORD: BankOne@123
+  JWT_SECRET: ReplaceThisWithAVeryLongRandomSecretKeyAtLeast32CharactersLong
+  API_BASE_URL: http://localhost:8080
+  APP_CORS_ORIGINS: http://localhost:*,http://127.0.0.1:*
+  COMPOSE_PROJECT_NAME: bankone-ci
 
 jobs:
-  backend:
-    name: Backend (Maven)
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: BankOne-BackEnd
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - name: Compile
-        run: mvn -B -DskipTests -Pdocker package
+          cache-dependency-path: BankOne-BackEnd/pom.xml
 
-  frontend:
-    name: Frontend (Angular)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: BankOne-Frontend
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: BankOne-Frontend/package-lock.json
-      - name: Install
-        run: npm ci
-      - name: Build production
-        run: npm run build -- --configuration=production
+
+      - name: Backend package
+        working-directory: BankOne-BackEnd
+        run: mvn -B -DskipTests -Pdocker package
+
+      - name: Frontend build
+        working-directory: BankOne-Frontend
+        run: |
+          npm ci
+          npm run build -- --configuration=production
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: |
+            BankOne-BackEnd/pom.xml
+            BankOne-E2E/pom.xml
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Start stack (db + api + web)
+        run: docker compose up -d --build db api web
+
+      - name: Wait for API and UI
+        run: |
+          ok=0
+          for i in $(seq 1 60); do
+            ui=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 3 http://localhost:8081/ || echo 000)
+            api=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 5 \
+              -X POST http://localhost:8080/auth/login \
+              -H "Content-Type: application/json" \
+              -d '{"username":"admin","password":"Admin@123"}' || echo 000)
+            echo "attempt=$i ui=$ui api=$api"
+            if [ "$ui" = "200" ] && [ "$api" = "200" ]; then
+              ok=1
+              break
+            fi
+            sleep 5
+          done
+          if [ "$ok" != "1" ]; then
+            docker compose ps
+            docker compose logs --tail=100 api web db || true
+            exit 1
+          fi
+
+      - name: Backend unit tests
+        working-directory: BankOne-BackEnd
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bankone
+          SPRING_DATASOURCE_USERNAME: bankone_user
+          SPRING_DATASOURCE_PASSWORD: BankOne@123
+        run: mvn -B test
+
+      - name: Selenium E2E
+        working-directory: BankOne-E2E
+        env:
+          CI: "true"
+          BANKONE_BASE_URL: http://localhost:8081
+          BANKONE_USERNAME: admin
+          BANKONE_PASSWORD: Admin@123
+        run: mvn -B test
+
+      - name: Publish Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: |
+            BankOne-BackEnd/target/surefire-reports/**
+            BankOne-E2E/target/surefire-reports/**
+          if-no-files-found: ignore
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose down -v --remove-orphans || true

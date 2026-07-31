@@ -53,6 +53,7 @@
         mat-raised-button
         color="primary"
         type="submit"
+        data-testid="login-submit"
         [disabled]="loading()">
         {{ loading() ? 'Logging in...' : 'Sign in' }}
       </button>
