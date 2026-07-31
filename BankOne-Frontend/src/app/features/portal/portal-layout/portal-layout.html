@@ -1,0 +1,31 @@
+<div class="portal-shell">
+  <mat-toolbar class="portal-toolbar">
+    <a routerLink="/portal/accounts" class="brand" aria-label="My accounts">
+      <app-brand-logo size="sm" theme="dark" [showWordmark]="true" tagline="Customer" />
+    </a>
+
+    <nav class="portal-nav">
+      <a routerLink="/portal/accounts" routerLinkActive="active">My accounts</a>
+      <a routerLink="/portal/beneficiaries" routerLinkActive="active">Beneficiaries</a>
+    </nav>
+
+    <span class="spacer"></span>
+
+    <div class="toolbar-actions">
+      <span class="user-name">{{ displayName }}</span>
+      <button
+        mat-flat-button
+        type="button"
+        class="logout-btn"
+        (click)="logout()"
+        aria-label="Log out">
+        <mat-icon>logout</mat-icon>
+        Log out
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <main class="portal-main">
+    <router-outlet />
+  </main>
+</div>

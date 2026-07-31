@@ -8,6 +8,9 @@ import com.bankone.account.dto.UpdateAccountStatusRequest;
 import com.bankone.account.repository.AccountRepository;
 import com.bankone.account.repository.AccountPolicyRepository;
 import com.bankone.account.util.AccountNumberGenerator;
+import com.bankone.audit.domain.AuditAction;
+import com.bankone.audit.domain.AuditCategory;
+import com.bankone.audit.service.AuditEventService;
 import com.bankone.customer.entity.Customer;
 import com.bankone.customer.repository.CustomerRepository;
 import com.bankone.account.enums.AccountStatus;
@@ -37,18 +40,22 @@ public class AccountServiceImpl implements AccountService {
     private final AccountNumberGenerator accountNumberGenerator;
     private final TransactionService transactionService;
     private final NotificationEventPublisher notificationEventPublisher;
+    private final AuditEventService auditEventService;
     @Autowired
     public AccountServiceImpl(AccountRepository accountRepository,
                               CustomerRepository customerRepository,
                               AccountPolicyRepository accountPolicyRepository,
                               AccountNumberGenerator accountNumberGenerator,
-                              TransactionService transactionService, NotificationEventPublisher notificationEventPublisher) {
+                              TransactionService transactionService,
+                              NotificationEventPublisher notificationEventPublisher,
+                              AuditEventService auditEventService) {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.accountPolicyRepository = accountPolicyRepository;
         this.accountNumberGenerator = accountNumberGenerator;
         this.transactionService = transactionService;
         this.notificationEventPublisher = notificationEventPublisher;
+        this.auditEventService = auditEventService;
     }
 
     @Override
@@ -157,6 +164,17 @@ public class AccountServiceImpl implements AccountService {
                 savedAccount.getCreatedBy(),
                 customer.getEmail()
         );
+        auditEventService.record(
+                AuditCategory.ACCOUNT,
+                AuditAction.ACCOUNT_OPEN,
+                "ACCOUNT",
+                String.valueOf(savedAccount.getAccountId()),
+                "Opened account " + savedAccount.getAccountNumber(),
+                "customerId=" + customer.getCustomerId()
+                        + ", type=" + savedAccount.getAccountType()
+                        + ", openingDeposit=" + openingDeposit,
+                true
+        );
         return toResponse(savedAccount);
     }
 
@@ -205,7 +223,17 @@ public class AccountServiceImpl implements AccountService {
             account.setActivatedAt(LocalDateTime.now());
         }
 
-        return toResponse(accountRepository.save(account));
+        Account saved = accountRepository.save(account);
+        auditEventService.record(
+                AuditCategory.ACCOUNT,
+                AuditAction.ACCOUNT_STATUS_CHANGE,
+                "ACCOUNT",
+                String.valueOf(saved.getAccountId()),
+                "Account status → " + newStatus.name() + " (" + saved.getAccountNumber() + ")",
+                null,
+                true
+        );
+        return toResponse(saved);
     }
 
     @Override
@@ -253,6 +281,15 @@ public class AccountServiceImpl implements AccountService {
                         + ".",
                 account.getCreatedBy(),
                 customerEmail(account)
+        );
+        auditEventService.record(
+                AuditCategory.ACCOUNT,
+                AuditAction.ACCOUNT_DEPOSIT,
+                "ACCOUNT",
+                String.valueOf(saved.getAccountId()),
+                "Deposit " + amount + " to " + saved.getAccountNumber(),
+                null,
+                true
         );
         return toResponse(saved);
     }
@@ -375,6 +412,15 @@ public class AccountServiceImpl implements AccountService {
                 account.getCreatedBy(),
                 customerEmail(account)
         );
+        auditEventService.record(
+                AuditCategory.ACCOUNT,
+                AuditAction.ACCOUNT_WITHDRAW,
+                "ACCOUNT",
+                String.valueOf(saved.getAccountId()),
+                "Withdraw " + amount + " from " + saved.getAccountNumber(),
+                null,
+                true
+        );
         return toResponse(saved);
     }
     @Override
@@ -471,6 +517,16 @@ public class AccountServiceImpl implements AccountService {
                 savedTo.getCreatedBy(),
                 customerEmail(savedTo)
 
+        );
+        auditEventService.record(
+                AuditCategory.ACCOUNT,
+                AuditAction.ACCOUNT_TRANSFER,
+                "ACCOUNT",
+                String.valueOf(savedFrom.getAccountId()),
+                "Transfer " + amount + " from " + savedFrom.getAccountNumber()
+                        + " to " + savedTo.getAccountNumber(),
+                "toAccountId=" + savedTo.getAccountId(),
+                true
         );
         return toResponse(savedFrom);
     }

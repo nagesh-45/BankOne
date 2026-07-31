@@ -1,0 +1,291 @@
+<section class="reports-page">
+  <div class="page-header">
+    <div>
+      <h1>Reports</h1>
+      <p>Pick a category to see charts and detail tables on screen. Generate PDF to preview or download.</p>
+    </div>
+  </div>
+
+  <div class="category-grid">
+    <button type="button" class="category-card" [class.active]="selected() === 'transaction-trends'" (click)="selectCategory('transaction-trends')">
+      <mat-icon>show_chart</mat-icon>
+      <h2>Transaction trends</h2>
+      <p>Daily credit/debit amounts + credit vs debit mix.</p>
+    </button>
+
+    <button type="button" class="category-card" [class.active]="selected() === 'account-mix'" (click)="selectCategory('account-mix')">
+      <mat-icon>pie_chart</mat-icon>
+      <h2>Account mix</h2>
+      <p>Accounts by type and by status.</p>
+    </button>
+
+    @if (canApprovals) {
+      <button type="button" class="category-card" [class.active]="selected() === 'approvals'" (click)="selectCategory('approvals')">
+        <mat-icon>rule</mat-icon>
+        <h2>Transfer approvals</h2>
+        <p>Status funnel and resolutions by staff.</p>
+      </button>
+    }
+  </div>
+
+  @if (selected(); as category) {
+    <mat-card class="workspace">
+      <div class="workspace-header">
+        <div class="filters">
+          @if (category !== 'account-mix') {
+            <mat-form-field appearance="outline">
+              <mat-label>From</mat-label>
+              <input matInput type="date" [ngModel]="fromDate()" (ngModelChange)="fromDate.set($event)">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>To</mat-label>
+              <input matInput type="date" [ngModel]="toDate()" (ngModelChange)="toDate.set($event)">
+            </mat-form-field>
+            <button mat-stroked-button type="button" (click)="reload()" [disabled]="loading()">
+              <mat-icon>refresh</mat-icon>
+              Apply
+            </button>
+          } @else {
+            <button mat-stroked-button type="button" (click)="reload()" [disabled]="loading()">
+              <mat-icon>refresh</mat-icon>
+              Refresh
+            </button>
+          }
+        </div>
+
+        <div class="actions">
+          <button mat-flat-button color="primary" type="button" (click)="generatePdf()" [disabled]="loading() || generating()">
+            <mat-icon>picture_as_pdf</mat-icon>
+            {{ generating() ? 'Generating…' : 'Generate PDF' }}
+          </button>
+          @if (pdfUrl()) {
+            <button mat-stroked-button type="button" (click)="downloadPdf()">
+              <mat-icon>download</mat-icon>
+              Download
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (loading()) {
+        <app-loading-state message="Loading report..." />
+      } @else {
+        <div class="charts">
+          <div class="chart-panel">
+            <h3>
+              @if (category === 'transaction-trends') {
+                Daily credit / debit amounts
+              } @else if (category === 'account-mix') {
+                Accounts by type
+              } @else {
+                Approvals by status
+              }
+            </h3>
+            <div class="chart-wrap">
+              <canvas #chartOne></canvas>
+            </div>
+          </div>
+          <div class="chart-panel">
+            <h3>
+              @if (category === 'transaction-trends') {
+                Credit vs debit totals
+              } @else if (category === 'account-mix') {
+                Accounts by status
+              } @else {
+                Resolved by staff
+              }
+            </h3>
+            <div class="chart-wrap">
+              <canvas #chartTwo></canvas>
+            </div>
+          </div>
+        </div>
+
+        @if (trends(); as report) {
+          <div class="summary-row">
+            <span>Credit {{ report.totalCreditAmount | currency: 'INR' }} ({{ report.totalCreditCount }})</span>
+            <span>Debit {{ report.totalDebitAmount | currency: 'INR' }} ({{ report.totalDebitCount }})</span>
+            <span>{{ report.fromDate }} → {{ report.toDate }}</span>
+          </div>
+
+          <div class="details-panel">
+            <h3>Daily detail</h3>
+            @if (report.daily.length === 0) {
+              <p class="empty">No transactions in this date range.</p>
+            } @else {
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Credit amount</th>
+                      <th>Debit amount</th>
+                      <th>Credit #</th>
+                      <th>Debit #</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of report.daily; track row.date) {
+                      <tr>
+                        <td>{{ row.date }}</td>
+                        <td>{{ row.creditAmount | currency: 'INR' }}</td>
+                        <td>{{ row.debitAmount | currency: 'INR' }}</td>
+                        <td>{{ row.creditCount }}</td>
+                        <td>{{ row.debitCount }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Total</td>
+                      <td>{{ report.totalCreditAmount | currency: 'INR' }}</td>
+                      <td>{{ report.totalDebitAmount | currency: 'INR' }}</td>
+                      <td>{{ report.totalCreditCount }}</td>
+                      <td>{{ report.totalDebitCount }}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            }
+          </div>
+        }
+
+        @if (accountMix(); as report) {
+          <div class="summary-row">
+            <span>Total accounts: {{ report.totalAccounts }}</span>
+          </div>
+
+          <div class="details-grid">
+            <div class="details-panel">
+              <h3>By account type</h3>
+              @if (report.byType.length === 0) {
+                <p class="empty">No accounts found.</p>
+              } @else {
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Count</th>
+                        <th>Share</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of report.byType; track row.name) {
+                        <tr>
+                          <td>{{ row.name }}</td>
+                          <td>{{ row.count }}</td>
+                          <td>
+                            {{ report.totalAccounts ? (row.count / report.totalAccounts * 100 | number: '1.1-1') : 0 }}%
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+
+            <div class="details-panel">
+              <h3>By status</h3>
+              @if (report.byStatus.length === 0) {
+                <p class="empty">No accounts found.</p>
+              } @else {
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Status</th>
+                        <th>Count</th>
+                        <th>Share</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of report.byStatus; track row.name) {
+                        <tr>
+                          <td>{{ row.name }}</td>
+                          <td>{{ row.count }}</td>
+                          <td>
+                            {{ report.totalAccounts ? (row.count / report.totalAccounts * 100 | number: '1.1-1') : 0 }}%
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (approvals(); as report) {
+          <div class="summary-row">
+            <span>Total requests: {{ report.totalRequests }}</span>
+            <span>{{ report.fromDate }} → {{ report.toDate }}</span>
+          </div>
+
+          <div class="details-grid">
+            <div class="details-panel">
+              <h3>By status</h3>
+              @if (report.byStatus.length === 0) {
+                <p class="empty">No approval requests in this date range.</p>
+              } @else {
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Status</th>
+                        <th>Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of report.byStatus; track row.name) {
+                        <tr>
+                          <td>{{ row.name }}</td>
+                          <td>{{ row.count }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+
+            <div class="details-panel">
+              <h3>Resolved by staff</h3>
+              @if (report.byStaff.length === 0) {
+                <p class="empty">No resolved approvals in this date range.</p>
+              } @else {
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Staff</th>
+                        <th>Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of report.byStaff; track row.name) {
+                        <tr>
+                          <td>{{ row.name }}</td>
+                          <td>{{ row.count }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      @if (pdfUrl(); as url) {
+        <div class="pdf-panel">
+          <h3>PDF preview</h3>
+          <iframe [src]="url" title="Report PDF preview"></iframe>
+        </div>
+      }
+    </mat-card>
+  }
+</section>

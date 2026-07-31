@@ -60,6 +60,19 @@
         rows="2"
         required></textarea>
     </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Transfer approval threshold (INR)</mat-label>
+      <input
+        matInput
+        type="number"
+        name="transferApprovalThreshold"
+        [(ngModel)]="transferApprovalThreshold">
+      <mat-hint>
+        Portal transfers at or above this amount need employee approval.
+        Leave empty for no threshold (other-bank still needs approval).
+      </mat-hint>
+    </mat-form-field>
   </form>
 </mat-dialog-content>
 

@@ -71,7 +71,7 @@ export class Login {
       next: (response) => {
         this.auth.saveSession(response, this.rememberMe);
         this.notification.success('Login successful');
-        this.router.navigate(['/app/dashboard']);
+        this.router.navigate([this.auth.homeRoute()]);
       },
       error: (error) => {
         this.notification.error(

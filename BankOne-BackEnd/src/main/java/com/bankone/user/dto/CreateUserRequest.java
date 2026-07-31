@@ -5,12 +5,21 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public class CreateUserRequest {
 
     @NotNull
     private UserType userType;
 
     private AccessLevel accessLevel;
+
+    /** Preferred over accessLevel when present (e.g. MANAGER, TELLER). */
+    @Size(max = 50)
+    private String roleName;
+
+    /** Assign one or more staff roles. Takes precedence over roleName when non-empty. */
+    private List<String> roleNames;
 
     @NotBlank
     @Size(max = 50)
@@ -33,6 +42,9 @@ public class CreateUserRequest {
     @Size(max = 255)
     private String email;
 
+    /** Required when userType is CUSTOMER — links portal login to CRM customer. */
+    private Long customerId;
+
     public UserType getUserType() {
         return userType;
     }
@@ -47,6 +59,22 @@ public class CreateUserRequest {
 
     public void setAccessLevel(AccessLevel accessLevel) {
         this.accessLevel = accessLevel;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    public List<String> getRoleNames() {
+        return roleNames;
+    }
+
+    public void setRoleNames(List<String> roleNames) {
+        this.roleNames = roleNames;
     }
 
     public String getUsername() {
@@ -87,6 +115,14 @@ public class CreateUserRequest {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
     }
 
     public enum UserType {

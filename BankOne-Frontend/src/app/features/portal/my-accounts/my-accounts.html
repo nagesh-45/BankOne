@@ -1,0 +1,59 @@
+<section class="my-accounts-page">
+  <div class="page-header">
+    <div>
+      <h1>My accounts</h1>
+      <p>Balances and details for accounts linked to your customer profile.</p>
+    </div>
+    @if (accounts().length > 0) {
+      <button mat-flat-button color="primary" type="button" (click)="openTransfer()">
+        <mat-icon>swap_horiz</mat-icon>
+        Transfer
+      </button>
+    }
+  </div>
+
+  <mat-card class="panel">
+    @if (loading()) {
+      <app-loading-state message="Loading your accounts..." />
+    } @else if (error()) {
+      <div class="state error">
+        Unable to load your accounts.
+        <button mat-stroked-button type="button" (click)="reload()">Retry</button>
+      </div>
+    } @else if (accounts().length === 0) {
+      <div class="state">You do not have any accounts yet. Visit a branch to open one.</div>
+    } @else {
+      <div class="account-grid">
+        @for (account of accounts(); track account.accountId) {
+          <article class="account-card">
+            <div class="top">
+              <span class="type">{{ account.accountType }}</span>
+              <span class="status">{{ account.status }}</span>
+            </div>
+            <div class="number">{{ account.accountNumber }}</div>
+            <div class="balance">
+              {{ account.availableBalance | currency: account.currencyCode }}
+            </div>
+            <div class="meta">
+              Available · Ledger
+              {{ account.ledgerBalance | currency: account.currencyCode }}
+            </div>
+            <a
+              mat-stroked-button
+              [routerLink]="['/portal/accounts', account.accountId]">
+              View activity
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="openTransfer(account.accountId)">
+              <mat-icon>swap_horiz</mat-icon>
+              Transfer
+            </button>
+          </article>
+        }
+      </div>
+    }
+  </mat-card>
+</section>

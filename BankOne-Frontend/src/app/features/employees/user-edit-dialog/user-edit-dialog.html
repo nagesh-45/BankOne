@@ -24,17 +24,36 @@
       <input matInput type="email" name="email" [(ngModel)]="email" required>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Access level</mat-label>
-      <mat-select name="accessLevel" [(ngModel)]="accessLevel" required>
-        <mat-option value="ADMIN">
-          Admin access — can create customers
-        </mat-option>
-        <mat-option value="NORMAL">
-          Normal access — can view customers only
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
+    <div class="roles-block">
+      <div class="roles-header">
+        <h3>Roles</h3>
+        <span class="roles-count">{{ roleNames.length }} selected</span>
+      </div>
+      <p class="roles-hint">
+        Tick extra roles to add them. Untick to remove. Access is the union of all selected roles.
+      </p>
+
+      @if (staffRoles().length === 0) {
+        <p class="roles-hint">Loading roles…</p>
+      } @else {
+        <div class="roles-list">
+          @for (role of staffRoles(); track role.roleName) {
+            <label class="role-option">
+              <input
+                type="checkbox"
+                [checked]="hasRole(role.roleName)"
+                (change)="toggleRole(role.roleName, $event)">
+              <span class="role-text">
+                <strong>{{ role.roleName }}</strong>
+                @if (role.description) {
+                  <small>{{ role.description }}</small>
+                }
+              </span>
+            </label>
+          }
+        </div>
+      }
+    </div>
 
     <div class="toggle-row">
       <mat-slide-toggle [(ngModel)]="enabled" name="enabled">

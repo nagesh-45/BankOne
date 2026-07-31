@@ -1,0 +1,119 @@
+<section class="approvals-page">
+  <div class="page-header">
+    <div>
+      <h1>Transfer approvals</h1>
+      <p>Approve or reject customer transfers that need staff review.</p>
+    </div>
+    <button mat-stroked-button type="button" (click)="reload()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+
+  <mat-card class="panel">
+    <h2>Pending queue</h2>
+    @if (loading()) {
+      <app-loading-state message="Loading pending transfers..." />
+    } @else if (items().length === 0) {
+      <p class="muted">No pending approvals.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Requested</th>
+              <th>Customer</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Amount</th>
+              <th>Why pending</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items(); track item.transferRequestId) {
+              <tr>
+                <td>{{ item.createdAt | date: 'short' }}</td>
+                <td>C{{ item.customerId }} · {{ item.requestedBy }}</td>
+                <td>#{{ item.fromAccountId }}</td>
+                <td>
+                  {{ item.destinationAccountNumber }}
+                  <small>{{ item.bankType }} · {{ item.accountHolderName }}</small>
+                </td>
+                <td>{{ item.amount | currency: 'INR' }}</td>
+                <td>{{ item.approvalReason }}</td>
+                <td class="actions">
+                  <button mat-flat-button color="primary" type="button" (click)="approve(item.transferRequestId)">
+                    Approve
+                  </button>
+                  <button mat-stroked-button type="button" (click)="reject(item.transferRequestId)">
+                    Reject
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+
+  <mat-card class="panel history-panel" id="my-approval-history">
+    <div class="history-header">
+      <h2>My approval history ({{ myHistory().length }})</h2>
+      @if (canOpenAudit) {
+        <a mat-stroked-button routerLink="/app/audit">
+          <mat-icon>fact_check</mat-icon>
+          Full audit (all staff)
+        </a>
+      }
+    </div>
+    <p class="section-hint">
+      Only decisions by login <strong>{{ currentUsername || '—' }}</strong>.
+      Bank-wide history (who + when for everyone) is on Audit.
+    </p>
+    @if (historyLoading()) {
+      <app-loading-state message="Loading your history..." />
+    } @else if (historyError()) {
+      <p class="error">{{ historyError() }}</p>
+    } @else if (myHistory().length === 0) {
+      <p class="muted">You have not resolved any transfers yet with this login.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Resolved at</th>
+              <th>Decision</th>
+              <th>Resolved by</th>
+              <th>Customer</th>
+              <th>To</th>
+              <th>Amount</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of myHistory(); track item.transferRequestId) {
+              <tr>
+                <td>{{ item.resolvedAt | date: 'medium' }}</td>
+                <td>
+                  <span class="status-chip" [class.reject]="item.status === 'REJECTED'">
+                    {{ item.status }}
+                  </span>
+                </td>
+                <td>{{ item.resolvedBy }}</td>
+                <td>C{{ item.customerId }} · {{ item.requestedBy }}</td>
+                <td>
+                  {{ item.destinationAccountNumber }}
+                  <small>{{ item.bankType }}</small>
+                </td>
+                <td>{{ item.amount | currency: 'INR' }}</td>
+                <td>{{ item.rejectionReason || item.approvalReason || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+</section>

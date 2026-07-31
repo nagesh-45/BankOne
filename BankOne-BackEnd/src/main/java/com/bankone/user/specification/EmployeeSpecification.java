@@ -12,7 +12,9 @@ import java.util.List;
 
 public final class EmployeeSpecification {
 
-    private static final List<String> EMPLOYEE_ROLES = List.of("ADMIN", "EMPLOYEE", "MANAGER");
+    private static final List<String> EMPLOYEE_ROLES = List.of(
+            "ADMIN", "EMPLOYEE", "MANAGER", "TELLER", "AUDITOR"
+    );
 
     private EmployeeSpecification() {
     }

@@ -22,8 +22,11 @@ export class Dashboard implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly auth = inject(Auth);
 
-  readonly canAccessCustomers = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE', 'MANAGER']);
-  readonly canAccessEmployees = this.auth.hasAnyRole(['ADMIN']);
+  readonly canAccessCustomers = this.auth.can(
+    ['CUSTOMERS_READ'],
+    ['ADMIN', 'EMPLOYEE', 'MANAGER']
+  );
+  readonly canAccessEmployees = this.auth.can(['USERS_MANAGE'], ['ADMIN']);
 
   readonly summary = toSignal(this.dashboardService.summary$, { initialValue: null });
   readonly isLoading = toSignal(this.dashboardService.loading$, { initialValue: false });

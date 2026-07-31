@@ -1,0 +1,52 @@
+<h2 mat-dialog-title>
+  {{ mode === 'create' ? 'Create role' : 'Edit role access' }}
+</h2>
+
+<mat-dialog-content>
+  <form class="role-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Role name</mat-label>
+      <input
+        matInput
+        name="roleName"
+        [(ngModel)]="roleName"
+        [readonly]="mode === 'edit'"
+        [required]="mode === 'create'"
+        placeholder="e.g. BRANCH_LEAD">
+      @if (mode === 'edit') {
+        <mat-hint>Role names cannot be renamed after create</mat-hint>
+      } @else {
+        <mat-hint>Stored as UPPER_SNAKE (letters, numbers, underscore)</mat-hint>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <input matInput name="description" [(ngModel)]="description">
+    </mat-form-field>
+
+    <p class="section-label">Access</p>
+    <div class="access-grid">
+      @for (item of catalog; track item.code) {
+        <mat-checkbox
+          [checked]="isChecked(item.code)"
+          (change)="toggle(item.code, $event.checked)">
+          <span class="check-title">{{ item.code }}</span>
+          <span class="check-label">{{ item.label }}</span>
+        </mat-checkbox>
+      }
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="save()"
+    [disabled]="saving()">
+    {{ saving() ? 'Saving...' : (mode === 'create' ? 'Create role' : 'Save changes') }}
+  </button>
+</mat-dialog-actions>

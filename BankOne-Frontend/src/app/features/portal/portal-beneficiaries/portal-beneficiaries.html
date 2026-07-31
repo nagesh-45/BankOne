@@ -1,0 +1,83 @@
+<section class="bene-page">
+  <div class="page-header">
+    <div>
+      <h1>Beneficiaries</h1>
+      <p>Save BankOne or other-bank payees for quick transfers.</p>
+    </div>
+  </div>
+
+  <mat-card class="panel">
+    <h2>Add beneficiary</h2>
+    <form class="form">
+      <div class="row">
+        <mat-form-field appearance="outline">
+          <mat-label>Nickname</mat-label>
+          <input matInput name="nickname" [(ngModel)]="nickname">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Bank type</mat-label>
+          <mat-select name="bankType" [(ngModel)]="bankType">
+            <mat-option value="SAME_BANK">Same bank (BankOne)</mat-option>
+            <mat-option value="OTHER_BANK">Other bank</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="row">
+        <mat-form-field appearance="outline">
+          <mat-label>Account number</mat-label>
+          <input matInput name="accountNumber" [(ngModel)]="accountNumber">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Account holder name</mat-label>
+          <input matInput name="accountHolderName" [(ngModel)]="accountHolderName">
+        </mat-form-field>
+      </div>
+      @if (bankType === 'OTHER_BANK') {
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>IFSC</mat-label>
+            <input matInput name="ifsc" [(ngModel)]="ifsc">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Bank name</mat-label>
+            <input matInput name="bankName" [(ngModel)]="bankName">
+          </mat-form-field>
+        </div>
+      }
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="save()"
+        [disabled]="saving()">
+        {{ saving() ? 'Saving...' : 'Add beneficiary' }}
+      </button>
+    </form>
+  </mat-card>
+
+  <mat-card class="panel">
+    <h2>Saved</h2>
+    @if (loading()) {
+      <app-loading-state message="Loading beneficiaries..." />
+    } @else if (list().length === 0) {
+      <p class="muted">No beneficiaries yet.</p>
+    } @else {
+      <ul class="bene-list">
+        @for (b of list(); track b.beneficiaryId) {
+          <li>
+            <div>
+              <strong>{{ b.nickname }}</strong>
+              <span>{{ b.bankType }} · {{ b.accountNumber }} · {{ b.accountHolderName }}</span>
+              @if (b.bankType === 'OTHER_BANK') {
+                <span>{{ b.bankName }} · {{ b.ifsc }}</span>
+              }
+            </div>
+            <button mat-icon-button type="button" aria-label="Remove" (click)="remove(b.beneficiaryId)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </mat-card>
+</section>

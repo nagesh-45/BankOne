@@ -6,4 +6,5 @@ export interface UpdateCustomerRequest {
   dateOfBirth: string | null;
   address: string;
   status: string;
+  transferApprovalThreshold?: number | null;
 }

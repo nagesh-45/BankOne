@@ -27,9 +27,28 @@ public interface AccountRepository extends JpaRepository<Account, Long>, JpaSpec
 
     List<Account> findByStatus(AccountStatus status);
 
+    @Query("SELECT a FROM Account a LEFT JOIN FETCH a.customer")
+    List<Account> findAllWithCustomer();
+
     @Query(value = "SELECT nextval('account_ordinal_seq')", nativeQuery = true)
     Long getNextOrdinal();
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Account a WHERE a.accountId = :accountId")
     Optional<Account> findByIdForUpdate(Long accountId);
+
+    @Query("""
+            SELECT a.accountType, COUNT(a)
+            FROM Account a
+            GROUP BY a.accountType
+            ORDER BY a.accountType
+            """)
+    List<Object[]> countGroupedByAccountType();
+
+    @Query("""
+            SELECT a.status, COUNT(a)
+            FROM Account a
+            GROUP BY a.status
+            ORDER BY a.status
+            """)
+    List<Object[]> countGroupedByStatus();
 }

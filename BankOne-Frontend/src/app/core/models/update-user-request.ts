@@ -5,5 +5,10 @@ export interface UpdateUserRequest {
   lastName: string;
   email: string;
   enabled: boolean;
-  accessLevel: AccessLevel;
+  /** @deprecated prefer roleNames */
+  accessLevel?: AccessLevel;
+  /** @deprecated prefer roleNames */
+  roleName?: string;
+  /** Replace staff roles with this set. */
+  roleNames?: string[];
 }

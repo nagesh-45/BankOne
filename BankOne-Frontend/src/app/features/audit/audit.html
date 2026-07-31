@@ -1,0 +1,163 @@
+<section class="audit-page">
+  <div class="page-header">
+    <div>
+      <h1>Audit trail</h1>
+      <p>Activity log by category — login/logout, customers, accounts, transfers, portal, staff, and approval history.</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button type="button" (click)="runBackfill()" [disabled]="backfilling()">
+        <mat-icon>history</mat-icon>
+        {{ backfilling() ? 'Backfilling…' : 'Backfill history' }}
+      </button>
+      <button mat-stroked-button type="button" (click)="reload()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  @if (backfillMessage()) {
+    <p class="backfill-msg">{{ backfillMessage() }}</p>
+  }
+
+  <div class="tabs" role="tablist">
+    @for (tab of tabs; track tab.id) {
+      <button
+        type="button"
+        class="tab"
+        [class.active]="activeTab() === tab.id"
+        (click)="selectTab(tab.id)"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  @if (!showingApprovals()) {
+    <div class="filters">
+      <mat-form-field appearance="outline" class="actor-field">
+        <mat-label>Actor username</mat-label>
+        <input
+          matInput
+          [ngModel]="actorFilter()"
+          (ngModelChange)="onActorChange($event)"
+          (keyup.enter)="applyActorFilter()"
+          placeholder="e.g. admin"
+        />
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="button" (click)="applyActorFilter()">
+        Filter
+      </button>
+    </div>
+  }
+
+  <mat-card class="panel">
+    @if (loading()) {
+      <app-loading-state message="Loading audit trail..." />
+    } @else if (error()) {
+      <p class="error">
+        Unable to load audit data. Check that the API is running and your login is Admin, Manager, or Auditor.
+      </p>
+    } @else if (showingApprovals()) {
+      @if (approvals().length === 0) {
+        <p class="muted">No resolved transfer approvals yet.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Resolved at</th>
+                <th>Approved / rejected by</th>
+                <th>Decision</th>
+                <th>Requested by</th>
+                <th>Customer</th>
+                <th>Destination</th>
+                <th>Amount</th>
+                <th>Reason / notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of approvals(); track item.transferRequestId) {
+                <tr>
+                  <td>{{ item.resolvedAt | date: 'medium' }}</td>
+                  <td class="who">{{ item.resolvedBy || '—' }}</td>
+                  <td>
+                    <span class="status-chip" [class.reject]="item.status === 'REJECTED'">
+                      {{ item.status }}
+                    </span>
+                  </td>
+                  <td>{{ item.requestedBy }}</td>
+                  <td>C{{ item.customerId }}</td>
+                  <td>
+                    {{ item.destinationAccountNumber }}
+                    <small>{{ item.bankType }} · {{ item.accountHolderName }}</small>
+                  </td>
+                  <td>{{ item.amount | currency: 'INR' }}</td>
+                  <td>{{ item.rejectionReason || item.approvalReason || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    } @else if (events().length === 0) {
+      <p class="muted">No activity events in this category yet. Events appear as users log in and perform actions.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Category</th>
+              <th>Action</th>
+              <th>Actor</th>
+              <th>Summary</th>
+              <th>Target</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (event of events(); track event.id) {
+              <tr>
+                <td>{{ event.createdAt | date: 'medium' }}</td>
+                <td><span class="cat-chip">{{ event.category }}</span></td>
+                <td class="action">{{ event.action }}</td>
+                <td class="who">{{ event.actorUsername || '—' }}</td>
+                <td>
+                  {{ event.summary }}
+                  @if (event.details) {
+                    <small>{{ event.details }}</small>
+                  }
+                </td>
+                <td>
+                  @if (event.targetType || event.targetId) {
+                    {{ event.targetType || '' }}
+                    @if (event.targetId) {
+                      <small>#{{ event.targetId }}</small>
+                    }
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>
+                  <span class="status-chip" [class.reject]="!event.success">
+                    {{ event.success ? 'OK' : 'FAILED' }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-list-pagination
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize"
+        [totalElements]="total()"
+        [totalPages]="totalPages()"
+        [pageSizeOptions]="[25]"
+        (pageIndexChange)="onPageChange($event)"
+      />
+    }
+  </mat-card>
+</section>

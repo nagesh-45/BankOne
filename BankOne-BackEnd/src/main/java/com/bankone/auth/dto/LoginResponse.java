@@ -16,6 +16,9 @@ public class LoginResponse {
     private String tokenType;
     private Long expiresIn;
     private List<String> roles;
+    private List<String> accesses;
+    private Long customerId;
+    private boolean portalUser;
     private String username;
     private String firstName;
     private String lastName;

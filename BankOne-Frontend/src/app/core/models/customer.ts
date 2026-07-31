@@ -8,6 +8,7 @@ export interface Customer {
   dateOfBirth: string | null;
   address: string;
   status: string;
+  transferApprovalThreshold?: number | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,6 +1,9 @@
 export interface Transaction {
   transactionId: number;
   accountId: number;
+  accountNumber?: string | null;
+  customerId?: number | null;
+  customerName?: string | null;
   transactionType: 'CREDIT' | 'DEBIT';
   amount: number;
   balanceAfter: number;

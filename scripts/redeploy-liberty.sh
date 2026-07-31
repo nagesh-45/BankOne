@@ -70,13 +70,25 @@ fi
 echo "==> Starting Liberty server '$SERVER_NAME'..."
 "$WLP_HOME/bin/server" start "$SERVER_NAME"
 
-echo "==> Waiting for HTTP 9080..."
-for i in {1..40}; do
-  if curl -sS -o /dev/null --connect-timeout 1 http://localhost:9080/ 2>/dev/null; then
+echo "==> Waiting for HTTP 9080 (login ready)..."
+READY=0
+for i in {1..90}; do
+  CODE="$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 1 --max-time 3 \
+    -X POST http://localhost:9080/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"username":"admin","password":"Admin@123"}' 2>/dev/null || true)"
+  if [[ "$CODE" == "200" || "$CODE" == "401" || "$CODE" == "400" ]]; then
+    READY=1
+    echo "HTTP reachable after ${i}s (probe=$CODE)"
     break
   fi
   sleep 1
 done
+if [[ "$READY" != "1" ]]; then
+  echo "WARNING: API still not responding on :9080 after 90s"
+  echo "Check: $WLP_HOME/usr/servers/$SERVER_NAME/logs/messages.log"
+  echo "Tip: large startup jobs or DB issues can delay readiness."
+fi
 
 echo "==> Smoke test: POST /auth/login"
 HTTP_CODE="$(curl -sS -o /tmp/bankone-login.json -w "%{http_code}" \

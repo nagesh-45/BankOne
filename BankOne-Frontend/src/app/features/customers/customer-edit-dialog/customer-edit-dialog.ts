@@ -53,6 +53,8 @@ export class CustomerEditDialog {
   dateOfBirth = this.customer.dateOfBirth ?? '';
   address = this.customer.address;
   status = this.customer.status;
+  transferApprovalThreshold: number | null =
+    this.customer.transferApprovalThreshold ?? null;
 
   readonly statuses = ['ACTIVE', 'INACTIVE', 'SUSPENDED'];
 
@@ -72,8 +74,20 @@ export class CustomerEditDialog {
       phoneNumber: this.phoneNumber.trim(),
       dateOfBirth: this.dateOfBirth || null,
       address: this.address.trim(),
-      status: this.status
+      status: this.status,
+      transferApprovalThreshold:
+        this.transferApprovalThreshold == null || Number.isNaN(Number(this.transferApprovalThreshold))
+          ? null
+          : Number(this.transferApprovalThreshold)
     };
+
+    if (
+      request.transferApprovalThreshold != null
+      && request.transferApprovalThreshold < 0
+    ) {
+      this.notification.error('Threshold must be empty or a non-negative number');
+      return;
+    }
 
     if (
       !request.firstName ||

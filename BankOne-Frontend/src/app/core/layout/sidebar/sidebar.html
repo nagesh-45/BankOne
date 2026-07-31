@@ -54,7 +54,33 @@
       </a>
     }
 
-    @if (canAccessCustomers) {
+    @if (canAccessRoles) {
+      <a
+        mat-list-item
+        routerLink="/app/roles"
+        routerLinkActive="active"
+        matTooltip="Roles"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="expanded">
+        <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+        <span matListItemTitle>Roles</span>
+      </a>
+    }
+
+    @if (canAccessTransferApprovals) {
+      <a
+        mat-list-item
+        routerLink="/app/transfer-approvals"
+        routerLinkActive="active"
+        matTooltip="Transfer approvals"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="expanded">
+        <mat-icon matListItemIcon>rule</mat-icon>
+        <span matListItemTitle>Approvals</span>
+      </a>
+    }
+
+    @if (canAccessAccounts) {
       <a
         mat-list-item
         routerLink="/app/accounts"
@@ -67,23 +93,43 @@
       </a>
     }
 
-    <a
-      mat-list-item
-      matTooltip="Transactions"
-      matTooltipPosition="right"
-      [matTooltipDisabled]="expanded">
-      <mat-icon matListItemIcon>receipt_long</mat-icon>
-      <span matListItemTitle>Transactions</span>
-    </a>
+    @if (canAccessTransactions) {
+      <a
+        mat-list-item
+        routerLink="/app/transactions"
+        routerLinkActive="active"
+        matTooltip="Transactions"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="expanded">
+        <mat-icon matListItemIcon>receipt_long</mat-icon>
+        <span matListItemTitle>Transactions</span>
+      </a>
+    }
+    @if (canAccessAudit) {
+      <a
+        mat-list-item
+        routerLink="/app/audit"
+        routerLinkActive="active"
+        matTooltip="Audit"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="expanded">
+        <mat-icon matListItemIcon>fact_check</mat-icon>
+        <span matListItemTitle>Audit</span>
+      </a>
+    }
 
-    <a
-      mat-list-item
-      matTooltip="Reports"
-      matTooltipPosition="right"
-      [matTooltipDisabled]="expanded">
-      <mat-icon matListItemIcon>assessment</mat-icon>
-      <span matListItemTitle>Reports</span>
-    </a>
+    @if (canAccessReports) {
+      <a
+        mat-list-item
+        routerLink="/app/reports"
+        routerLinkActive="active"
+        matTooltip="Reports"
+        matTooltipPosition="right"
+        [matTooltipDisabled]="expanded">
+        <mat-icon matListItemIcon>assessment</mat-icon>
+        <span matListItemTitle>Reports</span>
+      </a>
+    }
 
     @if (canAccessManagement) {
       <a

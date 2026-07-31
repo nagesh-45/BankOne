@@ -62,6 +62,13 @@ public class Customer {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    /**
+     * Portal transfers at or above this amount need staff approval.
+     * Null or zero = no approval gate (same-bank executes immediately).
+     */
+    @Column(name = "transfer_approval_threshold", precision = 19, scale = 2)
+    private java.math.BigDecimal transferApprovalThreshold;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

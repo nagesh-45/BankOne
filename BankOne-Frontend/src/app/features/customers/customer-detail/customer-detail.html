@@ -32,16 +32,27 @@
     <mat-card class="section-card">
       <div class="info-header">
         <h2>Customer information</h2>
-        @if (canEditCustomer) {
-          <button
-            mat-stroked-button
-            type="button"
-            class="edit-button"
-            aria-label="Edit customer"
-            (click)="editCustomer()">
-            <mat-icon>edit</mat-icon>
-          </button>
-        }
+        <div class="info-actions">
+          @if (canEnablePortal) {
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="enablePortalLogin()">
+              <mat-icon>login</mat-icon>
+              Portal login
+            </button>
+          }
+          @if (canEditCustomer) {
+            <button
+              mat-stroked-button
+              type="button"
+              class="edit-button"
+              aria-label="Edit customer"
+              (click)="editCustomer()">
+              <mat-icon>edit</mat-icon>
+            </button>
+          }
+        </div>
       </div>
       <div class="info-grid">
         <div>
@@ -56,6 +67,16 @@
           <span class="label">Status</span>
           <strong>
             <span class="status-chip">{{ customer()!.status }}</span>
+          </strong>
+        </div>
+        <div>
+          <span class="label">Transfer approval threshold</span>
+          <strong>
+            {{
+              customer()!.transferApprovalThreshold != null
+                ? (customer()!.transferApprovalThreshold | currency: 'INR')
+                : 'None (other-bank still needs approval)'
+            }}
           </strong>
         </div>
         <div>

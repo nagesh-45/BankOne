@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 import { API_BASE_URL } from '../config/api-config';
 import { LoginRequest } from '../models/login-request';
@@ -21,6 +22,9 @@ export class Auth {
   private readonly accessTokenKey = 'accessToken';
   private readonly tokenTypeKey = 'tokenType';
   private readonly rolesKey = 'roles';
+  private readonly accessesKey = 'accesses';
+  private readonly customerIdKey = 'customerId';
+  private readonly portalUserKey = 'portalUser';
   private readonly usernameKey = 'username';
   private readonly firstNameKey = 'firstName';
   private readonly lastNameKey = 'lastName';
@@ -32,6 +36,9 @@ export class Auth {
     this.accessTokenKey,
     this.tokenTypeKey,
     this.rolesKey,
+    this.accessesKey,
+    this.customerIdKey,
+    this.portalUserKey,
     this.usernameKey,
     this.firstNameKey,
     this.lastNameKey,
@@ -64,6 +71,14 @@ export class Auth {
     storage.setItem(this.accessTokenKey, response.accessToken);
     storage.setItem(this.tokenTypeKey, response.tokenType);
     storage.setItem(this.rolesKey, JSON.stringify(response.roles ?? []));
+    storage.setItem(this.accessesKey, JSON.stringify(response.accesses ?? []));
+    if (response.customerId != null) {
+      storage.setItem(this.customerIdKey, String(response.customerId));
+    }
+    storage.setItem(
+      this.portalUserKey,
+      response.portalUser || this.hasAnyRole(['CUSTOMER']) ? 'true' : 'false'
+    );
     storage.setItem(this.usernameKey, response.username ?? '');
     storage.setItem(this.firstNameKey, response.firstName ?? '');
     storage.setItem(this.lastNameKey, response.lastName ?? '');
@@ -156,15 +171,88 @@ export class Auth {
     }
   }
 
+  getAccesses(): string[] {
+    const accesses = this.read(this.accessesKey);
+
+    if (!accesses) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(accesses) as string[];
+    } catch {
+      return [];
+    }
+  }
+
   hasAnyRole(allowedRoles: string[]): boolean {
     const userRoles = this.getRoles();
     return allowedRoles.some((role) => userRoles.includes(role));
   }
 
+  hasAnyAccess(allowedAccesses: string[]): boolean {
+    const userAccesses = this.getAccesses();
+    return allowedAccesses.some((access) => userAccesses.includes(access));
+  }
+
+  /** Prefer access codes when present; fall back to roles for older sessions. */
+  can(accesses: string[], fallbackRoles: string[] = []): boolean {
+    if (this.getAccesses().length > 0) {
+      return this.hasAnyAccess(accesses);
+    }
+    return fallbackRoles.length === 0 || this.hasAnyRole(fallbackRoles);
+  }
+
+  isPortalUser(): boolean {
+    if (this.read(this.portalUserKey) === 'true') {
+      return true;
+    }
+    return this.hasAnyRole(['CUSTOMER']) || this.hasAnyAccess(['PORTAL_ACCOUNTS']);
+  }
+
+  /** Staff banking UI (dashboard, CRM, etc.). */
+  isStaffUser(): boolean {
+    const staffAccesses = [
+      'DASHBOARD',
+      'CUSTOMERS_READ',
+      'CUSTOMERS_WRITE',
+      'ACCOUNTS_READ',
+      'ACCOUNTS_WRITE',
+      'USERS_MANAGE',
+      'ROLES_MANAGE',
+      'POLICIES_MANAGE'
+    ];
+    if (this.getAccesses().length > 0) {
+      return this.hasAnyAccess(staffAccesses);
+    }
+    return this.hasAnyRole(['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR']);
+  }
+
+  /** Home route after login. */
+  homeRoute(): string {
+    if (this.isPortalUser() && !this.isStaffUser()) {
+      return '/portal/accounts';
+    }
+    return '/app/dashboard';
+  }
+
+  getCustomerId(): number | null {
+    const raw = this.read(this.customerIdKey);
+    if (!raw) {
+      return null;
+    }
+    const id = Number(raw);
+    return Number.isFinite(id) ? id : null;
+  }
+
   logout(): void {
-    this.clearSession();
-    this.dashboardService.clearCache();
-    this.router.navigate(['/']);
+    this.http.post<void>(`${this.baseUrl}/logout`, {}).pipe(
+      finalize(() => {
+        this.clearSession();
+        this.dashboardService.clearCache();
+        this.router.navigate(['/']);
+      })
+    ).subscribe({ error: () => undefined });
   }
 
   private read(key: string): string | null {

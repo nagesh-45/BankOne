@@ -21,6 +21,10 @@ public class CreateCustomerRequest {
     private CurrencyCode currencyCode;
     private BigDecimal openingDeposit;
 
+    /** Optional portal login created with the customer. */
+    private String portalUsername;
+    private String portalPassword;
+
     public String getFirstName() {
         return firstName;
     }
@@ -107,5 +111,21 @@ public class CreateCustomerRequest {
 
     public void setOpeningDeposit(BigDecimal openingDeposit) {
         this.openingDeposit = openingDeposit;
+    }
+
+    public String getPortalUsername() {
+        return portalUsername;
+    }
+
+    public void setPortalUsername(String portalUsername) {
+        this.portalUsername = portalUsername;
+    }
+
+    public String getPortalPassword() {
+        return portalPassword;
+    }
+
+    public void setPortalPassword(String portalPassword) {
+        this.portalPassword = portalPassword;
     }
 }

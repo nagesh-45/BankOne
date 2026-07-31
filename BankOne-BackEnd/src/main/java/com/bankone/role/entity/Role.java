@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 @Entity
@@ -31,4 +34,12 @@ public class Role extends AuditableEntity {
 
     @Column(name = "description", length = 255)
     private String description;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "role_access",
+            joinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id")
+    )
+    @Column(name = "access_code", nullable = false, length = 50)
+    private Set<String> accessCodes = new HashSet<>();
 }

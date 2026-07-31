@@ -1,0 +1,97 @@
+<section class="role-page">
+  <div class="page-header">
+    <div>
+      <h1>Roles &amp; access</h1>
+      <p>Review staff roles, change what each role can do, and add new roles.</p>
+    </div>
+
+    <div class="page-actions">
+      <a routerLink="/app/management" class="management-link">
+        Management
+        <mat-icon>arrow_back</mat-icon>
+      </a>
+      <button mat-flat-button color="primary" type="button" (click)="openCreate()">
+        <mat-icon>add</mat-icon>
+        New role
+      </button>
+    </div>
+  </div>
+
+  <mat-card class="table-card">
+    @if (loading()) {
+      <app-loading-state message="Loading roles..." />
+    } @else if (error()) {
+      <div class="state-message error-message">
+        Unable to load roles. Confirm you have Roles manage access, then retry.
+        <button mat-stroked-button type="button" (click)="reload()">Retry</button>
+      </div>
+    } @else {
+      <div class="role-layout">
+        <aside class="role-list-panel">
+          <div class="search-bar">
+            <mat-icon>search</mat-icon>
+            <input
+              type="search"
+              [ngModel]="search()"
+              (ngModelChange)="search.set($event)"
+              placeholder="Filter roles...">
+          </div>
+
+          <ul class="role-list">
+            @for (role of filteredRoles(); track role.roleId) {
+              <li>
+                <button
+                  type="button"
+                  class="role-item"
+                  [class.active]="role.roleId === selectedRoleId()"
+                  (click)="selectRole(role.roleId)">
+                  <span class="role-name">{{ role.roleName }}</span>
+                  @if (role.systemRole) {
+                    <span class="system-chip">System</span>
+                  }
+                  <span class="access-count">{{ role.accessCodes.length }} access</span>
+                </button>
+              </li>
+            } @empty {
+              <li class="empty-filter">No roles match this filter.</li>
+            }
+          </ul>
+        </aside>
+
+        <div class="role-detail-panel">
+          @if (selectedRole(); as role) {
+            <div class="detail-header">
+              <div>
+                <h2>{{ role.roleName }}</h2>
+                <p>{{ role.description || 'No description' }}</p>
+              </div>
+              <button mat-stroked-button type="button" (click)="openEdit()">
+                <mat-icon>edit</mat-icon>
+                Edit access
+              </button>
+            </div>
+
+            <h3>Granted access</h3>
+            @if (role.accessCodes.length === 0) {
+              <p class="muted">This role has no access codes yet.</p>
+            } @else {
+              <ul class="access-list">
+                @for (code of role.accessCodes; track code) {
+                  <li>
+                    <mat-icon>check_circle</mat-icon>
+                    <div>
+                      <strong>{{ code }}</strong>
+                      <span>{{ accessLabel(code) }}</span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          } @else {
+            <div class="state-message">Select a role to view its access.</div>
+          }
+        </div>
+      </div>
+    }
+  </mat-card>
+</section>

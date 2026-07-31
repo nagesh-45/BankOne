@@ -10,4 +10,7 @@ export interface CreateCustomerRequest {
   accountType: string;
   currencyCode: string;
   openingDeposit: number;
+  /** Optional — creates CUSTOMER portal login in the same request */
+  portalUsername?: string;
+  portalPassword?: string;
 }

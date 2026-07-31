@@ -1,0 +1,70 @@
+<section class="detail-page">
+  <a routerLink="/portal/accounts" class="back-link">
+    <mat-icon>arrow_back</mat-icon>
+    My accounts
+  </a>
+
+  @if (accountLoading()) {
+    <mat-card class="panel">
+      <app-loading-state message="Loading account..." />
+    </mat-card>
+  } @else if (accountError() || !account()) {
+    <mat-card class="panel">
+      <div class="state error">Account not found or not linked to your profile.</div>
+    </mat-card>
+  } @else {
+    <mat-card class="panel summary">
+      <h1>{{ account()!.accountNumber }}</h1>
+      <p>{{ account()!.accountType }} · {{ account()!.status }}</p>
+      <div class="balances">
+        <div>
+          <span>Available</span>
+          <strong>{{ account()!.availableBalance | currency: account()!.currencyCode }}</strong>
+        </div>
+        <div>
+          <span>Ledger</span>
+          <strong>{{ account()!.ledgerBalance | currency: account()!.currencyCode }}</strong>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="panel">
+      <h2>Recent activity</h2>
+      @if (txLoading()) {
+        <app-loading-state message="Loading transactions..." />
+      } @else if (transactions().length === 0) {
+        <div class="state">No transactions yet.</div>
+      } @else {
+        <table class="tx-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Narration</th>
+              <th>Amount</th>
+              <th>Balance after</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of transactions(); track tx.transactionId) {
+              <tr>
+                <td>{{ tx.createdAt | date: 'medium' }}</td>
+                <td>{{ tx.transactionType }}</td>
+                <td>{{ tx.narration || '—' }}</td>
+                <td>{{ tx.amount | currency: account()!.currencyCode }}</td>
+                <td>{{ tx.balanceAfter | currency: account()!.currencyCode }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <app-list-pagination
+          [pageIndex]="pageIndex()"
+          [pageSize]="pageSize()"
+          [totalElements]="totalTx()"
+          [totalPages]="totalPages()"
+          (pageIndexChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)" />
+      }
+    </mat-card>
+  }
+</section>

@@ -18,7 +18,13 @@
       <div class="form-row">
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
-          <input matInput type="email" name="email" [(ngModel)]="email" required>
+          <input
+            matInput
+            type="email"
+            name="email"
+            [ngModel]="email"
+            (ngModelChange)="onEmailChange($event)"
+            required>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -99,6 +105,36 @@
           </mat-select>
         </mat-form-field>
       </div>
+
+      <div class="portal-section">
+        <mat-checkbox
+          [checked]="createPortalLogin"
+          (change)="onCreatePortalToggle($event.checked)">
+          Create customer portal login
+        </mat-checkbox>
+        <p class="portal-hint">
+          Lets the customer sign in and view only their own accounts (not staff tools).
+        </p>
+
+        @if (createPortalLogin) {
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Portal username</mat-label>
+              <input matInput name="portalUsername" [(ngModel)]="portalUsername" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Portal password</mat-label>
+              <input
+                matInput
+                type="password"
+                name="portalPassword"
+                [(ngModel)]="portalPassword"
+                required>
+            </mat-form-field>
+          </div>
+        }
+      </div>
     </form>
   </mat-dialog-content>
 
@@ -127,6 +163,12 @@
           ({{ customer.customerCode || (customer.customerId | businessId:'C') }})
           was created successfully.
         </p>
+        @if (portalLoginCreated()) {
+          <p class="portal-success">
+            Portal login is ready — they can sign in with the username you set
+            and will only see their own accounts.
+          </p>
+        }
       }
     </div>
   </mat-dialog-content>

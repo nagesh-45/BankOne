@@ -36,6 +36,9 @@ public class UpdateCustomerRequest {
     @Pattern(regexp = "ACTIVE|INACTIVE|SUSPENDED", message = "Status must be ACTIVE, INACTIVE, or SUSPENDED")
     private String status;
 
+    /** Portal transfer amount that triggers employee approval. Null/0 = no gate. */
+    private java.math.BigDecimal transferApprovalThreshold;
+
     public String getFirstName() {
         return firstName;
     }
@@ -90,5 +93,13 @@ public class UpdateCustomerRequest {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public java.math.BigDecimal getTransferApprovalThreshold() {
+        return transferApprovalThreshold;
+    }
+
+    public void setTransferApprovalThreshold(java.math.BigDecimal transferApprovalThreshold) {
+        this.transferApprovalThreshold = transferApprovalThreshold;
     }
 }

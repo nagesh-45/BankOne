@@ -56,6 +56,13 @@
   }
 }
 
+.info-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .accounts-header {
   display: flex;
   align-items: center;

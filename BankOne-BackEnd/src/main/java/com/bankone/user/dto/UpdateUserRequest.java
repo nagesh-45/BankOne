@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public class UpdateUserRequest {
 
     @NotBlank
@@ -23,8 +25,13 @@ public class UpdateUserRequest {
     @NotNull
     private Boolean enabled;
 
-    @NotNull
     private CreateUserRequest.AccessLevel accessLevel;
+
+    @Size(max = 50)
+    private String roleName;
+
+    /** Replace staff roles with this set when non-empty. Takes precedence over roleName. */
+    private List<String> roleNames;
 
     public String getFirstName() {
         return firstName;
@@ -64,5 +71,21 @@ public class UpdateUserRequest {
 
     public void setAccessLevel(CreateUserRequest.AccessLevel accessLevel) {
         this.accessLevel = accessLevel;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    public List<String> getRoleNames() {
+        return roleNames;
+    }
+
+    public void setRoleNames(List<String> roleNames) {
+        this.roleNames = roleNames;
     }
 }

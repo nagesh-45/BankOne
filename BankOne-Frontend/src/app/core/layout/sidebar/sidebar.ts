@@ -29,9 +29,40 @@ export class Sidebar {
   @Input() expanded = false;
   @Output() expandedChange = new EventEmitter<boolean>();
 
-  readonly canAccessCustomers = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE', 'MANAGER']);
-  readonly canAccessEmployees = this.auth.hasAnyRole(['ADMIN']);
-  readonly canAccessManagement = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE']);
+  readonly canAccessCustomers = this.auth.can(
+    ['CUSTOMERS_READ'],
+    ['ADMIN', 'EMPLOYEE', 'MANAGER']
+  );
+  readonly canAccessAccounts = this.auth.can(
+    ['ACCOUNTS_READ'],
+    ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR']
+  );
+  readonly canAccessTransactions = this.auth.can(
+    ['ACCOUNTS_READ'],
+    ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR']
+  );
+  readonly canAccessReports = this.auth.can(
+    ['ACCOUNTS_READ', 'DASHBOARD'],
+    ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR']
+  );
+  readonly canAccessEmployees = this.auth.can(['USERS_MANAGE'], ['ADMIN']);
+  readonly canAccessRoles = this.auth.can(['ROLES_MANAGE'], ['ADMIN']);
+  readonly canAccessTransferApprovals = this.auth.can(
+    ['ACCOUNTS_WRITE'],
+    ['ADMIN', 'EMPLOYEE', 'MANAGER']
+  );
+  readonly canAccessAudit = this.auth.hasAnyRole(['ADMIN', 'MANAGER', 'AUDITOR']);
+  readonly canAccessManagement = this.auth.can(
+    [
+      'CUSTOMERS_WRITE',
+      'USERS_MANAGE',
+      'ROLES_MANAGE',
+      'POLICIES_MANAGE',
+      'ACCOUNTS_READ',
+      'ACCOUNTS_WRITE'
+    ],
+    ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR']
+  );
 
   toggleExpanded(): void {
     this.expandedChange.emit(!this.expanded);

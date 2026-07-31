@@ -5,6 +5,7 @@ import com.bankone.account.enums.AccountType;
 import com.bankone.account.enums.CurrencyCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AccountPolicyRepository extends JpaRepository<AccountPolicy, Long> {
@@ -13,4 +14,6 @@ public interface AccountPolicyRepository extends JpaRepository<AccountPolicy, Lo
             AccountType accountType,
             CurrencyCode currencyCode
     );
+
+    List<AccountPolicy> findAllByOrderByAccountTypeAscCurrencyCodeAsc();
 }

@@ -1,0 +1,159 @@
+<section class="tx-page">
+  <div class="page-header">
+    <div>
+      <h1>Transactions</h1>
+      <p>All bank ledger movements — search by account, customer, narration, or staff user.</p>
+    </div>
+
+    <div class="page-actions">
+      <div class="type-filters">
+        <button
+          type="button"
+          class="chip"
+          [class.active]="typeFilter() === ''"
+          (click)="setTypeFilter('')">
+          All
+        </button>
+        <button
+          type="button"
+          class="chip credit"
+          [class.active]="typeFilter() === 'CREDIT'"
+          (click)="setTypeFilter('CREDIT')">
+          Credit
+        </button>
+        <button
+          type="button"
+          class="chip debit"
+          [class.active]="typeFilter() === 'DEBIT'"
+          (click)="setTypeFilter('DEBIT')">
+          Debit
+        </button>
+      </div>
+
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input
+          type="search"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="updateSearch($event)"
+          placeholder="Search transactions...">
+        @if (searchTerm()) {
+          <button
+            mat-icon-button
+            type="button"
+            class="clear-btn"
+            aria-label="Clear search"
+            (click)="updateSearch('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+
+      <button mat-stroked-button type="button" (click)="reload()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <mat-card class="table-card">
+    @if (!isLoading() && !hasError()) {
+      <div class="record-count">
+        {{ total() }} transaction{{ total() === 1 ? '' : 's' }}
+      </div>
+    }
+
+    @if (isLoading()) {
+      <app-loading-state message="Loading transactions..." />
+    } @else if (hasError()) {
+      <div class="state-message error-message">
+        Unable to load transactions. Confirm you have Accounts read access.
+      </div>
+    } @else if (transactions().length === 0) {
+      <div class="state-message">No transactions found.</div>
+    } @else {
+      <div class="table-wrapper">
+        <table class="tx-table">
+          <thead>
+            <tr>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('createdAt')">
+                  When
+                  <mat-icon>{{ sortIcon('createdAt') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('transactionId')">
+                  Txn #
+                  <mat-icon>{{ sortIcon('transactionId') }}</mat-icon>
+                </button>
+              </th>
+              <th>Account</th>
+              <th>Customer</th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('transactionType')">
+                  Type
+                  <mat-icon>{{ sortIcon('transactionType') }}</mat-icon>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleSort('amount')">
+                  Amount
+                  <mat-icon>{{ sortIcon('amount') }}</mat-icon>
+                </button>
+              </th>
+              <th>Balance after</th>
+              <th>Narration</th>
+              <th>By</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of transactions(); track tx.transactionId) {
+              <tr>
+                <td>{{ tx.createdAt | date: 'medium' }}</td>
+                <td>{{ tx.transactionId }}</td>
+                <td>
+                  <a [routerLink]="['/app/accounts', tx.accountId]">
+                    {{ tx.accountNumber || ('#' + tx.accountId) }}
+                  </a>
+                </td>
+                <td>
+                  @if (tx.customerId) {
+                    <a [routerLink]="['/app/customers', tx.customerId]">
+                      {{ tx.customerId | businessId: 'C' }}
+                      @if (tx.customerName) {
+                        · {{ tx.customerName }}
+                      }
+                    </a>
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>
+                  <span
+                    class="type-chip"
+                    [class.credit]="tx.transactionType === 'CREDIT'"
+                    [class.debit]="tx.transactionType === 'DEBIT'">
+                    {{ tx.transactionType }}
+                  </span>
+                </td>
+                <td>{{ tx.amount | currency: tx.currencyCode }}</td>
+                <td>{{ tx.balanceAfter | currency: tx.currencyCode }}</td>
+                <td>{{ tx.narration || '—' }}</td>
+                <td>{{ tx.createdBy || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-list-pagination
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [totalPages]="totalPages()"
+        [totalElements]="total()"
+        (pageIndexChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)" />
+    }
+  </mat-card>
+</section>

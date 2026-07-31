@@ -1,0 +1,24 @@
+.helper {
+  margin: 0 0 12px;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: min(440px, 80vw);
+}
+
+.full {
+  width: 100%;
+}
+
+.mode-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 10px;
+}

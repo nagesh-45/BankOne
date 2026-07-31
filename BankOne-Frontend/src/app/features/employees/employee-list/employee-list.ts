@@ -48,7 +48,7 @@ export class EmployeeList {
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
 
-  readonly canEditEmployee = this.auth.hasAnyRole(['ADMIN']);
+  readonly canEditEmployee = this.auth.can(['USERS_MANAGE'], ['ADMIN']);
 
   private readonly initialQuery =
     this.route.snapshot.queryParamMap.get('q')?.trim() ?? '';
@@ -156,15 +156,10 @@ export class EmployeeList {
   }
 
   accessLabel(roles: string[]): string {
-    if (roles.includes('ADMIN')) {
-      return 'Admin access';
+    if (!roles?.length) {
+      return 'No role';
     }
-
-    if (roles.includes('EMPLOYEE') || roles.includes('MANAGER')) {
-      return 'Normal access';
-    }
-
-    return roles.join(', ') || 'No role';
+    return roles.join(', ');
   }
 
   editEmployee(employee: AppUser, event: Event): void {

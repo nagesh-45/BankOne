@@ -32,9 +32,25 @@ export class Management {
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
-  readonly canCreateCustomer = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE']);
-  readonly canCreateEmployee = this.auth.hasAnyRole(['ADMIN']);
-  readonly canViewEmployees = this.auth.hasAnyRole(['ADMIN']);
+  readonly canCreateCustomer = this.auth.can(
+    ['CUSTOMERS_WRITE'],
+    ['ADMIN', 'EMPLOYEE']
+  );
+  readonly canCreateEmployee = this.auth.can(['USERS_MANAGE'], ['ADMIN']);
+  readonly canViewEmployees = this.auth.can(['USERS_MANAGE'], ['ADMIN']);
+  readonly canManageRoles = this.auth.can(['ROLES_MANAGE'], ['ADMIN']);
+  readonly canApproveTransfers = this.auth.can(
+    ['ACCOUNTS_WRITE'],
+    ['ADMIN', 'EMPLOYEE', 'MANAGER']
+  );
+  readonly canAccessAudit = this.auth.hasAnyRole(['ADMIN', 'MANAGER', 'AUDITOR']);
+  /** Staff (not customers) can open policies; only Admin/Manager edit. */
+  readonly canViewPolicies = this.auth.can(
+    ['POLICIES_MANAGE', 'ACCOUNTS_READ', 'ACCOUNTS_WRITE'],
+    ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR']
+  );
+  readonly canEditPolicies = this.auth.can(['POLICIES_MANAGE'], ['ADMIN', 'MANAGER'])
+    && this.auth.hasAnyRole(['ADMIN', 'MANAGER']);
 
   openCreateCustomer(): void {
     this.dialog.open<CustomerCreateDialog, void, CustomerCreateResult | false>(

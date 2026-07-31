@@ -1,0 +1,83 @@
+<section class="policies-page">
+  <div class="page-header">
+    <div>
+      <h1>Account policies</h1>
+      <p>
+        Opening deposit and minimum balance rules by account type.
+        @if (canEdit) {
+          You can edit these policies.
+        } @else {
+          View only — ask an Admin or Manager to change them.
+        }
+      </p>
+    </div>
+    <div class="page-actions">
+      <a routerLink="/app/management" class="management-link">
+        Management
+        <mat-icon>arrow_back</mat-icon>
+      </a>
+      <button mat-stroked-button type="button" (click)="reload()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <mat-card class="panel">
+    @if (loading()) {
+      <app-loading-state message="Loading policies..." />
+    } @else if (error()) {
+      <p class="error">Unable to load policies. Staff with account access can view this list.</p>
+    } @else if (policies().length === 0) {
+      <p class="muted">No account policies found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Account type</th>
+              <th>Currency</th>
+              <th>Opening deposit</th>
+              <th>Min. balance</th>
+              <th>Active</th>
+              <th>Effective from</th>
+              @if (canEdit) {
+                <th></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (policy of policies(); track policy.policyId) {
+              <tr>
+                <td>{{ policy.accountType }}</td>
+                <td>{{ policy.currencyCode }}</td>
+                <td>
+                  @if (policy.openingDepositRequired) {
+                    {{ policy.requiredOpeningDeposit | currency: policy.currencyCode }}
+                  } @else {
+                    Not required
+                  }
+                </td>
+                <td>{{ policy.minimumBalance | currency: policy.currencyCode }}</td>
+                <td>
+                  <span class="status-chip" [class.inactive]="!policy.active">
+                    {{ policy.active ? 'ACTIVE' : 'INACTIVE' }}
+                  </span>
+                </td>
+                <td>{{ policy.effectiveFrom | date: 'mediumDate' }}</td>
+                @if (canEdit) {
+                  <td class="actions">
+                    <button mat-stroked-button type="button" (click)="edit(policy)">
+                      <mat-icon>edit</mat-icon>
+                      Edit
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+</section>

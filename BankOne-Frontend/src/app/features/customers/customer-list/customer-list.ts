@@ -45,7 +45,10 @@ export class CustomerList {
   private readonly customerService = inject(CustomerService);
   private readonly router = inject(Router);
 
-  readonly canCreateCustomer = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE']);
+  readonly canCreateCustomer = this.auth.can(
+    ['CUSTOMERS_WRITE'],
+    ['ADMIN', 'EMPLOYEE']
+  );
 
   readonly searchTerm = signal('');
   readonly pageIndex = signal(0);

@@ -61,4 +61,8 @@ public class User extends AuditableEntity {
 
     @Column(name = "password_changed_at")
     private LocalDateTime passwordChangedAt;
+
+    /** Linked bank customer for portal logins; null for staff. */
+    @Column(name = "customer_id")
+    private Long customerId;
 }

@@ -1,0 +1,67 @@
+<h2 mat-dialog-title>Transfer</h2>
+
+<mat-dialog-content>
+  <p class="helper">
+    Quick same-bank transfer by account number, or pay a saved beneficiary.
+    Other-bank and large amounts may need staff approval.
+  </p>
+
+  <form class="form">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>From account</mat-label>
+      <mat-select name="fromAccountId" [(ngModel)]="fromAccountId" required>
+        @for (account of accounts; track account.accountId) {
+          <mat-option [value]="account.accountId">
+            {{ account.accountNumber }}
+            ({{ account.availableBalance | currency: account.currencyCode }})
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-radio-group [(ngModel)]="mode" name="mode" class="mode-group">
+      <mat-radio-button value="quick">Quick (BankOne account #)</mat-radio-button>
+      <mat-radio-button value="beneficiary">Saved beneficiary</mat-radio-button>
+    </mat-radio-group>
+
+    @if (mode === 'quick') {
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>To account number</mat-label>
+        <input matInput name="toAccountNumber" [(ngModel)]="toAccountNumber" required>
+      </mat-form-field>
+    } @else {
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Beneficiary</mat-label>
+        <mat-select name="beneficiaryId" [(ngModel)]="beneficiaryId" required>
+          @for (b of beneficiaries(); track b.beneficiaryId) {
+            <mat-option [value]="b.beneficiaryId">
+              {{ b.nickname }} · {{ b.bankType }} · {{ b.accountNumber }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Amount</mat-label>
+      <input matInput type="number" name="amount" [(ngModel)]="amount" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Narration (optional)</mat-label>
+      <input matInput name="narration" [(ngModel)]="narration">
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="save()"
+    [disabled]="saving()">
+    {{ saving() ? 'Submitting...' : 'Transfer' }}
+  </button>
+</mat-dialog-actions>

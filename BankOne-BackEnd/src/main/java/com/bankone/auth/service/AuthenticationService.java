@@ -3,6 +3,9 @@ package com.bankone.auth.service;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.authentication.AuthenticationManager;
+import com.bankone.audit.domain.AuditAction;
+import com.bankone.audit.domain.AuditCategory;
+import com.bankone.audit.service.AuditEventService;
 import com.bankone.user.repository.UserRepository;
 import com.bankone.user.repository.UserRoleRepository;
 import com.bankone.user.entity.User;
@@ -29,19 +32,22 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final LoginAttemptService loginAttemptService;
     private final PasswordEncoder passwordEncoder;
+    private final AuditEventService auditEventService;
 
     public AuthenticationService(AuthenticationManager authenticationManager,
                                  UserRepository userRepository,
                                  UserRoleRepository userRoleRepository,
                                  JwtService jwtService,
                                  LoginAttemptService loginAttemptService,
-                                 PasswordEncoder passwordEncoder) {
+                                 PasswordEncoder passwordEncoder,
+                                 AuditEventService auditEventService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
         this.jwtService = jwtService;
         this.loginAttemptService = loginAttemptService;
         this.passwordEncoder = passwordEncoder;
+        this.auditEventService = auditEventService;
     }
 
     public LoginResponse login(String username, String password) {
@@ -49,10 +55,34 @@ public class AuthenticationService {
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(username, password);
 
-        User loginUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
+        User loginUser = userRepository.findByUsername(username).orElse(null);
+        if (loginUser == null) {
+            auditEventService.recordForUser(
+                    AuditCategory.AUTH,
+                    AuditAction.LOGIN_FAILED,
+                    username,
+                    null,
+                    "USER",
+                    username,
+                    "Login failed: unknown username",
+                    null,
+                    false
+            );
+            throw new BadCredentialsException("Bad credentials");
+        }
 
         if (Boolean.TRUE.equals(loginUser.getAccountLocked())) {
+            auditEventService.recordForUser(
+                    AuditCategory.AUTH,
+                    AuditAction.LOGIN_FAILED,
+                    username,
+                    loginUser.getUserId(),
+                    "USER",
+                    String.valueOf(loginUser.getUserId()),
+                    "Login failed: account locked",
+                    null,
+                    false
+            );
             throw new LockedException(
                     "Your account has been locked. Please visit your nearest branch.");
         }
@@ -62,6 +92,17 @@ public class AuthenticationService {
             authenticatedUser = authenticationManager.authenticate(authentication);
         } catch (BadCredentialsException e) {
             loginAttemptService.incrementFailedAttempts(username);
+            auditEventService.recordForUser(
+                    AuditCategory.AUTH,
+                    AuditAction.LOGIN_FAILED,
+                    username,
+                    loginUser.getUserId(),
+                    "USER",
+                    String.valueOf(loginUser.getUserId()),
+                    "Login failed: bad credentials",
+                    null,
+                    false
+            );
             throw e;
         }
         BankUserDetails userDetails =
@@ -69,7 +110,15 @@ public class AuthenticationService {
 
         String token = jwtService.generateToken(userDetails);
         List<String> roles = userDetails.getAuthorities().stream()
-                .map(authority -> authority.getAuthority().replace("ROLE_", ""))
+                .map(authority -> authority.getAuthority())
+                .filter(auth -> auth.startsWith("ROLE_"))
+                .map(auth -> auth.substring("ROLE_".length()))
+                .toList();
+        List<String> accesses = userDetails.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .filter(auth -> auth.startsWith("ACCESS_"))
+                .map(auth -> auth.substring("ACCESS_".length()))
+                .sorted()
                 .toList();
 
         User user = userRepository.findByUsername(userDetails.getUsername())
@@ -80,15 +129,42 @@ public class AuthenticationService {
 
         userRepository.save(user);
 
+        auditEventService.recordForUser(
+                AuditCategory.AUTH,
+                AuditAction.LOGIN,
+                user.getUsername(),
+                user.getUserId(),
+                "USER",
+                String.valueOf(user.getUserId()),
+                "User logged in",
+                "roles=" + String.join(",", roles),
+                true
+        );
+
         return new LoginResponse(
                 token,
                 "Bearer",
                 3600L,
                 roles,
+                accesses,
+                user.getCustomerId(),
+                user.getCustomerId() != null || roles.contains("CUSTOMER"),
                 user.getUsername(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail()
+        );
+    }
+
+    public void logout() {
+        auditEventService.record(
+                AuditCategory.AUTH,
+                AuditAction.LOGOUT,
+                "USER",
+                null,
+                "User logged out",
+                null,
+                true
         );
     }
 
@@ -148,5 +224,15 @@ public class AuthenticationService {
         user.setPasswordChangedAt(LocalDateTime.now());
         user.setFailedLoginAttempts(0);
         userRepository.save(user);
+
+        auditEventService.record(
+                AuditCategory.AUTH,
+                AuditAction.CHANGE_PASSWORD,
+                "USER",
+                String.valueOf(user.getUserId()),
+                "Password changed",
+                null,
+                true
+        );
     }
 }

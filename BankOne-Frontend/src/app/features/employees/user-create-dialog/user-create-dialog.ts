@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -10,12 +10,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { finalize } from 'rxjs';
 
 import {
-  AccessLevel,
   CreateUserRequest,
   UserType
 } from '../../../core/models/create-user-request';
+import { RoleSummary } from '../../../core/models/role';
 import { AppUser } from '../../../core/models/app-user';
 import { Notification } from '../../../core/services/notification';
+import { RoleService } from '../../../core/services/role';
 import { UserService } from '../../../core/services/user';
 import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
 import { apiErrorMessage } from '../../../core/utils/api-error-message';
@@ -41,23 +42,47 @@ export type EmployeeCreateResult =
   templateUrl: './user-create-dialog.html',
   styleUrl: './user-create-dialog.scss'
 })
-export class UserCreateDialog {
+export class UserCreateDialog implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<UserCreateDialog, EmployeeCreateResult | false>);
   private readonly userService = inject(UserService);
+  private readonly roleService = inject(RoleService);
   private readonly notification = inject(Notification);
 
   readonly step = signal<'type' | 'employee' | 'success'>('type');
   readonly createdEmployee = signal<AppUser | null>(null);
   readonly saving = signal(false);
+  readonly staffRoles = signal<RoleSummary[]>([]);
 
   userType: UserType = 'EMPLOYEE';
-  accessLevel: AccessLevel = 'NORMAL';
+  roleNames: string[] = ['EMPLOYEE'];
 
   username = '';
   password = '';
   firstName = '';
   lastName = '';
   email = '';
+
+  ngOnInit(): void {
+    this.roleService.listRoles().subscribe({
+      next: (roles) => {
+        const staff = roles.filter((role) => role.roleName !== 'CUSTOMER');
+        this.staffRoles.set(staff);
+        this.roleNames = this.roleNames.filter((name) =>
+          staff.some((role) => role.roleName === name)
+        );
+        if (this.roleNames.length === 0 && staff[0]) {
+          this.roleNames = [staff[0].roleName];
+        }
+      },
+      error: () => {
+        this.staffRoles.set([
+          { roleId: 0, roleName: 'ADMIN', description: null, accessCodes: [], systemRole: true },
+          { roleId: 0, roleName: 'EMPLOYEE', description: null, accessCodes: [], systemRole: true },
+          { roleId: 0, roleName: 'MANAGER', description: null, accessCodes: [], systemRole: true }
+        ]);
+      }
+    });
+  }
 
   close(): void {
     if (this.step() === 'success') {
@@ -103,9 +128,10 @@ export class UserCreateDialog {
       return;
     }
 
+    const selectedRoles = [...new Set(this.roleNames.filter(Boolean))];
     const request: CreateUserRequest = {
       userType: 'EMPLOYEE',
-      accessLevel: this.accessLevel,
+      roleNames: selectedRoles,
       username: this.username.trim(),
       password: this.password,
       firstName: this.firstName.trim(),
@@ -118,9 +144,10 @@ export class UserCreateDialog {
       !request.password ||
       !request.firstName ||
       !request.lastName ||
-      !request.email
+      !request.email ||
+      selectedRoles.length === 0
     ) {
-      this.notification.error('Please fill in all required fields');
+      this.notification.error('Please fill in all required fields and select at least one role');
       return;
     }
 

@@ -52,10 +52,20 @@ public class NotificationEventPublisher {
         }
 
         try {
-            kafkaTemplate.send(topic, entityId, event);
-            log.info("Published to {}: {} {} -> {}", topic, action, entityId, event.getRecipientEmail());
+            // Do not block the HTTP request waiting for broker ack.
+            kafkaTemplate.send(topic, entityId, event)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.warn("Kafka publish failed for {} {}: {}",
+                                    action, entityId, ex.getMessage());
+                        } else {
+                            log.info("Published to {}: {} {} -> {}",
+                                    topic, action, entityId, event.getRecipientEmail());
+                        }
+                    });
         } catch (Exception ex) {
-            log.warn("Kafka publish failed for {} {}: {}", action, entityId, ex.getMessage());
+            // Includes TimeoutException when max.block.ms expires (broker down).
+            log.warn("Kafka publish skipped for {} {}: {}", action, entityId, ex.getMessage());
         }
     }
 }

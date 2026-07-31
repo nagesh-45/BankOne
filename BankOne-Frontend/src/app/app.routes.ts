@@ -9,8 +9,19 @@ import { Profile } from './features/profile/profile';
 import { ChangePassword } from './features/profile/change-password/change-password';
 import { MainLayout } from './core/layout/main-layout/main-layout';
 import { authGuard } from './core/guards/auth-guard';
+import { portalGuard, staffAppGuard } from './core/guards/portal-guard';
 import { AccountList } from './features/accounts/account-list/account-list';
 import { AccountDetail } from './features/accounts/account-detail/account-detail';
+import { RoleList } from './features/roles/role-list/role-list';
+import { PortalLayout } from './features/portal/portal-layout/portal-layout';
+import { MyAccounts } from './features/portal/my-accounts/my-accounts';
+import { MyAccountDetail } from './features/portal/my-account-detail/my-account-detail';
+import { PortalBeneficiaries } from './features/portal/portal-beneficiaries/portal-beneficiaries';
+import { TransferApprovals } from './features/transfers/transfer-approvals/transfer-approvals';
+import { Audit } from './features/audit/audit';
+import { AccountPolicies } from './features/policies/account-policies/account-policies';
+import { TransactionList } from './features/transactions/transaction-list/transaction-list';
+import { Reports } from './features/reports/reports';
 
 export const routes: Routes = [
   {
@@ -18,9 +29,33 @@ export const routes: Routes = [
     component: Login
   },
   {
+    path: 'portal',
+    component: PortalLayout,
+    canActivate: [authGuard, portalGuard],
+    children: [
+      {
+        path: 'accounts',
+        component: MyAccounts
+      },
+      {
+        path: 'accounts/:id',
+        component: MyAccountDetail
+      },
+      {
+        path: 'beneficiaries',
+        component: PortalBeneficiaries
+      },
+      {
+        path: '',
+        redirectTo: 'accounts',
+        pathMatch: 'full'
+      }
+    ]
+  },
+  {
     path: 'app',
     component: MainLayout,
-    canActivate: [authGuard],
+    canActivate: [authGuard, staffAppGuard],
     children: [
       {
         path: 'dashboard',
@@ -45,6 +80,7 @@ export const routes: Routes = [
         component: CustomerList,
         canActivate: [authGuard],
         data: {
+          accesses: ['CUSTOMERS_READ'],
           roles: ['ADMIN', 'EMPLOYEE', 'MANAGER'],
           breadcrumb: 'Customers'
         }
@@ -54,6 +90,7 @@ export const routes: Routes = [
         component: CustomerDetail,
         canActivate: [authGuard],
         data: {
+          accesses: ['CUSTOMERS_READ'],
           roles: ['ADMIN', 'EMPLOYEE', 'MANAGER'],
           breadcrumb: 'Customer',
           breadcrumbParents: [{ label: 'Customers', url: '/app/customers' }]
@@ -64,7 +101,8 @@ export const routes: Routes = [
         component: AccountList,
         canActivate: [authGuard],
         data: {
-          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER'],
+          accesses: ['ACCOUNTS_READ'],
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR'],
           breadcrumb: 'Accounts'
         }
       },
@@ -73,9 +111,30 @@ export const routes: Routes = [
         component: AccountDetail,
         canActivate: [authGuard],
         data: {
-          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER'],
+          accesses: ['ACCOUNTS_READ'],
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR'],
           breadcrumb: 'Account',
           breadcrumbParents: [{ label: 'Accounts', url: '/app/accounts' }]
+        }
+      },
+      {
+        path: 'transactions',
+        component: TransactionList,
+        canActivate: [authGuard],
+        data: {
+          accesses: ['ACCOUNTS_READ'],
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR'],
+          breadcrumb: 'Transactions'
+        }
+      },
+      {
+        path: 'reports',
+        component: Reports,
+        canActivate: [authGuard],
+        data: {
+          accesses: ['ACCOUNTS_READ', 'DASHBOARD'],
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR'],
+          breadcrumb: 'Reports'
         }
       },
       {
@@ -83,8 +142,48 @@ export const routes: Routes = [
         component: EmployeeList,
         canActivate: [authGuard],
         data: {
+          accesses: ['USERS_MANAGE'],
           roles: ['ADMIN'],
           breadcrumb: 'Employees'
+        }
+      },
+      {
+        path: 'roles',
+        component: RoleList,
+        canActivate: [authGuard],
+        data: {
+          accesses: ['ROLES_MANAGE'],
+          roles: ['ADMIN'],
+          breadcrumb: 'Roles'
+        }
+      },
+      {
+        path: 'transfer-approvals',
+        component: TransferApprovals,
+        canActivate: [authGuard],
+        data: {
+          accesses: ['ACCOUNTS_WRITE'],
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER'],
+          breadcrumb: 'Transfer approvals'
+        }
+      },
+      {
+        path: 'audit',
+        component: Audit,
+        canActivate: [authGuard],
+        data: {
+          roles: ['ADMIN', 'MANAGER', 'AUDITOR'],
+          breadcrumb: 'Audit'
+        }
+      },
+      {
+        path: 'policies',
+        component: AccountPolicies,
+        canActivate: [authGuard],
+        data: {
+          accesses: ['POLICIES_MANAGE', 'ACCOUNTS_READ', 'ACCOUNTS_WRITE'],
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR'],
+          breadcrumb: 'Account policies'
         }
       },
       {
@@ -92,7 +191,15 @@ export const routes: Routes = [
         component: Management,
         canActivate: [authGuard],
         data: {
-          roles: ['ADMIN', 'EMPLOYEE'],
+          accesses: [
+            'CUSTOMERS_WRITE',
+            'USERS_MANAGE',
+            'ROLES_MANAGE',
+            'POLICIES_MANAGE',
+            'ACCOUNTS_READ',
+            'ACCOUNTS_WRITE'
+          ],
+          roles: ['ADMIN', 'EMPLOYEE', 'MANAGER', 'TELLER', 'AUDITOR'],
           breadcrumb: 'Management'
         }
       },

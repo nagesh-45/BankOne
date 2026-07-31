@@ -22,6 +22,10 @@ import { LoadingState } from '../../../shared/components/loading-state/loading-s
 import { BusinessIdPipe } from '../../../core/pipes/business-id.pipe';
 import { AccountStatusDialog } from '../account-status-dialog/account-status-dialog';
 import { CustomerEditDialog } from '../customer-edit-dialog/customer-edit-dialog';
+import {
+  PortalLoginDialog,
+  PortalLoginDialogData
+} from '../portal-login-dialog/portal-login-dialog';
 
 type DetailState = {
   state: 'loading' | 'loaded' | 'error';
@@ -55,7 +59,11 @@ export class CustomerDetail {
   private readonly notification = inject(Notification);
   private readonly dialog = inject(MatDialog);
 
-  readonly canEditCustomer = this.auth.hasAnyRole(['ADMIN', 'EMPLOYEE']);
+  readonly canEditCustomer = this.auth.can(
+    ['CUSTOMERS_WRITE'],
+    ['ADMIN', 'EMPLOYEE']
+  );
+  readonly canEnablePortal = this.auth.can(['USERS_MANAGE'], ['ADMIN']);
 
   readonly pageIndex = signal(0);
   readonly pageSize = signal(10);
@@ -185,6 +193,23 @@ export class CustomerDetail {
         this.reloadTick.update((value) => value + 1);
       }
     });
+  }
+
+  enablePortalLogin(): void {
+    const customer = this.customer();
+    if (!customer) {
+      return;
+    }
+
+    this.dialog.open<PortalLoginDialog, PortalLoginDialogData, boolean>(
+      PortalLoginDialog,
+      {
+        width: '520px',
+        maxWidth: '95vw',
+        disableClose: true,
+        data: { customer }
+      }
+    );
   }
 
   addLoanAccount(): void {

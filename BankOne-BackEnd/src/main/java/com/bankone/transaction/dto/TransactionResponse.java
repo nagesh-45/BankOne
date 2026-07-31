@@ -9,6 +9,9 @@ public class TransactionResponse {
 
     private Long transactionId;
     private Long accountId;
+    private String accountNumber;
+    private Long customerId;
+    private String customerName;
     private TransactionType transactionType;
     private BigDecimal amount;
     private BigDecimal balanceAfter;
@@ -31,6 +34,30 @@ public class TransactionResponse {
 
     public void setAccountId(Long accountId) {
         this.accountId = accountId;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
     public TransactionType getTransactionType() {

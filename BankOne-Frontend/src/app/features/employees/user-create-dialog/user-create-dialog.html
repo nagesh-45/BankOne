@@ -51,15 +51,18 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Access level</mat-label>
-        <mat-select name="accessLevel" [(ngModel)]="accessLevel" required>
-          <mat-option value="ADMIN">
-            Admin access — can create customers
-          </mat-option>
-          <mat-option value="NORMAL">
-            Normal access — can view customers only
-          </mat-option>
+        <mat-label>Roles</mat-label>
+        <mat-select name="roleNames" [(ngModel)]="roleNames" multiple required>
+          @for (role of staffRoles(); track role.roleName) {
+            <mat-option [value]="role.roleName">
+              {{ role.roleName }}
+              @if (role.description) {
+                — {{ role.description }}
+              }
+            </mat-option>
+          }
         </mat-select>
+        <mat-hint>Select one or more roles. Access is the union of all selected roles.</mat-hint>
       </mat-form-field>
     </form>
   </mat-dialog-content>

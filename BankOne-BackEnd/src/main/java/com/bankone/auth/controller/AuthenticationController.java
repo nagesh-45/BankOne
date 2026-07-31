@@ -32,6 +32,12 @@ public class AuthenticationController {
         );
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        authenticationService.logout();
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/me")
     public UserProfileResponse me() {
         return authenticationService.getCurrentUserProfile();

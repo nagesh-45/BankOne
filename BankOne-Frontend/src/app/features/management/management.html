@@ -39,7 +39,7 @@
         </div>
         <div class="card-body">
           <h2>Users &amp; access</h2>
-          <p>Create bank staff accounts with Admin or Normal access.</p>
+          <p>Create bank staff accounts and assign one or more roles (Admin, Employee, Manager, …).</p>
           <div class="card-actions">
             <button
               mat-flat-button
@@ -59,20 +59,86 @@
       </mat-card>
     }
 
-    @if (canCreateEmployee) {
-      <mat-card class="hub-card soon-card" aria-disabled="true">
-        <div class="card-icon muted">
+    @if (canManageRoles) {
+      <mat-card class="hub-card primary-card">
+        <div class="card-icon roles">
           <mat-icon>admin_panel_settings</mat-icon>
         </div>
         <div class="card-body">
-          <div class="soon-row">
-            <h2>Roles</h2>
-            <span class="soon-chip">Soon</span>
+          <h2>Roles &amp; access</h2>
+          <p>View roles, change access, and create new staff roles.</p>
+          <div class="card-actions">
+            <a mat-flat-button routerLink="/app/roles" class="create-button">
+              <mat-icon>admin_panel_settings</mat-icon>
+              Manage roles
+            </a>
           </div>
-          <p>Review and assign staff roles beyond create-time access.</p>
         </div>
       </mat-card>
+    }
 
+    @if (canApproveTransfers) {
+      <mat-card class="hub-card primary-card">
+        <div class="card-icon users">
+          <mat-icon>rule</mat-icon>
+        </div>
+        <div class="card-body">
+          <h2>Transfer approvals</h2>
+          <p>Review portal transfers that need staff approval (threshold or other-bank).</p>
+          <div class="card-actions">
+            <a mat-flat-button routerLink="/app/transfer-approvals" class="create-button">
+              <mat-icon>rule</mat-icon>
+              Open queue
+            </a>
+          </div>
+        </div>
+      </mat-card>
+    }
+
+    @if (canAccessAudit) {
+      <mat-card class="hub-card primary-card">
+        <div class="card-icon users">
+          <mat-icon>fact_check</mat-icon>
+        </div>
+        <div class="card-body">
+          <h2>Audit</h2>
+          <p>Full transfer approval history — who approved or rejected, and when (Admin / Manager / Auditor).</p>
+          <div class="card-actions">
+            <a mat-flat-button routerLink="/app/audit" class="create-button">
+              <mat-icon>fact_check</mat-icon>
+              Open audit
+            </a>
+          </div>
+        </div>
+      </mat-card>
+    }
+
+    @if (canViewPolicies) {
+      <mat-card class="hub-card primary-card">
+        <div class="card-icon policies">
+          <mat-icon>policy</mat-icon>
+        </div>
+        <div class="card-body">
+          <h2>Account policies</h2>
+          <p>
+            Opening deposit and minimum balance by account type.
+            @if (canEditPolicies) {
+              Admins and Managers can edit.
+            } @else {
+              View only for your role.
+            }
+          </p>
+          <div class="card-actions">
+            <a mat-flat-button routerLink="/app/policies" class="create-button">
+              <mat-icon>{{ canEditPolicies ? 'edit' : 'visibility' }}</mat-icon>
+              {{ canEditPolicies ? 'Manage policies' : 'View policies' }}
+            </a>
+          </div>
+        </div>
+      </mat-card>
+    }
+
+    @if (canCreateEmployee) {
       <mat-card class="hub-card soon-card" aria-disabled="true">
         <div class="card-icon muted">
           <mat-icon>lock_open</mat-icon>
