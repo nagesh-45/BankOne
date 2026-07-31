@@ -7,6 +7,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { Auth } from '../../../core/services/auth';
 import { Notification } from '../../../core/services/notification';
 import { BrandLogo } from '../../../shared/components/brand-logo/brand-logo';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-portal-layout',
@@ -27,6 +28,7 @@ export class PortalLayout {
   private readonly auth = inject(Auth);
   private readonly notification = inject(Notification);
 
+  readonly appVersion = environment.appVersion;
   readonly displayName = this.auth.getDisplayName();
 
   logout(): void {

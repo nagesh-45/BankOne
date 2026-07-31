@@ -7,6 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Auth } from '../../services/auth';
 import { BrandLogo } from '../../../shared/components/brand-logo/brand-logo';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-sidebar',
@@ -25,6 +26,8 @@ import { BrandLogo } from '../../../shared/components/brand-logo/brand-logo';
 })
 export class Sidebar {
   private readonly auth = inject(Auth);
+
+  readonly appVersion = environment.appVersion;
 
   @Input() expanded = false;
   @Output() expandedChange = new EventEmitter<boolean>();

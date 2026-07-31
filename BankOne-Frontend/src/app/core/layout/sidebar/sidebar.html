@@ -145,6 +145,10 @@
     }
   </mat-nav-list>
 
+  <div class="sidebar-footer" [matTooltip]="'BankOne ' + appVersion" matTooltipPosition="right">
+    <span class="version-label" [class.collapsed]="!expanded">v{{ appVersion }}</span>
+  </div>
+
   <div class="toggle-wrap">
     <button
       mat-icon-button

@@ -14,6 +14,7 @@ import { finalize } from 'rxjs';
 import { Auth } from '../../core/services/auth';
 import { LoginRequest } from '../../core/models/login-request';
 import { BrandLogo } from '../../shared/components/brand-logo/brand-logo';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -33,6 +34,8 @@ import { BrandLogo } from '../../shared/components/brand-logo/brand-logo';
   styleUrl: './login.scss'
 })
 export class Login {
+  readonly appVersion = environment.appVersion;
+
   username = '';
   password = '';
   hidePassword = true;
