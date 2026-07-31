@@ -2,19 +2,23 @@
 
 ## Overview
 
-BankOne is a staff-facing core banking shell.
+BankOne is a **staff + customer-portal** core banking shell.
 
 Backend code lives in **`BankOne-BackEnd/`** (Maven); UI in **`BankOne-Frontend/`**:
 
 - **Backend:** Spring Boot 4.1, Java 21, packaged as WAR, deployed on
   **Open Liberty**
-- **Frontend:** Angular SPA with JWT Bearer auth
+- **Frontend:** Angular SPA with JWT Bearer auth (staff `/app/*`, portal
+  `/portal/*`)
 - **Database:** PostgreSQL (`bankone`)
 - **Notifications (implemented):** Kafka topic `bankone.notifications` →
   email (Mailpit locally, SendGrid HTTPS on Render)
 
 Full technology and version inventory:
 [TECH_STACK.md](./TECH_STACK.md).
+
+Learning / platform roadmap (rate limit, cache, outbox, sharding lab):
+[TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md).
 
 ```
 flowchart LR
@@ -35,26 +39,41 @@ flowchart TB
     role[role]
     customer[customer]
     account[account]
+    transaction[transaction]
     notification[notification]
+    portal[portal]
+    beneficiary[beneficiary]
+    transfer[transfer]
+    audit[audit]
+    report[report]
     dashboard[dashboard]
     common[common]
   end
   auth --> user
   auth --> role
-  auth --> common
+  auth --> audit
   customer --> account
   account --> customer
-  account --> common
+  account --> transaction
   account --> notification
+  account --> audit
+  portal --> account
+  portal --> beneficiary
+  portal --> transfer
+  transfer --> account
+  transfer --> audit
+  report --> transaction
+  report --> account
+  report --> transfer
   user --> role
-  user --> common
   dashboard --> customer
   dashboard --> account
   dashboard --> user
 ```
 
-Implemented packages include `transaction` (ledger) and `notification`
-(Kafka → email). Placeholder / thin: `report`, `audit`, `beneficiary`.
+Implemented packages include `transaction`, `notification`, `portal`,
+`beneficiary`, `transfer`, `audit`, `report`. Still stub: `branch`,
+full `loan` product.
 
 ## Layering (per feature module)
 

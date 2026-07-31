@@ -18,6 +18,9 @@ withdraw / transfer publishes a Kafka `BankActionEvent` and emails the
   POST       `/auth/login`      **Public**      `{ username, password }`   `{ token, ... }`
                                                                            (`LoginResponse`)
 
+  POST       `/auth/logout`     Authenticated   ---                        204 (writes AUTH
+                                                                           LOGOUT audit)
+
   GET        `/auth/me`         Authenticated   ---                        `UserProfileResponse`
 
   PUT        `/auth/password`   Authenticated   `ChangePasswordRequest`    204
@@ -114,16 +117,17 @@ if account id does not exist.
 ## Account policies --- `/account-policies`
 
   -----------------------------------------------------------------------------------------------------------------
-  Method            Path                                             Roles           Notes
-  ----------------- ------------------------------------------------ --------------- ------------------------------
-  POST              `/account-policies`                              Authenticated   `CreateAccountPolicyRequest`
-                                                                     only\*          
+  Method            Path                                             Access                        Notes
+  ----------------- ------------------------------------------------ ----------------------------- ------------------------------
+  GET               `/account-policies?accountType=&currencyCode=`   POLICIES_MANAGE or            Active policy; default
+                                                                     ACCOUNTS_READ/WRITE           currency `INR`
 
-  GET               `/account-policies?accountType=&currencyCode=`   Authenticated   Active policy; default
-                                                                     only\*          currency `INR`
+  GET               `/account-policies/all`                          same                          All policies (mgmt UI)
+
+  PUT               `/account-policies/{id}`                         POLICIES_MANAGE               Update policy
+
+  POST              `/account-policies`                              POLICIES_MANAGE               Create (if exposed)
   -----------------------------------------------------------------------------------------------------------------
-
-\*Deferred hardening: restrict create (and possibly GET) to ADMIN.
 
 ### AccountPolicyResponse
 
@@ -133,15 +137,66 @@ if account id does not exist.
 
 ## Users (employees) --- `/users`
 
-  ---------------------------------------------------------------
-  Method          Path            Roles           Notes
-  --------------- --------------- --------------- ---------------
-  GET             `/users`        ADMIN           
+Requires `ACCESS_USERS_MANAGE` (typically ADMIN).
 
-  POST            `/users`        ADMIN           
-
-  PUT             `/users/{id}`   ADMIN           
   ---------------------------------------------------------------
+  Method          Path            Notes
+  --------------- --------------- -------------------------------
+  GET             `/users`        Paged employees + search
+
+  POST            `/users`        Staff or portal user
+                                  (`userType`, `roleNames[]`)
+
+  PUT             `/users/{id}`   Update profile / roles /
+                                  enabled
+  ---------------------------------------------------------------
+
+## Roles --- `/roles`
+
+`ACCESS_ROLES_MANAGE` or `ACCESS_USERS_MANAGE`.
+
+  ---------------------------------------------------------------
+  Method          Path            Notes
+  --------------- --------------- -------------------------------
+  GET             `/roles`        List roles + access codes
+
+  GET             `/roles/{id}`   Detail
+
+  POST            `/roles`        Create
+
+  PUT             `/roles/{id}`   Update description / accesses
+  ---------------------------------------------------------------
+
+## Transactions (staff) --- `/transactions`
+
+`ACCESS_ACCOUNTS_READ`. Paged search across ledger.
+
+  GET `/transactions?accountId&txType&search&page&size&sortBy&sortDir`
+
+## Portal --- `/portal`
+
+`ACCESS_PORTAL_ACCOUNTS`. See [MODULES/Portal.md](./MODULES/Portal.md).
+
+## Transfer approvals --- `/transfer-approvals`
+
+`ACCESS_ACCOUNTS_WRITE`. Pending / my-history / approve / reject.
+See Portal module doc.
+
+## Audit --- `/audit`
+
+ADMIN | MANAGER | AUDITOR. See [MODULES/Audit.md](./MODULES/Audit.md).
+
+  GET `/audit/events?category&action&actor&page&size`  
+  GET `/audit/transfer-approvals`  
+  POST `/audit/backfill` (ADMIN)
+
+## Reports --- `/reports`
+
+See [MODULES/Reports.md](./MODULES/Reports.md).
+
+  GET `/reports/transaction-trends` (+ `/pdf`)  
+  GET `/reports/account-mix` (+ `/pdf`)  
+  GET `/reports/approvals` (+ `/pdf`) — Admin/Manager/Auditor
 
 ## Misc
 
@@ -156,7 +211,8 @@ if account id does not exist.
 
 Handled by `GlobalExceptionHandler` under `com.bankone.common` (business
 exceptions → 4xx with message body). Exact payload may vary by exception
-type.
+type. Rate-limit learning work will add HTTP 429 later
+([TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md)).
 
 ## Frontend API clients
 
@@ -174,4 +230,8 @@ type.
   User                           `.../user.ts`
 
   Dashboard                      `.../dashboard.service.ts`
+
+  Portal / approvals / audit     `.../portal.ts`
+
+  Reports                        `features/reports` (+ HTTP in component/service)
   ---------------------------------------------------------------------------------

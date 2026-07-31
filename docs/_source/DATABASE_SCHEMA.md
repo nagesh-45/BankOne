@@ -21,72 +21,48 @@
 ```
 erDiagram
   customers ||--o{ account : has
+  customers ||--o{ beneficiary : saves
+  customers ||--o{ transfer_request : requests
   users ||--o{ user_roles : has
   roles ||--o{ user_roles : grants
+  account ||--o{ bank_transaction : posts
   account_policy {
     bigint policy_id PK
     string account_type
     string currency_code
-    boolean opening_deposit_required
-    decimal required_opening_deposit
-    decimal minimum_balance
-    boolean active
   }
   customers {
     bigint customer_id PK
-    string first_name
-    string last_name
-    string email UK
-    string phone_number UK
-    date date_of_birth
-    string address
-    string status
-    timestamp created_at
-    timestamp updated_at
+    decimal transfer_approval_threshold
   }
   account {
     bigint account_id PK
     string account_number UK
-    string branch_code
-    string account_type
-    int ordinal
-    string currency_code
-    int check_digit
-    decimal available_balance
-    decimal ledger_balance
-    int debit_count
-    int credit_count
-    string status
     bigint customer_id FK
   }
   users {
     bigint user_id PK
     string username UK
-    string password_hash
-    boolean enabled
-    int failed_attempts
-    boolean locked
+    bigint customer_id
   }
-  roles {
-    bigint role_id PK
-    string name UK
+  beneficiary {
+    bigint beneficiary_id PK
+    bigint customer_id FK
+    string bank_type
   }
-  user_roles {
-    bigint user_role_id PK
-    bigint user_id FK
-    bigint role_id FK
+  transfer_request {
+    bigint transfer_request_id PK
+    bigint customer_id FK
+    string status
   }
-  account ||--o{ bank_transaction : posts
+  audit_event {
+    bigint id PK
+    string category
+    string action
+  }
   bank_transaction {
     bigint transaction_id PK
     bigint account_id FK
-    string transaction_type
-    decimal amount
-    decimal balance_after
-    string currency_code
-    string narration
-    timestamp created_at
-    string created_by
   }
 ```
 
@@ -108,6 +84,8 @@ Entity: `com.bankone.customer.entity.Customer`
   `date_of_birth`                Optional
 
   `address`, `status`            Required
+
+  `transfer_approval_threshold`  Optional; portal same-bank gate
 
   `created_at`, `updated_at`     `@PrePersist` / `@PreUpdate`
   -------------------------------------------------------------
@@ -157,11 +135,14 @@ Unique `(account_type, currency_code)`.
 Seeded INR policies for CURRENT, SAVINGS, SALARY, FIXED_DEPOSIT,
 RECURRING_DEPOSIT. **No LOAN seed.**
 
-### `users`, `roles`, `user_roles`
+### `users`, `roles`, `user_roles`, `role_access`
 
 Entities under `com.bankone.user` / `com.bankone.role`. Sequences:
-`user_seq`, `role_seq`, `user_role_seq` (Hibernate-managed naming may
-vary by dialect config).
+`user_seq`, `role_seq`, `user_role_seq`.
+
+`users.customer_id` — null for staff; set for portal logins.
+
+`role_access` — element collection of access codes (`AppAccess`).
 
 `AuditableEntity` columns on User/Role/UserRole/AccountPolicy:
 `created_at`, `updated_at`, `created_by`, `updated_by`, `version`.
@@ -195,8 +176,22 @@ Table name is `bank_transaction` (avoids SQL keyword `transaction`).
   `created_by`                     Staff username when provided
   -------------------------------------------------------------
 
-Written today from `AccountServiceImpl.deposit()` via
-`TransactionService.record` (CREDIT). No list API yet.
+Written from open/deposit/withdraw/transfer via
+`TransactionService.record`. Staff list: `GET /transactions`.
+
+### `beneficiary`
+
+Portal payees (`SAME_BANK` / `OTHER_BANK`), soft-deactivate via
+`active=false`.
+
+### `transfer_request`
+
+Portal transfers awaiting or after staff resolution (`PENDING`,
+`APPROVED`, `REJECTED`, `EXECUTED`).
+
+### `audit_event`
+
+Activity trail — see [MODULES/Audit.md](./MODULES/Audit.md).
 
 ## Sequences
 
@@ -204,15 +199,16 @@ Written today from `AccountServiceImpl.deposit()` via
     CREATE SEQUENCE IF NOT EXISTS account_ordinal_seq
     START WITH 1 INCREMENT BY 1;
 
-Used by `AccountRepository.getNextOrdinal()`.
+Used by `AccountRepository.getNextOrdinal()`. Also Hibernate sequences
+for users/roles/transfer_request/beneficiary.
 
 ## Not present (planned)
 
-No tables yet for: `branch`, `loan` product, `audit_event`,
-`beneficiary`. Ledger table `bank_transaction` is present.
+No tables yet for: `branch` master, `loan` product, outbox (learning
+plan), rate-limit store (Redis), shard metadata.
 
 ## Migration notes
 
 Changing entity fields with `ddl-auto=update` alters tables in place.
 For production-ready history, replace with Flyway/Liquibase (see
-EXTENSION_GUIDE).
+EXTENSION_GUIDE and TECH_LEARNING_PLAN).

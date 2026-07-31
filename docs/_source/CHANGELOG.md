@@ -4,6 +4,18 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-07-31 — Docs sync + technical learning plan
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Full learning roadmap doc; sync product docs with current code |
+| **Files Modified** | `docs/_source/TECH_LEARNING_PLAN.md` (new); `README`, `FUNCTIONAL_SPECIFICATION`, `API_DOCUMENTATION`, `DATABASE_SCHEMA`, `ARCHITECTURE`, `EXTENSION_GUIDE`, `TECH_STACK`, `MODULES/Audit`, `MODULES/Reports`, `MODULES/Portal` (new), `CHANGELOG` |
+| **Classes / APIs covered** | Audit event trail + backfill; portal/beneficiaries/approvals; reports+PDF; multi-role staff; logout audit |
+| **Reason** | User asked to include all learning topics in the plan and update docs to current functionality |
+| **Impact** | Docs distinguish implemented vs planned; learning track separate from deferred hardening |
+
+---
+
 ## 2026-07-26 — Interview follow-up answers
 
 | Field | Value |

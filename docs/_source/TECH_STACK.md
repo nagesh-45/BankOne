@@ -5,7 +5,7 @@ whenever dependencies, runtimes, or tooling change** (add, upgrade,
 remove, or replace). Source of truth for versions: `BankOne-BackEnd/pom.xml`
 and `BankOne-Frontend/package.json`.
 
-Last reviewed: 2026-07-25
+Last reviewed: 2026-07-31
 
 ## At a glance
 
@@ -18,9 +18,12 @@ Last reviewed: 2026-07-25
   Messaging            Apache Kafka (local Docker / Aiven on Render)
   Email                Mailpit (local SMTP) · Twilio SendGrid HTTPS (Render)
   Auth                 Spring Security · JWT (JJWT)
+  Reporting            Chart.js (UI) · OpenPDF (server PDF)
+  Audit                `audit_event` activity trail + backfill
   Deploy (primary)     Open Liberty (`:9080` / `:9443`, JDWP `:7777`)
   Deploy (cloud)       Render (Docker `-Pdocker`) · Netlify (Angular)
   Docs tooling         Pandoc · Google Chrome (PDF) · python-docx
+  Learning roadmap     [TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md)
   -----------------------------------------------------------------------
 
 ## Backend (`BankOne-BackEnd/`)

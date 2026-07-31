@@ -81,6 +81,10 @@ API base used by the UI:
 
   [INTERVIEW_QA.md](./INTERVIEW_QA.md)                           Interview questions and
                                                                   answers from codebase
+
+  [TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md)               Platform engineering learning
+                                                                  roadmap (rate limit, cache,
+                                                                  idempotency, sharding lab, …)
   -------------------------------------------------------------------------------------------
 
 ### Modules
@@ -98,10 +102,20 @@ API base used by the UI:
                                                  (Kafka → email)
 
   Employee               Implemented            [MODULES/Employee.md](./MODULES/Employee.md)
+                                                 (multi-role staff)
 
-  Transaction            Partial                [MODULES/Transaction.md](./MODULES/Transaction.md)
-                                                 (ledger via deposit/
-                                                 withdraw/transfer)
+  Transaction            Implemented            [MODULES/Transaction.md](./MODULES/Transaction.md)
+                                                 (ledger + staff list UI)
+
+  Portal & approvals     Implemented            [MODULES/Portal.md](./MODULES/Portal.md)
+                                                 (beneficiaries, pending
+                                                 transfers)
+
+  Reports                Implemented            [MODULES/Reports.md](./MODULES/Reports.md)
+                                                 (charts + PDF)
+
+  Audit                  Implemented            [MODULES/Audit.md](./MODULES/Audit.md)
+                                                 (event trail + backfill)
 
   Branch                 Not implemented        [MODULES/Branch.md](./MODULES/Branch.md)
                          (branch code string    
@@ -110,10 +124,6 @@ API base used by the UI:
   Loan                   Partial                [MODULES/Loan.md](./MODULES/Loan.md)
                          (`AccountType.LOAN`    
                          only)                  
-
-  Reports                Stub                   [MODULES/Reports.md](./MODULES/Reports.md)
-
-  Audit                  Partial infra only     [MODULES/Audit.md](./MODULES/Audit.md)
   --------------------------------------------------------------------------------------------------------
 
 ## Documentation ownership rule

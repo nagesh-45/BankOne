@@ -2,34 +2,37 @@
 
 ## 1. Feature Overview
 
-Staff authentication via username/password, JWT bearer tokens, profile
-retrieval, and password change. Roles loaded from DB on each request.
+Staff and portal authentication via username/password, JWT bearer tokens,
+profile retrieval, password change, and logout (audit). Roles + `ACCESS_*`
+authorities loaded from DB (union of assigned roles).
 
 **Status:** Implemented
 
 ## 2. Business Purpose
 
-Protect banking APIs and the Angular staff portal. Support lockout after
-failed logins and role-based access for customers, accounts, and
-employees.
+Protect banking APIs and the Angular **staff** and **customer portal**
+apps. Support lockout after failed logins and authority-based access.
 
 ## 3. User Workflow
 
 1.  Open `/` login page
 2.  Enter credentials (optional remember-me)
-3.  Receive JWT; land on `/app/dashboard`
+3.  Receive JWT; staff → `/app/dashboard`, portal-only → `/portal/accounts`
 4.  Profile at `/app/profile`; change password at
     `/app/profile/password`
-5.  401 from API → interceptor clears session → login
+5.  Logout calls `POST /auth/logout` then clears session
+6.  401 from API → interceptor clears session → login
 
 ## 4. Execution Flow
 
 See [CALL_FLOW.md](../CALL_FLOW.md#login) and
 [SEQUENCE_DIAGRAMS.md](../SEQUENCE_DIAGRAMS.md#login).
+Login success/failure and logout write `audit_event` (AUTH).
 
 ## 5. Database Tables
 
-`users`, `roles`, `user_roles` (lock/failed-attempt fields on `users`).
+`users`, `roles`, `user_roles`, `role_access` (lock/failed-attempt
+fields on `users`; optional `customer_id` for portal).
 
 ## 6. REST APIs
 
@@ -37,6 +40,8 @@ See [CALL_FLOW.md](../CALL_FLOW.md#login) and
   Method               Path                 Auth
   -------------------- -------------------- --------------------
   POST                 `/auth/login`        Public
+
+  POST                 `/auth/logout`       Authenticated
 
   GET                  `/auth/me`           Authenticated
 

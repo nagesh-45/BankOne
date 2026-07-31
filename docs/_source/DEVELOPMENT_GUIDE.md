@@ -127,7 +127,15 @@ sync still applies when code lands.
 
 ## Suggested next build slices
 
-1.  Notify both parties on transfer; Kafka outbox
-2.  Real customer portal / statement PDF
-3.  Deferred hardening list (security / validation)
-4.  Status transition rules / maker--checker
+Product / hardening (separate lists):
+
+1.  Deferred hardening (`.cursor/rules/deferred-hardening.mdc`)
+2.  Portal own-account move; other-bank settlement
+3.  Dashboard today-transaction count
+4.  Notify both parties on transfer
+
+Platform learning (full roadmap):
+
+See [TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md) — rate limiting,
+idempotency, circuit breaker, cache, outbox, Flyway, observability,
+sharding lab, etc.

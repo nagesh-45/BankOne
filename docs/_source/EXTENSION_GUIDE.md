@@ -63,19 +63,24 @@ Target: Flyway/Liquibase migrations under
   ------------------------------------------------------------------------
   Module        Package                     Suggested first slice
   ------------- --------------------------- ------------------------------
-  Transaction   `com.bankone.transaction`   Dashboard `todayTransactionCount`;
-  (Partial)                                 beneficiary-linked transfers
+  Branch        (none)                      Branch master table + validate
+                                            `branchCode`
 
-  Notification  `com.bankone.notification`  Notify both transfer parties;
-  (Implemented)                             transactional outbox
+  Loan          `AccountType.LOAN` only     Loan product / policy seed
 
-  Report        `com.bankone.report`        Daily deposits summary
-
-  Audit         `com.bankone.audit`         Persist security/business
-                                            events
-
-  Beneficiary   `com.bankone.beneficiary`   Payee CRUD for transfers
+  Notification  `com.bankone.notification`  Outbox + DLQ (learning plan);
+  (Implemented)                             notify both transfer parties
   ------------------------------------------------------------------------
+
+## Platform learning (not product stubs)
+
+See [TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md) for rate limiting,
+caching, circuit breaker, idempotency, outbox, versioning, sharding lab,
+observability, Flyway, etc. Implement one topic per session; update that
+doc’s status column + CHANGELOG.
+
+Already landed product modules (extend carefully): `transaction`,
+`report`, `audit`, `beneficiary`, `transfer`, `portal`.
 
 ## Documentation template for new features
 

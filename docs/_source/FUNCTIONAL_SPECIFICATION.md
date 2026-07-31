@@ -16,14 +16,17 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
   Change password       Implemented          Min 8 chars; confirm
                                              match
 
+  Logout (API + audit)  Implemented          `POST /auth/logout`
+                                             records AUTH LOGOUT
+
   Remember-me (local vs Implemented          Frontend
   session storage)                           
 
   Failed-attempt        Implemented          `LoginAttemptService`
   lockout                                    
 
-  Role-based route      Implemented          Angular `authGuard`
-  guards                                     
+  Role-based route      Implemented          Angular `authGuard` /
+  guards                                     `portalGuard`
   ------------------------------------------------------------------
 
 ## 2. Dashboard
@@ -111,14 +114,16 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
   ------------------------------------------------------------
   Capability                 Status            Notes
   -------------------------- ----------------- ---------------
-  List / create / update     Implemented       ADMIN
-  employees                                    
+  List / create / update     Implemented       ADMIN; multi-role
+  employees                                    assignment
+                                               (`roleNames`)
 
-  Role assignment            Implemented       Seeded roles
-                                               include unused
-                                               TELLER /
-                                               AUDITOR /
-                                               CUSTOMER
+  Role CRUD + access codes   Implemented       `/roles`; union of
+                                               role authorities at
+                                               login
+
+  Account policies UI        Implemented       Management card;
+                                               ADMIN/MANAGER edit
   ------------------------------------------------------------
 
 ## 6. Branch
@@ -152,21 +157,39 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
   --------------------------------------------------------------
   Capability           Status               Notes
   -------------------- -------------------- --------------------
-  Transaction ledger   Partial              Write on deposit /
+  Transaction ledger   Implemented          Write on deposit /
   entity/API                                withdraw / transfer /
-                                            opening; list + account-
-                                            detail UI; dashboard
-                                            count still stub
+                                            opening; staff
+                                            `/transactions` UI;
+                                            account-detail UI;
+                                            dashboard today-count
+                                            still stub
 
-  Reports              Stub                 Empty `report`
-                                            package; sidebar
-                                            placeholder
+  Reports (charts +    Implemented          Trends, account mix,
+  PDF)                                      approvals; OpenPDF
 
-  Beneficiaries        Stub                 Empty `beneficiary`
-                                            package
+  Beneficiaries        Implemented          Portal CRUD
   --------------------------------------------------------------
 
-## 9. Notifications
+## 9. Customer portal & approvals
+
+  ----------------------------------------------------------------
+  Capability                 Status            Notes
+  -------------------------- ----------------- -------------------
+  Portal accounts / txn      Implemented       `/portal/*`
+  list                                         
+
+  Portal transfer            Implemented       Immediate or
+                                               pending approval
+
+  Transfer approval          Implemented       Staff queue + my
+  workflow                                     history
+
+  Transfer approval          Implemented       
+  threshold on customer                        
+  ----------------------------------------------------------------
+
+## 10. Notifications
 
   ----------------------------------------------------------------
   Capability                 Status            Notes
@@ -180,9 +203,10 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
 
   Local Mailpit / Render     Implemented       See
   SendGrid HTTPS                               MODULES/Notification.md
+                                               (`APP_KAFKA_ENABLED`)
   ----------------------------------------------------------------
 
-## 10. Audit
+## 11. Audit
 
   ----------------------------------------------------------------
   Capability                 Status            Notes
@@ -190,8 +214,13 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
   JPA created/updated by     Partial           `AuditableEntity`
   fields                                       on some entities
 
-  Audit event API / UI       Stub              Empty `audit`
-                                               package
+  Activity event trail API   Implemented       Categories incl.
+  / UI                                         AUTH login/logout
+
+  Transfer approval audit    Implemented       
+  history                                      
+
+  Historical backfill        Implemented       Admin; idempotent
   ----------------------------------------------------------------
 
 ## Non-functional (current)
@@ -202,8 +231,8 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
   AuthN                          JWT HMAC, 1h expiry
                                  (`jwt.expiration`)
 
-  AuthZ                          Role matchers in
-                                 `SecurityConfig`
+  AuthZ                          Role + `ACCESS_*` authorities
+                                 (`AppAccess` / `SecurityConfig`)
 
   CORS                           localhost, bankone.local,
                                  192.168.0.4
@@ -216,7 +245,12 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
 
   Messaging                      Kafka (optional via
                                  `APP_KAFKA_ENABLED`)
+
+  Learning roadmap               See TECH_LEARNING_PLAN.md
+                                 (rate limit, cache, outbox, …)
   -------------------------------------------------------------
 
 Deferred hardening items are tracked in
 `.cursor/rules/deferred-hardening.mdc`.
+Platform learning topics (not the same as hardening) are tracked in
+[TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md).

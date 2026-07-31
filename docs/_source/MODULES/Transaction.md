@@ -5,11 +5,11 @@
 Immutable ledger of credits/debits (including transfers). Package
 `com.bankone.transaction`: entity, repository, `TransactionService.record`,
 **CREDIT** on deposit and opening deposit, **DEBIT** on withdraw,
-**DEBIT+CREDIT** on transfer, and `GET /accounts/{accountId}/transactions`
-(paged). Account detail UI shows the ledger for an account.
+**DEBIT+CREDIT** on transfer, `GET /accounts/{accountId}/transactions`
+(paged), and staff **`GET /transactions`** (global search UI).
 
-**Status:** Partial (write paths + list API + account-detail UI;
-dashboard `todayTransactionCount` still stub; no standalone Transactions nav)
+**Status:** Implemented (write paths + account ledger UI + staff
+Transactions screen). Dashboard `todayTransactionCount` still stub.
 
 ## 2. Business Purpose
 
@@ -18,9 +18,11 @@ Provide audit-grade money movement history, feed reports/dashboard.
 ## 3. User Workflow
 
 Implemented paths: Accounts list → Deposit / Withdraw / **Transfer**;
-open account / customer create with openingDeposit > 0 → CREDIT with narration "Opening deposit".
+open account / customer create with openingDeposit > 0 → CREDIT with
+narration "Opening deposit"; sidebar **Transactions**; Reports trends
+read the same ledger.
 
-Still planned: beneficiaries; sidebar Transactions route (nav stub today).
+Portal transfers also post via `AccountService.transfer` when executed.
 
 ## 4. Execution Flow
 
