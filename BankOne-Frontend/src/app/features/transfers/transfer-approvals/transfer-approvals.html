@@ -43,10 +43,19 @@
                 <td>{{ item.amount | currency: 'INR' }}</td>
                 <td>{{ item.approvalReason }}</td>
                 <td class="actions">
-                  <button mat-flat-button color="primary" type="button" (click)="approve(item.transferRequestId)">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    data-testid="transfer-approve-btn"
+                    (click)="approve(item.transferRequestId)">
                     Approve
                   </button>
-                  <button mat-stroked-button type="button" (click)="reject(item.transferRequestId)">
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    data-testid="transfer-reject-btn"
+                    (click)="reject(item.transferRequestId)">
                     Reject
                   </button>
                 </td>

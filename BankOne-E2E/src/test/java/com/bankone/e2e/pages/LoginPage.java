@@ -33,6 +33,9 @@ public class LoginPage {
         driver.findElement(PASSWORD).clear();
         driver.findElement(PASSWORD).sendKeys(password);
         driver.findElement(SUBMIT).click();
-        wait.until(ExpectedConditions.urlContains("/app/"));
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.urlContains("/app/"),
+                ExpectedConditions.urlContains("/portal/")
+        ));
     }
 }

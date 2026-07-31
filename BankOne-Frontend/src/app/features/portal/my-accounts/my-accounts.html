@@ -5,7 +5,7 @@
       <p>Balances and details for accounts linked to your customer profile.</p>
     </div>
     @if (accounts().length > 0) {
-      <button mat-flat-button color="primary" type="button" (click)="openTransfer()">
+      <button mat-flat-button color="primary" type="button" data-testid="portal-transfer-btn" (click)="openTransfer()">
         <mat-icon>swap_horiz</mat-icon>
         Transfer
       </button>

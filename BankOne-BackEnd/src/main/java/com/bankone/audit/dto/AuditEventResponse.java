@@ -11,6 +11,8 @@ public class AuditEventResponse {
     private String action;
     private String actorUsername;
     private Long actorUserId;
+    /** Human-readable name, e.g. "System Administrator (admin)". */
+    private String actorDisplayName;
     private String targetType;
     private String targetId;
     private String summary;
@@ -56,6 +58,14 @@ public class AuditEventResponse {
 
     public void setActorUserId(Long actorUserId) {
         this.actorUserId = actorUserId;
+    }
+
+    public String getActorDisplayName() {
+        return actorDisplayName;
+    }
+
+    public void setActorDisplayName(String actorDisplayName) {
+        this.actorDisplayName = actorDisplayName;
     }
 
     public String getTargetType() {

@@ -108,6 +108,7 @@
 
       <div class="portal-section">
         <mat-checkbox
+          data-testid="create-portal-login-checkbox"
           [checked]="createPortalLogin"
           (change)="onCreatePortalToggle($event.checked)">
           Create customer portal login
@@ -176,7 +177,7 @@
 
   <mat-dialog-actions align="end">
     <button mat-button type="button" (click)="close()">Done</button>
-    <button mat-flat-button color="primary" type="button" (click)="viewCustomer()">
+    <button mat-flat-button color="primary" type="button" (click)="viewCustomer()" data-testid="customer-created-view">
       <mat-icon>visibility</mat-icon>
       View
     </button>

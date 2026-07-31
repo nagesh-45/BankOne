@@ -51,6 +51,7 @@
     mat-flat-button
     color="primary"
     type="button"
+    data-testid="withdraw-submit"
     (click)="submit()"
     [disabled]="saving()">
     {{ saving() ? 'Withdrawing...' : 'Withdraw' }}

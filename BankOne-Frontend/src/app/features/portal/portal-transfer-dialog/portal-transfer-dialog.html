@@ -60,6 +60,7 @@
     mat-flat-button
     color="primary"
     type="button"
+    data-testid="portal-transfer-submit"
     (click)="save()"
     [disabled]="saving()">
     {{ saving() ? 'Submitting...' : 'Transfer' }}
