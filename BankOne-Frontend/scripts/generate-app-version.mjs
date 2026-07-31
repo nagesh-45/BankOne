@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Writes src/environments/version.generated.ts from git / CI.
- * Format: <branch>@<digits>  e.g. main@142
+ * Format: <branch>-<digits>  e.g. main-142
  * Commit part is digits-only (git commit count), not the hex SHA.
  */
 import { execSync } from 'node:child_process';
@@ -104,7 +104,7 @@ function resolveVersion() {
 
   const branch = resolveBranch();
   const commit = resolveCommit();
-  return `${branch}@${commit}`;
+  return `${branch}-${commit}`;
 }
 
 const version = resolveVersion();
