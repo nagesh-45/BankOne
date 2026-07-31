@@ -37,6 +37,24 @@
   flex: 1;
 }
 
+.app-version {
+  margin-right: 8px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  background: rgba(201, 162, 39, 0.14);
+  color: #f5e6b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1.2;
+  max-width: min(280px, 36vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .system-time {
   margin-right: 8px;
   padding: 4px 10px;
@@ -54,6 +72,10 @@
 @media (max-width: 720px) {
   .system-time {
     display: none;
+  }
+
+  .app-version {
+    max-width: 42vw;
   }
 }
 

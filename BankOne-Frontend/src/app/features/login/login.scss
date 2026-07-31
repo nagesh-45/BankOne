@@ -42,10 +42,24 @@ mat-checkbox {
 }
 
 .release-version {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
+  padding: 8px 12px;
   text-align: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0b1f3a;
   letter-spacing: 0.02em;
+  border-radius: 8px;
+  background: rgba(11, 31, 58, 0.08);
+  word-break: break-all;
+}
+
+.release-version__label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
 }

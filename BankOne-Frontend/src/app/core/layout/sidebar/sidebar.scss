@@ -120,22 +120,27 @@ a[mat-list-item]:hover {
 
 .sidebar-footer {
   margin-top: auto;
-  padding: 8px 12px 4px;
+  padding: 8px 8px 4px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .version-label {
-  display: inline-block;
+  display: block;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  color: rgba(248, 250, 252, 0.55);
-  white-space: nowrap;
+  color: #f5e6b8;
+  word-break: break-all;
+  line-height: 1.25;
 }
 
 .version-label.collapsed {
   font-size: 9px;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar.expanded .toggle-wrap {

@@ -10,6 +10,7 @@ import { interval, map, startWith } from 'rxjs';
 import { Auth } from '../../services/auth';
 import { Notification } from '../../services/notification';
 import { BrandLogo } from '../../../shared/components/brand-logo/brand-logo';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-header',
@@ -32,6 +33,7 @@ export class Header {
 
   @Input() sidebarExpanded = false;
 
+  readonly appVersion = environment.appVersion;
   readonly displayName = this.auth.getDisplayName();
 
   private readonly dateTimeFormatter = new Intl.DateTimeFormat(undefined, {

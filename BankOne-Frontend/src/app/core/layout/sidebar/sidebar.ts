@@ -28,6 +28,10 @@ export class Sidebar {
   private readonly auth = inject(Auth);
 
   readonly appVersion = environment.appVersion;
+  /** Collapsed rail is only ~72px — show commit SHA only. */
+  readonly shortVersion = this.appVersion.includes('@')
+    ? this.appVersion.slice(this.appVersion.lastIndexOf('@') + 1)
+    : this.appVersion;
 
   @Input() expanded = false;
   @Output() expandedChange = new EventEmitter<boolean>();
