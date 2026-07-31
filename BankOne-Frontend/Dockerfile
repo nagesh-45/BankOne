@@ -5,6 +5,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 ARG API_BASE_URL=http://localhost:8080
+ARG APP_VERSION=
+ENV APP_VERSION=$APP_VERSION
 RUN sed -i "s|apiBaseUrl: '[^']*'|apiBaseUrl: '${API_BASE_URL}'|g" \
     src/environments/environment.prod.ts \
   && npm run build -- --configuration=production
