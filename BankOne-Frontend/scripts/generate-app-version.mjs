@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
- * Writes src/environments/version.generated.ts from git (or CI env).
- * Prefer: git describe --tags --always
- * Fallback: short COMMIT_REF / CI SHA / "dev"
+ * Writes src/environments/version.generated.ts from git / CI.
+ * Format: <branch>@<short-sha>  e.g. deploy/prod@7c85cad
  */
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -12,39 +11,67 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendRoot = path.join(__dirname, '..');
 const outFile = path.join(frontendRoot, 'src', 'environments', 'version.generated.ts');
+const gitRoots = [frontendRoot, path.join(frontendRoot, '..'), process.cwd()];
 
-function tryGit(cwd) {
+function git(cmd, cwd) {
   try {
-    return execSync('git describe --tags --always --dirty', {
+    return execSync(cmd, {
       cwd,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore']
     }).trim();
   } catch {
-    try {
-      return execSync('git rev-parse --short HEAD', {
-        cwd,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'ignore']
-      }).trim();
-    } catch {
-      return null;
-    }
+    return null;
   }
 }
 
-function resolveVersion() {
-  if (process.env.APP_VERSION && process.env.APP_VERSION.trim()) {
-    return process.env.APP_VERSION.trim();
+function firstGit(cmd) {
+  for (const root of gitRoots) {
+    const value = git(cmd, root);
+    if (value) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function resolveBranch() {
+  const fromEnv = (
+    process.env.BRANCH ||
+    process.env.HEAD_REF ||
+    process.env.GITHUB_REF_NAME ||
+    process.env.RENDER_GIT_BRANCH ||
+    process.env.CF_PAGES_BRANCH ||
+    ''
+  ).trim();
+  if (fromEnv && fromEnv !== 'HEAD') {
+    return fromEnv;
   }
 
-  const fromGit =
-    tryGit(frontendRoot) ||
-    tryGit(path.join(frontendRoot, '..')) ||
-    tryGit(process.cwd());
+  const ref = firstGit('git rev-parse --abbrev-ref HEAD');
+  if (ref && ref !== 'HEAD') {
+    return ref;
+  }
 
-  if (fromGit) {
-    return fromGit;
+  // Detached HEAD: try remote-tracking branch for this commit
+  const describe = firstGit('git name-rev --name-only --exclude=tags/* HEAD');
+  if (describe && describe !== 'undefined') {
+    return describe.replace(/~\d+$/, '').replace(/^remotes\/origin\//, '');
+  }
+
+  return 'unknown';
+}
+
+function resolveCommit() {
+  if (process.env.APP_VERSION && process.env.APP_VERSION.trim()) {
+    // Allow full override as the whole label if set
+    return null;
+  }
+
+  const short = firstGit('git rev-parse --short HEAD');
+  if (short) {
+    const dirty = firstGit('git status --porcelain');
+    return dirty ? `${short}-dirty` : short;
   }
 
   const ciSha =
@@ -59,6 +86,16 @@ function resolveVersion() {
   }
 
   return 'dev';
+}
+
+function resolveVersion() {
+  if (process.env.APP_VERSION && process.env.APP_VERSION.trim()) {
+    return process.env.APP_VERSION.trim();
+  }
+
+  const branch = resolveBranch();
+  const commit = resolveCommit();
+  return `${branch}@${commit}`;
 }
 
 const version = resolveVersion();
