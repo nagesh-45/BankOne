@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Writes src/environments/version.generated.ts from git / CI.
- * Format: <branch>@<short-sha>  e.g. deploy/prod@7c85cad
+ * Format: <branch>@<digits>  e.g. main@142
+ * Commit part is digits-only (git commit count), not the hex SHA.
  */
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -62,30 +63,38 @@ function resolveBranch() {
   return 'unknown';
 }
 
+function digitsOnly(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  return digits || null;
+}
+
 function resolveCommit() {
   if (process.env.APP_VERSION && process.env.APP_VERSION.trim()) {
     // Allow full override as the whole label if set
     return null;
   }
 
-  const short = firstGit('git rev-parse --short HEAD');
-  if (short) {
-    const dirty = firstGit('git status --porcelain');
-    return dirty ? `${short}-dirty` : short;
+  // Prefer commit ordinal (0-9 only). Works when full history is available.
+  const count = firstGit('git rev-list --count HEAD');
+  if (count && /^\d+$/.test(count)) {
+    return count;
   }
 
-  const ciSha =
-    process.env.COMMIT_REF ||
-    process.env.GITHUB_SHA ||
-    process.env.RENDER_GIT_COMMIT ||
-    process.env.CF_PAGES_COMMIT_SHA ||
-    '';
+  // Shallow CI clone fallback: turn short hex SHA into a decimal number.
+  const short =
+    firstGit('git rev-parse --short=7 HEAD') ||
+    (process.env.COMMIT_REF ||
+      process.env.GITHUB_SHA ||
+      process.env.RENDER_GIT_COMMIT ||
+      process.env.CF_PAGES_COMMIT_SHA ||
+      ''
+    ).trim().slice(0, 7);
 
-  if (ciSha.trim()) {
-    return ciSha.trim().slice(0, 7);
+  if (short && /^[0-9a-f]+$/i.test(short)) {
+    return String(parseInt(short, 16));
   }
 
-  return 'dev';
+  return digitsOnly(process.env.BUILD_NUMBER || process.env.GITHUB_RUN_NUMBER) || '0';
 }
 
 function resolveVersion() {
