@@ -122,7 +122,21 @@
                 <td>{{ event.createdAt | date: 'medium' }}</td>
                 <td><span class="cat-chip">{{ event.category }}</span></td>
                 <td class="action">{{ event.action }}</td>
-                <td class="who">{{ event.actorUsername || '—' }}</td>
+                <td class="who">
+                  @if (event.actorDisplayName || event.actorUsername) {
+                    <span>{{ event.actorDisplayName || event.actorUsername }}</span>
+                    @if (
+                      event.actorDisplayName
+                      && event.actorUsername
+                      && event.actorDisplayName !== event.actorUsername
+                      && !event.actorDisplayName.includes('(' + event.actorUsername + ')')
+                    ) {
+                      <small>{{ event.actorUsername }}</small>
+                    }
+                  } @else {
+                    <span class="muted">Unknown</span>
+                  }
+                </td>
                 <td>
                   {{ event.summary }}
                   @if (event.details) {

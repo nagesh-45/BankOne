@@ -5,6 +5,8 @@ import com.bankone.audit.dto.AuditEventResponse;
 import com.bankone.audit.entity.AuditEventEntity;
 import com.bankone.audit.repository.AuditEventRepository;
 import com.bankone.auth.security.BankUserDetails;
+import com.bankone.user.entity.User;
+import com.bankone.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -22,9 +24,11 @@ public class AuditEventService {
     private static final Logger log = LoggerFactory.getLogger(AuditEventService.class);
 
     private final AuditEventRepository auditEventRepository;
+    private final UserRepository userRepository;
 
-    public AuditEventService(AuditEventRepository auditEventRepository) {
+    public AuditEventService(AuditEventRepository auditEventRepository, UserRepository userRepository) {
         this.auditEventRepository = auditEventRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -45,7 +49,7 @@ public class AuditEventService {
             AuditEventEntity event = new AuditEventEntity();
             event.setCategory(category);
             event.setAction(action);
-            event.setActorUsername(actor.username());
+            event.setActorUsername(actor.username() != null ? actor.username() : "system");
             event.setActorUserId(actor.userId());
             event.setTargetType(targetType);
             event.setTargetId(targetId);
@@ -74,7 +78,8 @@ public class AuditEventService {
             AuditEventEntity event = new AuditEventEntity();
             event.setCategory(category);
             event.setAction(action);
-            event.setActorUsername(actorUsername);
+            event.setActorUsername(
+                    actorUsername != null && !actorUsername.isBlank() ? actorUsername.trim() : "system");
             event.setActorUserId(actorUserId);
             event.setTargetType(targetType);
             event.setTargetId(targetId);
@@ -109,8 +114,6 @@ public class AuditEventService {
         AuditEventResponse r = new AuditEventResponse();
         r.setId(e.getId());
         r.setCategory(e.getCategory());
-        r.setAction(e.getAction());
-        r.setActorUsername(e.getActorUsername());
         r.setActorUserId(e.getActorUserId());
         r.setTargetType(e.getTargetType());
         r.setTargetId(e.getTargetId());
@@ -118,7 +121,43 @@ public class AuditEventService {
         r.setDetails(e.getDetails());
         r.setSuccess(e.isSuccess());
         r.setCreatedAt(e.getCreatedAt());
+        r.setAction(e.getAction());
+
+        String username = blankToNull(e.getActorUsername());
+        User user = resolveUser(e.getActorUserId(), username);
+        if (user != null) {
+            username = user.getUsername();
+            r.setActorUsername(username);
+            r.setActorUserId(user.getUserId());
+            r.setActorDisplayName(formatDisplayName(user));
+        } else if (username != null) {
+            r.setActorUsername(username);
+            r.setActorDisplayName(username);
+        } else {
+            r.setActorUsername(null);
+            r.setActorDisplayName(null);
+        }
         return r;
+    }
+
+    private User resolveUser(Long userId, String username) {
+        if (userId != null) {
+            return userRepository.findById(userId).orElse(null);
+        }
+        if (username != null) {
+            return userRepository.findByUsername(username).orElse(null);
+        }
+        return null;
+    }
+
+    private static String formatDisplayName(User user) {
+        String first = user.getFirstName() == null ? "" : user.getFirstName().trim();
+        String last = user.getLastName() == null ? "" : user.getLastName().trim();
+        String full = (first + " " + last).trim();
+        if (!full.isEmpty()) {
+            return full + " (" + user.getUsername() + ")";
+        }
+        return user.getUsername();
     }
 
     private Actor currentActor() {

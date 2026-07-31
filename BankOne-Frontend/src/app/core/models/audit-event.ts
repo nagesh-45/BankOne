@@ -14,6 +14,8 @@ export interface AuditEvent {
   action: string;
   actorUsername: string | null;
   actorUserId: number | null;
+  /** e.g. "System Administrator (admin)" */
+  actorDisplayName?: string | null;
   targetType: string | null;
   targetId: string | null;
   summary: string;

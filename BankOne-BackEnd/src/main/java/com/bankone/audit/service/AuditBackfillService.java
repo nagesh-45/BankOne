@@ -80,6 +80,11 @@ public class AuditBackfillService {
     }
 
     public AuditBackfillResult backfill() {
+        Integer repaired = txTemplate.execute(status ->
+                auditEventRepository.fillMissingActorUsernames("system"));
+        if (repaired != null && repaired > 0) {
+            log.info("Filled {} audit rows that had no actor username", repaired);
+        }
         Set<String> existing = loadExistingKeys();
         AuditBackfillResult result = new AuditBackfillResult();
         result.addInserted("customers", backfillCustomers(result, existing));
@@ -117,7 +122,7 @@ public class AuditBackfillService {
             AuditEventEntity event = build(
                     AuditCategory.CUSTOMER,
                     AuditAction.CUSTOMER_CREATE,
-                    null,
+                    "system",
                     "CUSTOMER",
                     String.valueOf(c.getCustomerId()),
                     "Customer created: " + safe(c.getFirstName()) + " " + safe(c.getLastName()),
@@ -426,7 +431,8 @@ public class AuditBackfillService {
         AuditEventEntity event = new AuditEventEntity();
         event.setCategory(category);
         event.setAction(action);
-        event.setActorUsername(blankToNull(actorUsername));
+        event.setActorUsername(
+                actorUsername != null && !actorUsername.isBlank() ? actorUsername.trim() : "system");
         event.setTargetType(targetType);
         event.setTargetId(targetId);
         event.setSummary(trim(summary, 500));

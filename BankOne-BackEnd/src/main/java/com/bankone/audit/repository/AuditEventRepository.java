@@ -5,12 +5,21 @@ import com.bankone.audit.entity.AuditEventEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface AuditEventRepository extends JpaRepository<AuditEventEntity, Long> {
 
     boolean existsByActionAndTargetTypeAndTargetId(String action, String targetType, String targetId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+            UPDATE AuditEventEntity e
+            SET e.actorUsername = :fallback
+            WHERE e.actorUsername IS NULL OR TRIM(e.actorUsername) = ''
+            """)
+    int fillMissingActorUsernames(@Param("fallback") String fallback);
 
     @Query("""
             SELECT e FROM AuditEventEntity e
