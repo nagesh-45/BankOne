@@ -155,6 +155,19 @@ If Docker build shows `CACHED` old WAR: **Clear build cache & deploy**.
 
 Do not commit real passwords. See `.env.example`.
 
+### Troubleshooting: `NoClassDefFoundError: ThrowableProxy` on Render
+
+This usually appears on an `http-nio-…-exec-*` thread when Tomcat tries to
+**log an error** and Logback’s file appender cannot use the container FS.
+
+Fix in repo: `logback-spring.xml` uses **console only** under `prod`
+(`SPRING_PROFILES_ACTIVE=prod`). Redeploy after pull; clear build cache if
+needed.
+
+Then scroll **above** that stack trace for the **real** root cause (often
+DB URL/credentials, Kafka, or a 500 from the app). The ThrowableProxy line
+is often a secondary logging failure, not the first bug.
+
 ---
 
 ## 5. What we added in the repo

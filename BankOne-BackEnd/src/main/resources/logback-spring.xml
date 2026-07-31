@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true">
-
-    <property name="LOG_PATH" value="${LOG_PATH:-./target/logs}"/>
+<!--
+  Use logback-spring.xml (not logback.xml) so springProfile works.
+  Render / Docker (profile=prod): console only — ephemeral FS + file appenders
+  have caused NoClassDefFoundError: ThrowableProxy when Tomcat logs errors.
+-->
+<configuration>
 
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -9,26 +12,40 @@
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/application.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/application.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
+    <!-- Local / Liberty: optional rolling file under LOG_PATH (default ./target/logs) -->
+    <springProfile name="!prod">
+        <property name="LOG_PATH" value="${LOG_PATH:-./target/logs}"/>
 
-    <!-- Default root logger -->
-    <root level="INFO">
-        <appender-ref ref="Console" />
-        <appender-ref ref="FILE" />
-    </root>
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/application.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/application.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>10MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
 
-    <!-- Override levels from properties or env vars -->
-    <logger name="org.hibernate.SQL" level="${HIBERNATE_SQL_LEVEL:-DEBUG}" />
-    <logger name="org.hibernate.orm.jdbc.bind" level="${HIBERNATE_BIND_LEVEL:-TRACE}" />
+        <root level="INFO">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="FILE"/>
+        </root>
+
+        <logger name="org.hibernate.SQL" level="${HIBERNATE_SQL_LEVEL:-DEBUG}"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="${HIBERNATE_BIND_LEVEL:-TRACE}"/>
+    </springProfile>
+
+    <!-- Cloud: stdout only (Render aggregates console logs) -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="Console"/>
+        </root>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="WARN"/>
+        <logger name="org.springframework.security" level="WARN"/>
+        <logger name="org.springframework.web" level="WARN"/>
+    </springProfile>
 
 </configuration>
