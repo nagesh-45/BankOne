@@ -17,6 +17,10 @@ services:
       - "5432:5432"
     volumes:
       - bankone_pg:/var/lib/postgresql/data
+      # Creates bankone_s0 / bankone_s1 on first empty volume only (see docker/postgres/init-shards.sql)
+      - ./docker/postgres/init-shards.sql:/docker-entrypoint-initdb.d/02-init-shards.sql:ro
+      # Creates bankone_read for primary/replica lab (see docker/postgres/init-replica.sql)
+      - ./docker/postgres/init-replica.sql:/docker-entrypoint-initdb.d/03-init-replica.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bankone_user} -d ${POSTGRES_DB:-bankone}"]
       interval: 5s

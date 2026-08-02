@@ -3,6 +3,7 @@ package com.bankone.role.service;
 import com.bankone.audit.domain.AuditAction;
 import com.bankone.audit.domain.AuditCategory;
 import com.bankone.audit.service.AuditEventService;
+import com.bankone.cache.CacheNames;
 import com.bankone.common.exception.BadRequestException;
 import com.bankone.common.exception.ConflictException;
 import com.bankone.common.exception.ResourceNotFoundException;
@@ -12,6 +13,8 @@ import com.bankone.role.dto.RoleResponse;
 import com.bankone.role.dto.UpdateRoleRequest;
 import com.bankone.role.entity.Role;
 import com.bankone.role.repository.RoleRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +42,7 @@ public class RoleService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ROLES, key = "'all'")
     public List<RoleResponse> listRoles() {
         return roleRepository.findAll().stream()
                 .sorted(Comparator.comparing(Role::getRoleName))
@@ -47,11 +51,13 @@ public class RoleService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ROLES, key = "'id:' + #roleId")
     public RoleResponse getRole(Long roleId) {
         return toResponse(findRole(roleId));
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.ROLES, allEntries = true)
     public RoleResponse createRole(CreateRoleRequest request) {
         String name = normalizeRoleName(request.getRoleName());
         if (roleRepository.findByRoleName(name).isPresent()) {
@@ -76,6 +82,7 @@ public class RoleService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.ROLES, allEntries = true)
     public RoleResponse updateRole(Long roleId, UpdateRoleRequest request) {
         Role role = findRole(roleId);
 

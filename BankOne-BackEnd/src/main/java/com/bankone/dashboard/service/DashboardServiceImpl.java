@@ -1,9 +1,11 @@
 package com.bankone.dashboard.service;
 
 import com.bankone.account.repository.AccountRepository;
+import com.bankone.cache.CacheNames;
 import com.bankone.customer.repository.CustomerRepository;
 import com.bankone.dashboard.dto.DashboardResponse;
 import com.bankone.user.repository.UserRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,6 +24,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @Cacheable(cacheNames = CacheNames.DASHBOARD, key = "'summary'")
     public DashboardResponse getDashboardSummary() {
 
         long customerCount = customerRepository.count();

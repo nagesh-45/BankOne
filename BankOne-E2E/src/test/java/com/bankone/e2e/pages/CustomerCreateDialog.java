@@ -1,8 +1,9 @@
 package com.bankone.e2e.pages;
 
+import com.bankone.e2e.support.DomHelpers;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -24,6 +25,7 @@ public class CustomerCreateDialog {
     public CustomerCreateDialog(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        DomHelpers.dismissViteErrorOverlay(driver);
         wait.until(ExpectedConditions.visibilityOfElementLocated(FIRST_NAME));
     }
 
@@ -33,26 +35,28 @@ public class CustomerCreateDialog {
             String email,
             String phone,
             String address) {
-        type(FIRST_NAME, firstName);
-        type(LAST_NAME, lastName);
-        type(EMAIL, email);
-        type(PHONE, phone);
-        type(ADDRESS, address);
+        DomHelpers.setAngularInput(driver, wait, FIRST_NAME, firstName);
+        DomHelpers.setAngularInput(driver, wait, LAST_NAME, lastName);
+        DomHelpers.setAngularInput(driver, wait, EMAIL, email);
+        DomHelpers.setAngularInput(driver, wait, PHONE, phone);
+        DomHelpers.setAngularInput(driver, wait, ADDRESS, address);
         return this;
     }
 
     public void submitAndWaitForSuccess() {
+        DomHelpers.dismissViteErrorOverlay(driver);
         wait.until(ExpectedConditions.elementToBeClickable(SUBMIT)).click();
-        wait.until(ExpectedConditions.visibilityOfElementLocated(CREATED_TITLE));
+        try {
+            wait.until(ExpectedConditions.visibilityOfElementLocated(CREATED_TITLE));
+        } catch (TimeoutException ex) {
+            String snack = DomHelpers.snackbarText(driver);
+            throw new TimeoutException(
+                    "Customer create did not reach success screen. Snackbar='" + snack + "'",
+                    ex);
+        }
     }
 
     public String successTitleText() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(CREATED_TITLE)).getText().trim();
-    }
-
-    private void type(By locator, String value) {
-        WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-        field.clear();
-        field.sendKeys(value);
     }
 }

@@ -137,3 +137,30 @@ sequenceDiagram
   F->>C: SecurityContext set
   C-->>UI: Response
 ```
+
+## Cached customer GET (cache-aside)
+
+```
+sequenceDiagram
+  actor Staff
+  participant UI as Angular
+  participant CC as CustomerController
+  participant CS as CustomerServiceImpl
+  participant Cache as RedisCache
+  participant Repo as CustomerRepository
+
+  Staff->>UI: open customer detail
+  UI->>CC: GET /customers/{id}
+  CC->>CS: getCustomerById (Cacheable)
+  CS->>Cache: lookup bankone:customers::id:{id}
+  alt cache hit
+    Cache-->>CS: Customer
+  else cache miss
+    CS->>Repo: findById
+    Repo-->>CS: Customer
+    CS->>Cache: put with TTL
+  end
+  CS-->>UI: Customer
+
+  Note over CS,Cache: On PUT/POST customer or money moves,<br/>CacheEvict clears related regions
+```

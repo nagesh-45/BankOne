@@ -20,9 +20,28 @@ Call hierarchies for implemented major flows. Paths are relative to
     JwtService.generateToken()
             ↓
     (LoginAttemptService on failure)
+            ↓
+    (optional RateLimitFilter before controller — Redis Bucket4j)
 
 Frontend: `AuthService.login()` → store token → navigate
 `/app/dashboard`.
+
+------------------------------------------------------------------------
+
+## Cached read (cache-aside)
+
+    CustomerController.getCustomer(id)   # example
+            ↓
+    CustomerServiceImpl.getCustomerById  (@Cacheable customers)
+            ↓
+    Redis lookup  bankone:customers::id:{id}
+            ├─ HIT  → return cached Customer
+            └─ MISS → CustomerRepository.findById
+                         ↓
+                       put Redis (TTL) → return
+
+Writes use `@CacheEvict` / `@Caching` so search/list pages are not
+stale. Full matrix: [MODULES/Caching.md](./MODULES/Caching.md).
 
 ------------------------------------------------------------------------
 

@@ -440,11 +440,20 @@ It calls `/auth/me`, then renders identity, status, and role information.
 It helps users confirm their recent access history.
 
 **138. Why is the dashboard cached?**  
-To avoid refetching summary data on every navigation.
+**API (Redis, local):** `DashboardServiceImpl` uses Spring `@Cacheable`
+(`dashboard` / `summary`, ~60s TTL) so summary counts are not counted
+from Postgres on every hit. Writes that change customers/accounts/users
+evict that region. See [MODULES/Caching.md](./MODULES/Caching.md).
+
+**UI:** the Angular dashboard may also avoid refetching on every
+navigation; logout clears the client session (and thus client-side
+cache).
 
 **139. When is dashboard cache cleared?**  
-On logout.
-
+**Redis:** on related `@CacheEvict` (customer/account/user money or
+master changes) or when the 60s TTL expires.  
+**UI:** on logout / session clear; user can also use refresh if the
+screen provides it.
 **140. Why does dashboard refresh exist?**  
 It forces a new fetch for the current summary.
 
@@ -791,7 +800,10 @@ Because Angular templates are easier to bind to signals than to manually subscri
 If you search while on page 7, the filtered dataset might only have 1 or 2 pages. Resetting to page 0 avoids empty or confusing results.
 
 **Q: Why is the dashboard cached?**  
-Dashboard counts are summary data and usually don’t need refetching on every navigation. Caching avoids unnecessary network calls, and a refresh button lets the user manually force a reload.
+Dashboard counts are summary data. BankOne caches them in **Redis**
+(cache-aside, short TTL) and the UI may avoid refetching on every
+navigation. Eviction / refresh keeps numbers honest after creates and
+money moves. Details: [MODULES/Caching.md](./MODULES/Caching.md).
 
 ### Deployment drill
 

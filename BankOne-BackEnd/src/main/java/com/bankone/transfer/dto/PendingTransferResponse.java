@@ -3,6 +3,7 @@ package com.bankone.transfer.dto;
 import com.bankone.beneficiary.enums.BeneficiaryBankType;
 import com.bankone.transfer.enums.TransferRequestStatus;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -26,5 +27,6 @@ public record PendingTransferResponse(
         String rejectionReason,
         LocalDateTime createdAt,
         LocalDateTime resolvedAt
-) {
+) implements Serializable {
+    private static final long serialVersionUID = 1L;
 }

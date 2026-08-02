@@ -205,7 +205,11 @@ for users/roles/transfer_request/beneficiary.
 ## Not present (planned)
 
 No tables yet for: `branch` master, `loan` product, outbox (learning
-plan), rate-limit store (Redis), shard metadata.
+plan), shard metadata tables.
+
+**Note:** Rate-limit and entity **cache** use **Redis** (not Postgres
+tables). Read-replica lab uses a second database `bankone_read`. See
+[MODULES/Caching.md](./MODULES/Caching.md) and ARCHITECTURE.
 
 ## Migration notes
 

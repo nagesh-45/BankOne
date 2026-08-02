@@ -6,6 +6,7 @@ import com.bankone.account.service.AccountService;
 import com.bankone.audit.domain.AuditAction;
 import com.bankone.audit.domain.AuditCategory;
 import com.bankone.audit.service.AuditEventService;
+import com.bankone.cache.CacheNames;
 import com.bankone.common.exception.BadRequestException;
 import com.bankone.common.exception.ConflictException;
 import com.bankone.common.exception.ResourceNotFoundException;
@@ -16,6 +17,9 @@ import com.bankone.customer.repository.CustomerRepository;
 import com.bankone.customer.specification.CustomerSpecification;
 import com.bankone.user.dto.CreateUserRequest;
 import com.bankone.user.service.UserService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,6 +48,12 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.CUSTOMERS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.ACCOUNTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.USERS, allEntries = true)
+    })
     public Customer createCustomer(CreateCustomerRequest request) {
         String email = request.getEmail() == null ? null : request.getEmail().trim();
         String phone = request.getPhoneNumber() == null ? null : request.getPhoneNumber().trim();
@@ -119,6 +129,8 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.CUSTOMERS, key = "'id:' + #customerId")
     public Customer getCustomerById(Long customerId) {
         return customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -126,11 +138,15 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.CUSTOMERS, key = "'all'")
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.CUSTOMERS, key = "'search:' + T(com.bankone.cache.CacheKeys).pageHash(#search, #pageable)")
     public Page<Customer> searchCustomers(String search, Pageable pageable) {
         return customerRepository.findAll(
                 CustomerSpecification.containsText(search),
@@ -140,6 +156,10 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.CUSTOMERS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true)
+    })
     public Customer updateCustomer(Long customerId, UpdateCustomerRequest request) {
         Customer existingCustomer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -179,6 +199,12 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.CUSTOMERS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.ACCOUNTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void deleteCustomer(Long customerId) {
         Customer existingCustomer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(

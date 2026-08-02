@@ -28,13 +28,18 @@ withdraw / transfer publishes a Kafka `BankActionEvent` and emails the
 
 ## Dashboard --- `/dashboard`
 
-  ---------------------------------------------------------------
-  Method          Path            Roles           Response
-  --------------- --------------- --------------- ---------------
+  -----------------------------------------------------------------------
+  Method          Path            Auth            Response
+  --------------- --------------- --------------- -----------------------
   GET             `/dashboard`    Authenticated   Dashboard
                                                   summary DTO
+  -----------------------------------------------------------------------
 
-  ---------------------------------------------------------------
+**Caching (local):** response may be served from Redis
+(`dashboard` / `summary`, ~60s TTL) when `app.cache.redis-enabled=true`.
+See [MODULES/Caching.md](./MODULES/Caching.md). Other major GET list /
+by-id APIs (customers, accounts, roles, …) use the same cache-aside
+pattern with per-region TTLs and write-time eviction.
 
 ## Customers --- `/customers`
 

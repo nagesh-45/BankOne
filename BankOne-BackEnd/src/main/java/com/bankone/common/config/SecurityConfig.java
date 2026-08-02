@@ -95,6 +95,10 @@ public class SecurityConfig {
                         .hasAuthority("ACCESS_PORTAL_ACCOUNTS")
                         .requestMatchers("/audit/**")
                         .hasAnyRole("ADMIN", "MANAGER", "AUDITOR")
+                        .requestMatchers("/admin/replica/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers("/lab/shards/**")
+                        .hasRole("ADMIN")
                         .requestMatchers("/transfer-approvals/**")
                         .hasAuthority("ACCESS_ACCOUNTS_WRITE")
                         .requestMatchers(HttpMethod.GET, "/account-policies/**")
@@ -178,7 +182,11 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(patterns);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("X-RateLimit-Remaining", "Retry-After"));
+        configuration.setExposedHeaders(List.of(
+                "X-RateLimit-Remaining",
+                "Retry-After",
+                "X-BankOne-Shard"
+        ));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

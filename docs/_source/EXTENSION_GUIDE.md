@@ -79,9 +79,16 @@ caching, circuit breaker, idempotency, outbox, versioning, sharding lab,
 observability, Flyway, etc. Implement one topic per session; update that
 doc’s status column + CHANGELOG.
 
+**Already landed (local labs):** Redis rate limit, Redis cache-aside
+([MODULES/Caching.md](./MODULES/Caching.md)), read-replica sync,
+shard-lab vertical slice.
+
 Already landed product modules (extend carefully): `transaction`,
 `report`, `audit`, `beneficiary`, `transfer`, `portal`.
 
+When adding a new **cached** read: mark DTO/`Page` types
+`Serializable`, add `@Cacheable` + eviction on writers, update
+`RedisCacheConfig` TTL if needed.
 ## Documentation template for new features
 
 Every new feature doc must include sections 1--20 listed in

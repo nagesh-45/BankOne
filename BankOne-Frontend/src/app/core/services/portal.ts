@@ -15,6 +15,12 @@ import {
 } from '../models/portal-transfer';
 import { Transaction } from '../models/transaction';
 
+export interface ReplicaSyncStatus {
+  lastSyncAt: string | null;
+  message: string;
+  rowCounts: Record<string, number>;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -110,6 +116,14 @@ export class PortalService {
       `${API_BASE_URL}/audit/backfill`,
       {}
     );
+  }
+
+  syncReadReplica(): Observable<ReplicaSyncStatus> {
+    return this.http.post<ReplicaSyncStatus>(`${API_BASE_URL}/admin/replica/sync`, {});
+  }
+
+  getReplicaSyncStatus(): Observable<ReplicaSyncStatus> {
+    return this.http.get<ReplicaSyncStatus>(`${API_BASE_URL}/admin/replica/status`);
   }
 
   approveTransfer(id: number): Observable<PendingTransfer> {

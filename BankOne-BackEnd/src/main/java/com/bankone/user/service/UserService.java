@@ -3,6 +3,7 @@ package com.bankone.user.service;
 import com.bankone.audit.domain.AuditAction;
 import com.bankone.audit.domain.AuditCategory;
 import com.bankone.audit.service.AuditEventService;
+import com.bankone.cache.CacheNames;
 import com.bankone.common.exception.BadRequestException;
 import com.bankone.common.exception.ConflictException;
 import com.bankone.common.exception.ResourceNotFoundException;
@@ -18,6 +19,9 @@ import com.bankone.user.entity.UserRole;
 import com.bankone.user.repository.UserRepository;
 import com.bankone.user.repository.UserRoleRepository;
 import com.bankone.user.specification.EmployeeSpecification;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -65,6 +69,10 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.USERS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true)
+    })
     public UserResponse createUser(CreateUserRequest request) {
         if (request.getUserType() == CreateUserRequest.UserType.CUSTOMER) {
             return createPortalCustomerUser(request);
@@ -176,6 +184,10 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.USERS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true)
+    })
     public UserResponse updateUser(Long userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + userId));
@@ -262,6 +274,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.USERS, key = "'employees:' + T(com.bankone.cache.CacheKeys).pageHash(#search, #pageable)")
     public Page<UserResponse> getEmployees(String search, Pageable pageable) {
         Page<User> users = userRepository.findAll(
                 EmployeeSpecification.matching(search),

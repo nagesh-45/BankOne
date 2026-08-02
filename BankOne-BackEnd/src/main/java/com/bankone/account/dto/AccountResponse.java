@@ -1,10 +1,13 @@
 package com.bankone.account.dto;
 
 import com.bankone.account.enums.AccountStatus;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class AccountResponse {
+public class AccountResponse implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Long accountId;
     private String accountNumber;

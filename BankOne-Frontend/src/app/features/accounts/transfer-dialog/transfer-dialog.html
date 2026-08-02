@@ -79,6 +79,7 @@
     mat-flat-button
     color="primary"
     type="button"
+    data-testid="transfer-submit"
     (click)="submit()"
     [disabled]="saving()">
     {{ saving() ? 'Transferring...' : 'Transfer' }}

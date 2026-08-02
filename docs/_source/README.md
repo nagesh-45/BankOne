@@ -29,6 +29,9 @@ change.
   Kafka + Mailpit    `docker compose up -d kafka mailpit`    Kafka `:9092` /
                                                              Mailpit UI `:8025`
 
+  Redis (local)      `docker compose up -d` (Redis service)  `:6379` —
+                                                             cache + rate limit
+
   Load-test seed     `psql … -f scripts/seed-loadtest-10k.sql` 10k LoadTest rows
 
   Backend (embedded  `mvn spring-boot:run`                   `http://localhost:8080`
@@ -116,6 +119,9 @@ API base used by the UI:
 
   Audit                  Implemented            [MODULES/Audit.md](./MODULES/Audit.md)
                                                  (event trail + backfill)
+
+  Caching (Redis)        Implemented (local)    [MODULES/Caching.md](./MODULES/Caching.md)
+                                                 (cache-aside; prod off)
 
   Branch                 Not implemented        [MODULES/Branch.md](./MODULES/Branch.md)
                          (branch code string    

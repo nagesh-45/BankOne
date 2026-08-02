@@ -2,11 +2,14 @@ package com.bankone.transaction.service;
 
 import com.bankone.account.entity.Account;
 import com.bankone.account.repository.AccountRepository;
+import com.bankone.cache.CacheNames;
 import com.bankone.customer.entity.Customer;
 import com.bankone.transaction.dto.TransactionResponse;
 import com.bankone.transaction.entity.Transaction;
 import com.bankone.transaction.enums.TransactionType;
 import com.bankone.transaction.repository.TransactionRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.TRANSACTIONS, allEntries = true)
     public Transaction record(
             Account account,
             TransactionType type,
@@ -64,6 +68,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.TRANSACTIONS, key = "'account:' + #accountId + ':' + T(com.bankone.cache.CacheKeys).pageHash(null, #pageable)")
     public Page<TransactionResponse> getByAccountId(Long accountId, Pageable pageable) {
         if (!accountRepository.existsById(accountId)) {
             throw new IllegalArgumentException("Account not found");
@@ -75,6 +80,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.TRANSACTIONS, key = "'staff:' + T(com.bankone.cache.CacheKeys).pageHash(#accountId, #type, #search, #pageable)")
     public Page<TransactionResponse> listAll(
             Long accountId,
             TransactionType type,

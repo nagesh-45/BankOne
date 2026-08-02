@@ -247,10 +247,12 @@ Status legend: **Implemented** · **Partial** · **Stub / Planned**
                                  `APP_KAFKA_ENABLED`)
 
   Learning roadmap               See TECH_LEARNING_PLAN.md
-                                 (rate limit, cache, outbox, …)
+                                 (rate limit + cache **local
+                                 implemented**; outbox, …)
   -------------------------------------------------------------
 
 Deferred hardening items are tracked in
 `.cursor/rules/deferred-hardening.mdc`.
 Platform learning topics (not the same as hardening) are tracked in
-[TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md).
+[TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md). Redis cache-aside how-it-works:
+[MODULES/Caching.md](./MODULES/Caching.md).

@@ -1,6 +1,10 @@
 package com.bankone.dashboard.dto;
 
-public class DashboardResponse {
+import java.io.Serializable;
+
+public class DashboardResponse implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private long customerCount;
     private long accountCount;

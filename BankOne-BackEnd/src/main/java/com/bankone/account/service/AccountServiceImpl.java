@@ -11,11 +11,15 @@ import com.bankone.account.util.AccountNumberGenerator;
 import com.bankone.audit.domain.AuditAction;
 import com.bankone.audit.domain.AuditCategory;
 import com.bankone.audit.service.AuditEventService;
+import com.bankone.cache.CacheNames;
 import com.bankone.customer.entity.Customer;
 import com.bankone.customer.repository.CustomerRepository;
 import com.bankone.account.enums.AccountStatus;
 import com.bankone.account.entity.AccountPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -60,6 +64,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ACCOUNTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.REPORTS, allEntries = true)
+    })
     public AccountResponse openAccount(OpenAccountRequest request) {
         // Validate customer
         Optional<Customer> customerOpt = customerRepository.findById(request.getCustomerId());
@@ -179,6 +188,8 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ACCOUNTS, key = "'customer:' + #customerId")
     public List<AccountResponse> getAccountsByCustomerId(Long customerId) {
         if (!customerRepository.existsById(customerId)) {
             throw new IllegalArgumentException("Customer not found");
@@ -190,6 +201,8 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ACCOUNTS, key = "'customerPage:' + #customerId + ':' + T(com.bankone.cache.CacheKeys).pageHash(null, #pageable)")
     public Page<AccountResponse> getAccountsByCustomerId(Long customerId, Pageable pageable) {
         if (!customerRepository.existsById(customerId)) {
             throw new IllegalArgumentException("Customer not found");
@@ -201,6 +214,12 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ACCOUNTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.REPORTS, allEntries = true)
+    })
     public AccountResponse updateAccountStatus(Long accountId, UpdateAccountStatusRequest request) {
         if (request == null || request.getStatus() == null) {
             throw new IllegalArgumentException("Account status is required");
@@ -238,6 +257,12 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ACCOUNTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.TRANSACTIONS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.REPORTS, allEntries = true)
+    })
     public AccountResponse deposit(Long accountId, DepositRequest request) {
         if (request == null || request.getAmount() == null) {
             throw new IllegalArgumentException("Deposit amount is required");
@@ -296,6 +321,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ACCOUNTS, key = "'search:' + T(com.bankone.cache.CacheKeys).pageHash(#search, #pageable)")
     public Page<AccountResponse> searchAccounts(String search, Pageable pageable) {
         return accountRepository
                 .findAll(AccountSpecification.matching(search), pageable)
@@ -356,6 +382,7 @@ public class AccountServiceImpl implements AccountService {
     }
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.ACCOUNTS, key = "'id:' + #accountId")
     public AccountResponse getAccountById(Long accountId) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
@@ -364,6 +391,12 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ACCOUNTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.TRANSACTIONS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.REPORTS, allEntries = true)
+    })
     public AccountResponse withdraw(Long accountId, WithdrawRequest request) {
         if (request == null || request.getAmount() == null) {
             throw new IllegalArgumentException("Withdraw amount is required");
@@ -425,6 +458,13 @@ public class AccountServiceImpl implements AccountService {
     }
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ACCOUNTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.TRANSACTIONS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.DASHBOARD, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.TRANSFERS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.REPORTS, allEntries = true)
+    })
     public AccountResponse transfer(Long fromAccountId, TransferRequest request) {
         if (request == null || request.getToAccountId() == null) {
             throw new IllegalArgumentException("Destination account is required");

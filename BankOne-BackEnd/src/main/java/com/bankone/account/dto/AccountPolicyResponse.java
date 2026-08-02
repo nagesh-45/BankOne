@@ -3,6 +3,7 @@ package com.bankone.account.dto;
 import com.bankone.account.enums.AccountType;
 import com.bankone.account.enums.CurrencyCode;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -13,7 +14,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AccountPolicyResponse {
+public class AccountPolicyResponse implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Long policyId;
     private AccountType accountType;

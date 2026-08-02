@@ -1,4 +1,7 @@
 package com.bankone.report.dto;
 
-public record NamedCount(String name, long count) {
+import java.io.Serializable;
+
+public record NamedCount(String name, long count) implements Serializable {
+    private static final long serialVersionUID = 1L;
 }

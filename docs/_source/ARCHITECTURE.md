@@ -10,7 +10,10 @@ Backend code lives in **`BankOne-BackEnd/`** (Maven); UI in **`BankOne-Frontend/
   **Open Liberty**
 - **Frontend:** Angular SPA with JWT Bearer auth (staff `/app/*`, portal
   `/portal/*`)
-- **Database:** PostgreSQL (`bankone`)
+- **Database:** PostgreSQL (`bankone` writes; optional `bankone_read`
+  for local read-replica lab)
+- **Redis (local):** cache-aside for hot reads + Bucket4j rate-limit
+  buckets — see [MODULES/Caching.md](./MODULES/Caching.md)
 - **Notifications (implemented):** Kafka topic `bankone.notifications` →
   email (Mailpit locally, SendGrid HTTPS on Render)
 
@@ -23,12 +26,13 @@ Learning / platform roadmap (rate limit, cache, outbox, sharding lab):
 ```
 flowchart LR
   UI[Angular SPA :4200] -->|HTTPS/HTTP JWT| API[Spring Boot on Liberty :9080]
-  API --> PG[(PostgreSQL :5432)]
+  API -->|cache-aside| Redis[(Redis :6379)]
+  API -->|writes| PG[(PostgreSQL bankone)]
+  API -->|reads when replica on| PGR[(bankone_read)]
   API -->|publish BankActionEvent| Kafka[Kafka]
   Kafka --> Consumer[NotificationConsumer]
   Consumer --> Mail[Mailpit or SendGrid]
 ```
-
 ## Package dependencies
 
 ```
@@ -47,16 +51,21 @@ flowchart TB
     audit[audit]
     report[report]
     dashboard[dashboard]
+    cache[cache]
+    ratelimit[ratelimit]
+    replica[replica]
     common[common]
   end
   auth --> user
   auth --> role
   auth --> audit
   customer --> account
+  customer --> cache
   account --> customer
   account --> transaction
   account --> notification
   account --> audit
+  account --> cache
   portal --> account
   portal --> beneficiary
   portal --> transfer
@@ -69,12 +78,14 @@ flowchart TB
   dashboard --> customer
   dashboard --> account
   dashboard --> user
+  dashboard --> cache
+  role --> cache
 ```
 
 Implemented packages include `transaction`, `notification`, `portal`,
-`beneficiary`, `transfer`, `audit`, `report`. Still stub: `branch`,
+`beneficiary`, `transfer`, `audit`, `report`, `cache` (Redis
+cache-aside), `ratelimit`, `replica` (local lab). Still stub: `branch`,
 full `loan` product.
-
 ## Layering (per feature module)
 
     controller → service (interface + impl) → repository → entity
@@ -117,6 +128,9 @@ Protected routes use `authGuard` with optional `data.roles`.
 
   Kafka (local)       9092                `docker compose up -d kafka`
 
+  Redis (local)       6379                `docker compose` Redis;
+                                          entity cache + rate limit
+
   Mailpit (local)     SMTP 1025 / UI 8025 `docker compose up -d mailpit`
 
   Embedded Tomcat     8080                `application.properties`
@@ -136,8 +150,11 @@ WAR artifact: `target/bankone-0.0.1-SNAPSHOT.war` →
 3.  Role checks via `SecurityConfig` matchers (+ `@PreAuthorize` on some
     user APIs)
 4.  Roles loaded from DB on each request (`CustomUserDetailsService` →
-    `UserRole`), **not** embedded in JWT claims
+    `UserRole`), **not** embedded in JWT claims (auth path is **not**
+    Redis-cached)
 5.  Account lockout via `LoginAttemptService` / user lock fields
+6.  Optional Redis rate limit on login/API (local;
+    `app.rate-limit.redis-enabled`)
 
 ## Data architecture
 
@@ -145,9 +162,14 @@ WAR artifact: `target/bankone-0.0.1-SNAPSHOT.war` →
 - Explicit SQL: `schema.sql` creates `account_ordinal_seq` only
 - Soft business IDs: `customerCode` is formatted in JSON
   (`BusinessIdFormatter`), not a DB column
+- **Cache-aside (local):** Spring Cache → Redis for major reads; evict
+  on writes. See [MODULES/Caching.md](./MODULES/Caching.md).
+- **Read replica lab (local):** writes → `bankone`, read-only txs →
+  `bankone_read`; sync via scheduler / `POST /admin/replica/sync`
 
 ## Related docs
 
+- [MODULES/Caching.md](./MODULES/Caching.md)
 - [CALL_FLOW.md](./CALL_FLOW.md)
 - [CLASS_DIAGRAM.md](./CLASS_DIAGRAM.md)
 - [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)

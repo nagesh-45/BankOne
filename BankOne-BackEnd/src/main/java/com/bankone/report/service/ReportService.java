@@ -1,6 +1,7 @@
 package com.bankone.report.service;
 
 import com.bankone.account.repository.AccountRepository;
+import com.bankone.cache.CacheNames;
 import com.bankone.common.exception.BadRequestException;
 import com.bankone.report.dto.AccountMixReport;
 import com.bankone.report.dto.ApprovalsReport;
@@ -20,6 +21,7 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +59,7 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.REPORTS, key = "'trends:' + T(com.bankone.cache.CacheKeys).rangeHash(#from, #to)")
     public TransactionTrendsReport transactionTrends(LocalDate from, LocalDate to) {
         Range range = requireRange(from, to);
         Instant fromTs = range.from().atStartOfDay().toInstant(ZoneOffset.UTC);
@@ -104,6 +107,7 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.REPORTS, key = "'accountMix'")
     public AccountMixReport accountMix() {
         List<NamedCount> byType = toNamedCounts(accountRepository.countGroupedByAccountType());
         List<NamedCount> byStatus = toNamedCounts(accountRepository.countGroupedByStatus());
@@ -112,6 +116,7 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.REPORTS, key = "'approvals:' + T(com.bankone.cache.CacheKeys).rangeHash(#from, #to)")
     public ApprovalsReport approvals(LocalDate from, LocalDate to) {
         Range range = requireRange(from, to);
         LocalDateTime fromAt = range.from().atStartOfDay();

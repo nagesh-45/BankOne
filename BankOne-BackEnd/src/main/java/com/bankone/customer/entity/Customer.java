@@ -10,6 +10,7 @@ import lombok.Setter;
 
 import com.bankone.common.util.BusinessIdFormatter;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -17,7 +18,9 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "customers")
-public class Customer {
+public class Customer implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

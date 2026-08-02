@@ -78,6 +78,7 @@
       mat-flat-button
       color="primary"
       type="button"
+      data-testid="employee-create-submit"
       (click)="save()"
       [disabled]="saving()">
       {{ saving() ? 'Saving...' : 'Create Employee' }}

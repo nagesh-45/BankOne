@@ -6,6 +6,7 @@ import com.bankone.audit.domain.AuditAction;
 import com.bankone.audit.domain.AuditCategory;
 import com.bankone.audit.service.AuditEventService;
 import com.bankone.beneficiary.enums.BeneficiaryBankType;
+import com.bankone.cache.CacheNames;
 import com.bankone.common.exception.BadRequestException;
 import com.bankone.common.exception.ResourceNotFoundException;
 import com.bankone.transfer.dto.PendingTransferResponse;
@@ -13,6 +14,9 @@ import com.bankone.transfer.dto.ResolveTransferRequest;
 import com.bankone.transfer.entity.TransferRequestEntity;
 import com.bankone.transfer.enums.TransferRequestStatus;
 import com.bankone.transfer.repository.TransferRequestRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +49,7 @@ public class TransferApprovalService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.TRANSFERS, key = "'pending'")
     public List<PendingTransferResponse> listPending() {
         return transferRequestRepository.findByStatusOrderByCreatedAtAsc(TransferRequestStatus.PENDING)
                 .stream()
@@ -54,6 +59,7 @@ public class TransferApprovalService {
 
     /** History for the currently logged-in employee (what they approved/rejected). */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.TRANSFERS, key = "'history:' + T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
     public List<PendingTransferResponse> listMyHistory() {
         String staff = SecurityContextHolder.getContext().getAuthentication().getName();
         return transferRequestRepository
@@ -65,6 +71,7 @@ public class TransferApprovalService {
 
     /** Full approval audit trail — Admin / Manager / Auditor. */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.TRANSFERS, key = "'audit'")
     public List<PendingTransferResponse> listAuditHistory() {
         return transferRequestRepository.findByStatusInOrderByResolvedAtDesc(RESOLVED)
                 .stream()
@@ -73,6 +80,12 @@ public class TransferApprovalService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.TRANSFERS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.ACCOUNTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.TRANSACTIONS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.REPORTS, allEntries = true)
+    })
     public PendingTransferResponse approve(Long id) {
         TransferRequestEntity pending = requirePending(id);
         String staff = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -108,6 +121,10 @@ public class TransferApprovalService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.TRANSFERS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.REPORTS, allEntries = true)
+    })
     public PendingTransferResponse reject(Long id, ResolveTransferRequest request) {
         TransferRequestEntity pending = requirePending(id);
         String staff = SecurityContextHolder.getContext().getAuthentication().getName();

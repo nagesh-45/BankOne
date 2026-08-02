@@ -139,3 +139,15 @@ Platform learning (full roadmap):
 See [TECH_LEARNING_PLAN.md](./TECH_LEARNING_PLAN.md) — rate limiting,
 idempotency, circuit breaker, cache, outbox, Flyway, observability,
 sharding lab, etc.
+
+### Redis cache-aside (local) — quick demo
+
+1.  Redis up (`docker compose`); Liberty with default
+    `app.cache.redis-enabled=true`.
+2.  Clear keys: `docker exec … redis-cli` scan `bankone:*`.
+3.  `GET /customers/{id}` or search customers twice — first miss
+    creates `bankone:customers::…`; second is a hit.
+4.  Update customer / deposit — related keys cleared.
+5.  Full how-it-works: [MODULES/Caching.md](./MODULES/Caching.md).
+6.  Prod / Render: keep `app.cache.redis-enabled=false` unless Redis
+    is provisioned and eviction is reviewed.

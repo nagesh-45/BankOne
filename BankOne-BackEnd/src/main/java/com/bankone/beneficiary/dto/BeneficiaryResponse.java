@@ -2,6 +2,7 @@ package com.bankone.beneficiary.dto;
 
 import com.bankone.beneficiary.enums.BeneficiaryBankType;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public record BeneficiaryResponse(
@@ -14,5 +15,6 @@ public record BeneficiaryResponse(
         String ifsc,
         String bankName,
         LocalDateTime createdAt
-) {
+) implements Serializable {
+    private static final long serialVersionUID = 1L;
 }

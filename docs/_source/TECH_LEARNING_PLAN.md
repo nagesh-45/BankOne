@@ -46,23 +46,26 @@ Phase F  Scale lab
 
 ## Core platform topics (original six + sharding)
 
-### 1. Rate limiting — Planned
+### 1. Rate limiting — Implemented (local)
 
 | | |
 |---|---|
 | **Use** | Cap requests per client/IP/user so abuse or loops cannot overwhelm the API |
-| **BankOne hooks** | Stricter limit on `POST /auth/login`; general limit on `/portal/**` and money APIs |
-| **Learn** | Token bucket (Bucket4j), HTTP `429`, `Retry-After`, in-memory vs Redis shared state |
-| **Demo** | Burst login attempts → 429; UI still usable at normal speed |
+| **BankOne hooks** | `RateLimitFilter` + Bucket4j Redis; login and general API limits |
+| **Learn** | Token bucket (Bucket4j), HTTP `429`, `Retry-After`, Redis shared state |
+| **Demo** | Burst login attempts → 429; UI snackbar; E2E `RateLimitLoginE2ETest` |
+| **Prod** | `app.rate-limit.redis-enabled=false` by default |
 
-### 2. Caching — Planned
+### 2. Caching — Implemented (local, Option C)
 
 | | |
 |---|---|
-| **Use** | Serve hot, rarely changing reads without hitting Postgres every time |
-| **BankOne hooks** | Account policies, role → access catalog, static reference data |
-| **Learn** | Cache-aside, TTL, eviction on policy/role update |
-| **Avoid caching** | Live balances right after deposit (unless explicit invalidate) |
+| **Use** | Serve hot reads without hitting Postgres every time |
+| **BankOne hooks** | Spring `@Cacheable` / `@CacheEvict` on customers, accounts, policies, roles, users, transactions, beneficiaries, dashboard, transfers, reports |
+| **Learn** | Cache-aside, TTL per region, eviction on write, JDK serialization for `Page`/`List` |
+| **Avoid caching** | Auth user load; live money without eviction (money APIs clear caches) |
+| **Docs** | [MODULES/Caching.md](./MODULES/Caching.md) |
+| **Prod** | `app.cache.redis-enabled=false` by default |
 
 ### 3. Circuit breaker + retry — Planned
 
@@ -129,7 +132,7 @@ Phase F  Scale lab
 | Pessimistic locks | Serialize money moves | `findByIdForUpdate` on withdraw/transfer | Implemented |
 | Saga / compensation | Multi-step other-bank settlement | Approve OTHER_BANK ≠ ledger yet | Planned |
 | Flyway / Liquibase | Versioned schema instead of only `ddl-auto` | New tables (`audit_event`, …) | Planned |
-| Read replicas (concept) | Scale reporting reads | Reports / audit list | Planned |
+| Read replicas (local lab) | Scale reporting reads; sync lag demo | `bankone` / `bankone_read`, `ReplicaSyncService`, Management Sync | Implemented (local) |
 
 ### Observability
 
@@ -193,6 +196,13 @@ Use these as **starting points** when implementing the plan:
 
   Reports + PDF                      `com.bankone.report`
 
+  Redis rate limit (local)           `com.bankone.ratelimit`
+
+  Redis cache-aside (local)          `com.bankone.cache` —
+                                     [MODULES/Caching.md](./MODULES/Caching.md)
+
+  Read replica lab (local)           `com.bankone.replica`
+
   Actuator dependency                `pom.xml`
   -----------------------------------------------------------------------
 
@@ -201,15 +211,15 @@ Use these as **starting points** when implementing the plan:
 ## Suggested build sequence (concrete)
 
 1. **Correlation ID filter** (small, high clarity)
-2. **Rate limit login** (Bucket4j in-memory)
+2. ~~**Rate limit login** (Bucket4j)~~ → **done** (Redis local)
 3. **Idempotency on deposit/transfer**
 4. **Circuit breaker around Kafka/mail publish**
-5. **Redis cache for account policies**
+5. ~~**Redis cache**~~ → **done** (Option C local; see Caching module)
 6. **Outbox table + poller** (replace fire-and-forget publish)
 7. **Flyway** for next schema change
 8. **DLQ + consumer idempotency**
 9. **OpenAPI**
-10. **Sharding lab** (router interface only, then optional 2nd DB)
+10. ~~**Sharding lab**~~ → **partial** (UUID shard-lab vertical slice)
 
 ---
 
@@ -231,5 +241,5 @@ Use these as **starting points** when implementing the plan:
 - **Idempotency:** retries safe for money.
 - **Outbox:** DB and messaging stay consistent.
 - **Circuit breaker:** unhealthy dependency must not freeze the bank API.
-- **Cache:** speed reads you can afford to be slightly stale or invalidate.
+- **Cache:** cache-aside — miss loads DB, hit serves Redis; evict on write; TTL bounds staleness.
 - **Shard:** last resort after vertical scale, indexes, replicas, and caching.

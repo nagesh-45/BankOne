@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
@@ -16,17 +15,16 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Makes Render / Heroku-style DATABASE_URL and postgres:// URLs work with Spring JDBC.
- * Also forces sslmode=require for *.render.com hosts.
+ * Write (primary) DataSource. When replica is disabled, {@link com.bankone.replica.ReplicaDataSourceConfig}
+ * exposes this same pool as {@code @Primary}. When replica is enabled, routing DS is {@code @Primary}.
  */
 @Configuration
 public class DataSourceConfig {
 
     private static final Logger log = LoggerFactory.getLogger(DataSourceConfig.class);
 
-    @Bean
-    @Primary
-    public DataSource dataSource(
+    @Bean(name = "writeDataSource")
+    public DataSource writeDataSource(
             @Value("${SPRING_DATASOURCE_URL:${DATABASE_URL:${spring.datasource.url:}}}") String rawUrl,
             @Value("${SPRING_DATASOURCE_USERNAME:${spring.datasource.username:}}") String username,
             @Value("${SPRING_DATASOURCE_PASSWORD:${spring.datasource.password:}}") String password
@@ -40,7 +38,6 @@ public class DataSourceConfig {
         String user = username;
         String pass = password;
 
-        // If URL embeds credentials (postgres://user:pass@host/db), prefer those when env user blank
         ParsedPostgresUrl parsed = tryParsePostgresStyle(rawUrl.trim());
         if (parsed != null) {
             jdbcUrl = parsed.jdbcUrl();
@@ -55,13 +52,14 @@ public class DataSourceConfig {
         jdbcUrl = ensureSslModeForRender(jdbcUrl);
 
         String safeHost = jdbcUrl.replaceAll("(?i)(password=)[^&]*", "$1***");
-        log.info("Configuring DataSource jdbcUrl={}", safeHost);
+        log.info("Configuring write DataSource jdbcUrl={}", safeHost);
 
         HikariDataSource ds = new HikariDataSource();
         ds.setJdbcUrl(jdbcUrl);
         ds.setUsername(user);
         ds.setPassword(pass);
         ds.setDriverClassName("org.postgresql.Driver");
+        ds.setPoolName("bankone-write");
         ds.setMaximumPoolSize(5);
         ds.setConnectionTimeout(30_000);
         return ds;

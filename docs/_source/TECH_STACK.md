@@ -5,7 +5,7 @@ whenever dependencies, runtimes, or tooling change** (add, upgrade,
 remove, or replace). Source of truth for versions: `BankOne-BackEnd/pom.xml`
 and `BankOne-Frontend/package.json`.
 
-Last reviewed: 2026-07-31
+Last reviewed: 2026-08-02
 
 ## At a glance
 
@@ -14,7 +14,9 @@ Last reviewed: 2026-07-31
   -------------------- --------------------------------------------------
   Backend              Java 21 · Spring Boot 4.1 · Maven · WAR
   Frontend             Angular 22 · TypeScript 6 · npm · SCSS
-  Database             PostgreSQL
+  Database             PostgreSQL (`bankone` write; optional
+                       `bankone_read` replica lab)
+  Cache / rate limit   Redis (local Docker; entity cache + Bucket4j)
   Messaging            Apache Kafka (local Docker / Aiven on Render)
   Email                Mailpit (local SMTP) · Twilio SendGrid HTTPS (Render)
   Auth                 Spring Security · JWT (JJWT)
@@ -82,14 +84,39 @@ Last reviewed: 2026-07-31
   -----------------------------------------------------------------------
   Technology           Notes
   -------------------- --------------------------------------------------
-  PostgreSQL           Database `bankone`, JDBC URL in
-                       `application.properties`
+  PostgreSQL           Primary DB `bankone`; optional read lab DB
+                       `bankone_read` (`app.replica.*`)
 
   PostgreSQL JDBC      `org.postgresql:postgresql` (runtime)
   driver
 
   schema.sql /         SQL init (`spring.sql.init.mode=always`)
   data.sql
+  -----------------------------------------------------------------------
+
+### Redis — cache-aside & rate limiting (local)
+
+  -----------------------------------------------------------------------
+  Technology           Purpose
+  -------------------- --------------------------------------------------
+  Redis                Docker Compose service typically `:6379`
+                       (`REDIS_HOST` / `REDIS_PORT`)
+
+  spring-boot-starter- Lettuce client; shared host for rate limit +
+  data-redis           entity cache
+
+  spring-boot-starter- Spring `@Cacheable` / `@CacheEvict`
+  cache
+
+  Bucket4j + Lettuce   Login / API rate-limit buckets when
+                       `app.rate-limit.redis-enabled=true`
+
+  Entity cache         `com.bankone.cache` — cache-aside for major
+                       reads; `app.cache.redis-enabled` (prod off);
+                       JDK value serialization; keys
+                       `bankone:<region>::…`
+
+  Docs                 [MODULES/Caching.md](./MODULES/Caching.md)
   -----------------------------------------------------------------------
 
 ### Messaging & email
@@ -202,7 +229,10 @@ Last reviewed: 2026-07-31
   Embedded Tomcat      Alternate local run via Spring Boot
                        (`server.port=8080`)
 
-  PostgreSQL           Persistence (localhost:5432 typical)
+  PostgreSQL           Persistence (localhost:5432 typical);
+                       `bankone` (+ optional `bankone_read`)
+
+  Redis                Local cache + rate-limit store (`:6379`)
   -----------------------------------------------------------------------
 
 ## Documentation toolchain

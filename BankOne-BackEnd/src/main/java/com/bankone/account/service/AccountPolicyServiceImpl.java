@@ -10,7 +10,10 @@ import com.bankone.account.repository.AccountPolicyRepository;
 import com.bankone.audit.domain.AuditAction;
 import com.bankone.audit.domain.AuditCategory;
 import com.bankone.audit.service.AuditEventService;
+import com.bankone.cache.CacheNames;
 import com.bankone.common.exception.ResourceNotFoundException;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,7 @@ public class AccountPolicyServiceImpl implements AccountPolicyService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.POLICIES, allEntries = true)
     public AccountPolicyResponse createPolicy(CreateAccountPolicyRequest request) {
         AccountPolicy policy = new AccountPolicy();
         policy.setAccountType(request.getAccountType());
@@ -47,6 +51,7 @@ public class AccountPolicyServiceImpl implements AccountPolicyService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.POLICIES, key = "'active:' + #accountType + ':' + #currencyCode")
     public AccountPolicyResponse getActivePolicy(String accountType, String currencyCode) {
         AccountType type = AccountType.valueOf(accountType.trim().toUpperCase());
         CurrencyCode currency = CurrencyCode.valueOf(currencyCode.trim().toUpperCase());
@@ -61,6 +66,7 @@ public class AccountPolicyServiceImpl implements AccountPolicyService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.POLICIES, key = "'all'")
     public List<AccountPolicyResponse> listAll() {
         return accountPolicyRepository.findAllByOrderByAccountTypeAscCurrencyCodeAsc()
                 .stream()
@@ -70,6 +76,7 @@ public class AccountPolicyServiceImpl implements AccountPolicyService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.POLICIES, allEntries = true)
     public AccountPolicyResponse updatePolicy(Long policyId, UpdateAccountPolicyRequest request) {
         AccountPolicy policy = accountPolicyRepository.findById(policyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account policy not found"));

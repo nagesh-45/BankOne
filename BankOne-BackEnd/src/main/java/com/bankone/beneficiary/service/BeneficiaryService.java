@@ -10,9 +10,12 @@ import com.bankone.beneficiary.dto.CreateBeneficiaryRequest;
 import com.bankone.beneficiary.entity.Beneficiary;
 import com.bankone.beneficiary.enums.BeneficiaryBankType;
 import com.bankone.beneficiary.repository.BeneficiaryRepository;
+import com.bankone.cache.CacheNames;
 import com.bankone.common.exception.BadRequestException;
 import com.bankone.common.exception.ResourceNotFoundException;
 import com.bankone.portal.service.PortalCustomerContext;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -40,6 +43,7 @@ public class BeneficiaryService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.BENEFICIARIES, key = "'user:' + @portalCustomerContext.requireCustomerId()")
     public List<BeneficiaryResponse> listMine() {
         Long customerId = portalCustomerContext.requireCustomerId();
         return beneficiaryRepository.findByCustomerIdAndActiveTrueOrderByNicknameAsc(customerId)
@@ -49,6 +53,7 @@ public class BeneficiaryService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.BENEFICIARIES, allEntries = true)
     public BeneficiaryResponse createMine(CreateBeneficiaryRequest request) {
         Long customerId = portalCustomerContext.requireCustomerId();
         BeneficiaryBankType type = request.getBankType();
@@ -98,6 +103,7 @@ public class BeneficiaryService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.BENEFICIARIES, allEntries = true)
     public void deactivateMine(Long beneficiaryId) {
         Long customerId = portalCustomerContext.requireCustomerId();
         Beneficiary beneficiary = beneficiaryRepository

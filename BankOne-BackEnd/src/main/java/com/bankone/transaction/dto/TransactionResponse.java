@@ -2,10 +2,13 @@ package com.bankone.transaction.dto;
 
 import com.bankone.transaction.enums.TransactionType;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public class TransactionResponse {
+public class TransactionResponse implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Long transactionId;
     private Long accountId;

@@ -46,6 +46,7 @@
               mat-flat-button
               type="button"
               class="create-button"
+              data-testid="create-employee-btn"
               (click)="openCreateEmployee()">
               <mat-icon>badge</mat-icon>
               Create employee
@@ -109,6 +110,49 @@
               <mat-icon>fact_check</mat-icon>
               Open audit
             </a>
+          </div>
+        </div>
+      </mat-card>
+    }
+
+    @if (canSyncReplica) {
+      <mat-card class="hub-card primary-card">
+        <div class="card-icon replica">
+          <mat-icon>sync</mat-icon>
+        </div>
+        <div class="card-body">
+          <h2>Read replica</h2>
+          <p>
+            Copy write-DB data to the read replica now (also runs automatically every ~2 minutes when enabled).
+          </p>
+          @if (replicaUnavailable()) {
+            <p class="replica-meta warn">Replica API not available (disabled or offline).</p>
+          } @else if (replicaStatus(); as status) {
+            <p class="replica-meta">
+              Last sync:
+              {{ status.lastSyncAt ? (status.lastSyncAt | date: 'medium') : 'never' }}
+              · {{ status.message }}
+            </p>
+          }
+          <div class="card-actions">
+            <button
+              mat-flat-button
+              type="button"
+              class="create-button"
+              data-testid="replica-sync-btn"
+              [disabled]="replicaSyncing() || replicaUnavailable()"
+              (click)="runReplicaSync()">
+              <mat-icon>sync</mat-icon>
+              {{ replicaSyncing() ? 'Syncing…' : 'Sync replica now' }}
+            </button>
+            <button
+              mat-stroked-button
+              type="button"
+              class="secondary-link"
+              [disabled]="replicaSyncing()"
+              (click)="refreshReplicaStatus()">
+              Refresh status
+            </button>
           </div>
         </div>
       </mat-card>

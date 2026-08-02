@@ -13,7 +13,7 @@ public class RateLimitProperties {
     private boolean enabled = true;
 
     /** When true, buckets are stored in Redis (local learning). */
-    private boolean redisEnabled = false;
+    private boolean redisEnabled = true;
 
     /** Login attempts allowed per client key per minute. */
     private int loginPerMinute = 10;

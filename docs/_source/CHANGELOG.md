@@ -4,6 +4,18 @@ Append-only history of documentation-relevant product changes.
 
 ---
 
+## 2026-08-02 — Redis cache-aside (Option C, local)
+
+| Field | Value |
+|-------|-------|
+| **Feature** | Document Redis cache-aside how-it-works; mark learning topics current |
+| **Files Modified** | `MODULES/Caching.md` (new); `TECH_STACK`, `ARCHITECTURE`, `TECH_LEARNING_PLAN`, `README`, `DEVELOPMENT_GUIDE`, `DATABASE_SCHEMA`, `CALL_FLOW`, `SEQUENCE_DIAGRAMS`, `CHANGE_IMPACT_GUIDE`, `FUNCTIONAL_SPECIFICATION`, `EXTENSION_GUIDE`, `INTERVIEW_QA`, `MODULES/Customer`, `MODULES/Account`, `CHANGELOG` |
+| **Classes / APIs covered** | `com.bankone.cache` (`RedisCacheConfig`, `CacheNames`, `CacheKeys`); `@Cacheable`/`@CacheEvict` on customer/account/policy/user/role/transaction/beneficiary/dashboard/transfer/report services; `APP_CACHE_REDIS` |
+| **Reason** | User asked to update all docs with how caching works |
+| **Impact** | Docs describe cache-aside flow, TTLs, eviction, JDK serialization, verify steps; prod remains cache-off by default |
+
+---
+
 ## 2026-07-31 — Docs sync + technical learning plan
 
 | Field | Value |

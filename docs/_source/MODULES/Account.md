@@ -31,6 +31,11 @@ See [CALL_FLOW.md](../CALL_FLOW.md#open-account),
 [deposit](../CALL_FLOW.md#deposit), [get active account
 policy](../CALL_FLOW.md#get-active-account-policy).
 
+Account and policy **reads** use Redis cache-aside locally; money
+writes (deposit/withdraw/transfer/open) **evict** `accounts` /
+`transactions` / `dashboard` (and related). See
+[Caching.md](./Caching.md).
+
 ## 5. Database Tables
 
   -------------------------------------------------------------

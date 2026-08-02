@@ -28,7 +28,16 @@ module's **Future Modification Guide**.
 
   Balance      `AccountServiceImpl` deposit /    `TransactionService.record`,
   mutation     withdraw / transfer / open         Kafka publish sites,
-                                                dashboard counts
+                                                dashboard counts,
+                                                Redis cache eviction
+                                                (`accounts` /
+                                                `transactions` /
+                                                `dashboard`)
+
+  Redis cache  `com.bankone.cache`,             All `@Cacheable` services,
+               `@Cacheable` / `@CacheEvict`     TTL config, flush Redis
+                                                after serializer changes
+                                                — [MODULES/Caching.md]
 
   Notification `NotificationEventPublisher`,     Mail env (`MAIL_*`),
   email        `NotificationEventConsumer`,      Kafka topic / Aiven,

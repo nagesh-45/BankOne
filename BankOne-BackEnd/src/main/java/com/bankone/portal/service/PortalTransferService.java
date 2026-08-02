@@ -10,6 +10,7 @@ import com.bankone.audit.service.AuditEventService;
 import com.bankone.beneficiary.entity.Beneficiary;
 import com.bankone.beneficiary.enums.BeneficiaryBankType;
 import com.bankone.beneficiary.repository.BeneficiaryRepository;
+import com.bankone.cache.CacheNames;
 import com.bankone.common.exception.BadRequestException;
 import com.bankone.common.exception.ResourceNotFoundException;
 import com.bankone.customer.entity.Customer;
@@ -19,6 +20,7 @@ import com.bankone.transfer.dto.TransferOutcomeResponse;
 import com.bankone.transfer.entity.TransferRequestEntity;
 import com.bankone.transfer.enums.TransferRequestStatus;
 import com.bankone.transfer.repository.TransferRequestRepository;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -58,6 +60,7 @@ public class PortalTransferService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheNames.TRANSFERS, CacheNames.REPORTS}, allEntries = true)
     public TransferOutcomeResponse transfer(Long fromAccountId, PortalTransferRequest request) {
         Long customerId = portalCustomerContext.requireCustomerId();
         // Ensures ownership

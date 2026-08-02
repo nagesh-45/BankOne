@@ -28,6 +28,9 @@ an initial product.
 See
 [CALL_FLOW.md](../CALL_FLOW.md#create-customer-optional-first-account).
 
+Reads (`getById`, search, getAll) are **cache-aside** via Redis when
+`app.cache.redis-enabled=true` (local). Writes evict the `customers`
+region. Details: [Caching.md](./Caching.md).
 ## 5. Database Tables
 
 `customers` (+ creates rows in `account` when opening products)
