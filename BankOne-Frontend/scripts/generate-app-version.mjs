@@ -3,6 +3,10 @@
  * Writes src/environments/version.generated.ts from git / CI.
  * Format: <branch>-<digits>  e.g. main-142
  * Commit part is digits-only (git commit count), not the hex SHA.
+ *
+ * Local (ng serve / local build): always use main tip → main-<count on main>
+ * so the label matches what is on the main branch, not a feature checkout.
+ * CI/Netlify: use the branch being built (BRANCH / git HEAD).
  */
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -36,7 +40,20 @@ function firstGit(cmd) {
   return null;
 }
 
-function resolveBranch() {
+function isCiBuild() {
+  return Boolean(
+    process.env.BRANCH ||
+      process.env.HEAD_REF ||
+      process.env.GITHUB_REF_NAME ||
+      process.env.RENDER_GIT_BRANCH ||
+      process.env.CF_PAGES_BRANCH ||
+      process.env.CI ||
+      process.env.NETLIFY ||
+      process.env.GITHUB_ACTIONS
+  );
+}
+
+function resolveDeployBranch() {
   const fromEnv = (
     process.env.BRANCH ||
     process.env.HEAD_REF ||
@@ -54,7 +71,6 @@ function resolveBranch() {
     return ref;
   }
 
-  // Detached HEAD: try remote-tracking branch for this commit
   const describe = firstGit('git name-rev --name-only --exclude=tags/* HEAD');
   if (describe && describe !== 'undefined') {
     return describe.replace(/~\d+$/, '').replace(/^remotes\/origin\//, '');
@@ -63,32 +79,45 @@ function resolveBranch() {
   return 'unknown';
 }
 
+/** Safe git refs only — never interpolate untrusted input into git commands. */
+function resolveVersionSource() {
+  if (!isCiBuild()) {
+    if (firstGit('git rev-parse --verify origin/main')) {
+      return { branch: 'main', rev: 'origin/main' };
+    }
+    if (firstGit('git rev-parse --verify main')) {
+      return { branch: 'main', rev: 'main' };
+    }
+  }
+
+  return { branch: resolveDeployBranch(), rev: 'HEAD' };
+}
+
 function digitsOnly(value) {
   const digits = String(value || '').replace(/\D/g, '');
   return digits || null;
 }
 
-function resolveCommit() {
+function resolveCommit(rev) {
   if (process.env.APP_VERSION && process.env.APP_VERSION.trim()) {
-    // Allow full override as the whole label if set
     return null;
   }
 
-  // Prefer commit ordinal (0-9 only). Works when full history is available.
-  const count = firstGit('git rev-list --count HEAD');
+  const count = firstGit(`git rev-list --count ${rev}`);
   if (count && /^\d+$/.test(count)) {
     return count;
   }
 
-  // Shallow CI clone fallback: turn short hex SHA into a decimal number.
   const short =
-    firstGit('git rev-parse --short=7 HEAD') ||
+    firstGit(`git rev-parse --short=7 ${rev}`) ||
     (process.env.COMMIT_REF ||
       process.env.GITHUB_SHA ||
       process.env.RENDER_GIT_COMMIT ||
       process.env.CF_PAGES_COMMIT_SHA ||
       ''
-    ).trim().slice(0, 7);
+    )
+      .trim()
+      .slice(0, 7);
 
   if (short && /^[0-9a-f]+$/i.test(short)) {
     return String(parseInt(short, 16));
@@ -102,8 +131,8 @@ function resolveVersion() {
     return process.env.APP_VERSION.trim();
   }
 
-  const branch = resolveBranch();
-  const commit = resolveCommit();
+  const { branch, rev } = resolveVersionSource();
+  const commit = resolveCommit(rev);
   return `${branch}-${commit}`;
 }
 

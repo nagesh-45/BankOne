@@ -77,6 +77,10 @@ export class Login {
         this.router.navigate([this.auth.homeRoute()]);
       },
       error: (error) => {
+        if (error?.status === 429) {
+          this.notification.error('Too many requests. Please try again later.');
+          return;
+        }
         this.notification.error(
           error.error?.message ?? 'Login failed'
         );

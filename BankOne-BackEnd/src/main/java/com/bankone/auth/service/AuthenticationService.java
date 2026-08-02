@@ -1,5 +1,6 @@
 package com.bankone.auth.service;
 
+import com.bankone.notification.NotificationEventPublisher;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,14 +34,14 @@ public class AuthenticationService {
     private final LoginAttemptService loginAttemptService;
     private final PasswordEncoder passwordEncoder;
     private final AuditEventService auditEventService;
-
+    private final NotificationEventPublisher notificationEventPublisher;
     public AuthenticationService(AuthenticationManager authenticationManager,
                                  UserRepository userRepository,
                                  UserRoleRepository userRoleRepository,
                                  JwtService jwtService,
                                  LoginAttemptService loginAttemptService,
                                  PasswordEncoder passwordEncoder,
-                                 AuditEventService auditEventService) {
+                                 AuditEventService auditEventService, NotificationEventPublisher notificationEventPublisher) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
@@ -48,6 +49,7 @@ public class AuthenticationService {
         this.loginAttemptService = loginAttemptService;
         this.passwordEncoder = passwordEncoder;
         this.auditEventService = auditEventService;
+        this.notificationEventPublisher = notificationEventPublisher;
     }
 
     public LoginResponse login(String username, String password) {
@@ -139,6 +141,15 @@ public class AuthenticationService {
                 "User logged in",
                 "roles=" + String.join(",", roles),
                 true
+        );
+        notificationEventPublisher.publish(
+                "AUTH Service",
+                "LOGIN",
+                String.valueOf(user.getUserId()),
+                " Hi " + user.getUsername() + " Login success "
+                ,
+                String.valueOf(user.getCreatedBy()),
+                user.getEmail()
         );
 
         return new LoginResponse(
